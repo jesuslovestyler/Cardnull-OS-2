@@ -659,7 +659,7 @@ iso from day one like the first OS." `./build-iso.sh` lays it:
 - `dist/cardnull-os-2.iso` — 8,904,704 bytes, as built November 15,
   2026 (the disc of Stone 11: the framebuffer kernel, Cardnull's own
   bootloader at the BIOS door, GRUB still at the EFI door).
-  sha256: `884f97380700d4a05ee0047a73772e68acf95f71bf156cde99d05ddf3fb52b53`
+  sha256: `1cbdb059ca65d916cb16f565b9253d79d2fbe8220f3589386424e3c02c3917e4`
   (The ISO file itself is a build product and is not kept in this
   repository; the hash records the disc the proof below was run
   against, and `./build-iso.sh` rebuilds it.)
