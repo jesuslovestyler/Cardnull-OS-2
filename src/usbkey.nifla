@@ -37,6 +37,7 @@
 //  56  the waiting keys: the next one's place
 //  60  the waiting keys themselves (sixteen of them)
 //  76  the last report's six key places
+//  82  the last report's modifier byte (Stone 12)
 //  84  a descriptor-laying's particulars (next, packet,
 //      address, door, toggle, length, inward, buffer)
 //     at 84, 88, 92, 96, 100, 104, 108, 112
@@ -54,7 +55,8 @@
 // keyboard itself is spoken to as the HID boot keyboard
 // the standard describes: arranged, set to its boot
 // manner, and asked for its reports on its interrupt door,
-// each report eight bytes whose last six places name the
+// each report eight bytes whose first byte names the
+// modifiers held down and whose last six places name the
 // keys held down. Both roads feed the one typing line: the
 // main loop asks the PS/2 road first and this road second,
 // each pass, and a key from either is the same key to
@@ -847,10 +849,38 @@ make usbinit(desk: bytes) -> number {
 // numbers the rest of the system speaks — the make codes
 // of the first key set, the same table charFor answers,
 // kept here in the USB road's own numbering: the letters
-// in their HID order, then Enter, Backspace, and Space.
-// A usage with no letter here gives back 0: the modifier
-// keys among them, which this system does not speak yet.
+// in their HID order, the figures and the marks (Stone
+// 12), then Enter, Backspace, Space, Tab, and Caps Lock —
+// whose number the main body answers by turning the caps
+// standing over, exactly as the PS/2 road's own press of
+// it does. A usage with no letter here gives back 0: the
+// modifier keys among them — the shifts are not usages in
+// the report's key places at all; they stand in its first
+// byte, and usbnewkeys below speaks them.
 make usagekey(u: number) -> number {
+    if u == 30 { give 2 }
+    if u == 31 { give 3 }
+    if u == 32 { give 4 }
+    if u == 33 { give 5 }
+    if u == 34 { give 6 }
+    if u == 35 { give 7 }
+    if u == 36 { give 8 }
+    if u == 37 { give 9 }
+    if u == 38 { give 10 }
+    if u == 39 { give 11 }
+    if u == 45 { give 12 }
+    if u == 46 { give 13 }
+    if u == 47 { give 26 }
+    if u == 48 { give 27 }
+    if u == 49 { give 43 }
+    if u == 51 { give 39 }
+    if u == 52 { give 40 }
+    if u == 53 { give 41 }
+    if u == 54 { give 51 }
+    if u == 55 { give 52 }
+    if u == 56 { give 53 }
+    if u == 43 { give 15 }
+    if u == 57 { give 58 }
     if u == 4 { give 30 }
     if u == 5 { give 48 }
     if u == 6 { give 46 }
@@ -883,6 +913,22 @@ make usagekey(u: number) -> number {
     give 0
 }
 
+// Lays one key number in the waiting queue, in the order
+// the keys were pressed; 'counted' says whether the road's
+// ledger of keys brought counts it — the letters and their
+// kin are counted, the shift standings are not (they are
+// the road's grammar, not its letters, as they were when
+// the count was first kept at Stone 6).
+make usbpush(desk: bytes, code: number, counted: number) {
+    let tail = get32(desk, 56)
+    let slot = tail - (tail / 16) * 16
+    desk[60 + slot] = code
+    put32(desk, 56, tail + 1)
+    if counted == 1 {
+        put32(desk, 48, get32(desk, 48) + 1)
+    }
+}
+
 // Reads one completed report: the usages standing in it
 // that were not standing in the last one are new presses —
 // each is translated, counted in the ledger, and laid in
@@ -890,8 +936,35 @@ make usagekey(u: number) -> number {
 // (A report names every key held down, so a key still held
 // is not a new press; the release reports between presses
 // are what let a letter come twice.)
+//
+// Before the keys, the report's first byte is read (Stone
+// 12): it names the modifiers held down, and when the
+// shift standing — either shift key, the byte's second or
+// sixth bit — has changed since the last report, the
+// change itself is queued first, in the PS/2 road's own
+// numbers for its left shift (42 down, 170 up), so the
+// main body keeps one shift standing for both roads. The
+// last report's modifier byte is kept at 82 in the desk.
 make usbnewkeys(desk: bytes) {
     let r = get32(desk, 44)
+    let mods = desk[r]
+    let shnow = 0
+    if andmask(mods, 34) != 0 {
+        shnow = 1
+    }
+    let shwas = 0
+    if andmask(desk[82], 34) != 0 {
+        shwas = 1
+    }
+    if shnow != shwas {
+        if shnow == 1 {
+            usbpush(desk, 42, 0)
+        }
+        if shnow == 0 {
+            usbpush(desk, 170, 0)
+        }
+    }
+    desk[82] = mods
     let i = 2
     while i < 8 {
         let u = desk[r + i]
@@ -907,11 +980,7 @@ make usbnewkeys(desk: bytes) {
             if seen == 0 {
                 let code = usagekey(u)
                 if code != 0 {
-                    let tail = get32(desk, 56)
-                    let slot = tail - (tail / 16) * 16
-                    desk[60 + slot] = code
-                    put32(desk, 56, tail + 1)
-                    put32(desk, 48, get32(desk, 48) + 1)
+                    usbpush(desk, code, 1)
                 }
             }
         }

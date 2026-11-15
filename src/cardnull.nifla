@@ -95,6 +95,13 @@
 //          desktop and says so in plain words. The drawn
 //          face is also what the EFI door needed: the disc
 //          now boots under UEFI firmware too.
+// Stone 12: real typing — the shift keys and Caps Lock
+//          speak on both roads, so capitals, the figures,
+//          and their marks can be typed; and a typed line
+//          may hold more than one word: its first word is
+//          its command word, and the rest of the line is
+//          kept whole as handed text (linerest) for the
+//          words that want it.
 //
 // The arrangement of the screen:
 //   row 0      the bar — "Cardnull" at the left, the date
@@ -110,46 +117,98 @@
 // the honest count since waking, as it did before.
 
 
-// ---- the keyboard's letters (Stone 2) ----
+// ---- the keyboard's letters (Stone 2, grown at Stone 12) ----
+//
+// A key number (the make code of the first key set — both
+// roads speak these, the USB road by translation) and the
+// shift standing that was resolved for it when it was
+// pressed: 1 when the letter stands capital, or the figure
+// stands as its shifted mark. The caller's resolving folds
+// Caps Lock in for the letters alone (see isletter and the
+// loop). Stone 2's table knew only the small letters and
+// the space; Stone 12 teaches the whole board a person
+// types on — the figures and their marks, and the marks
+// that stand between the letters.
 
-make charFor(code) {
-    if code == 16 { give "q" }
-    if code == 17 { give "w" }
-    if code == 18 { give "e" }
-    if code == 19 { give "r" }
-    if code == 20 { give "t" }
-    if code == 21 { give "y" }
-    if code == 22 { give "u" }
-    if code == 23 { give "i" }
-    if code == 24 { give "o" }
-    if code == 25 { give "p" }
-    if code == 30 { give "a" }
-    if code == 31 { give "s" }
-    if code == 32 { give "d" }
-    if code == 33 { give "f" }
-    if code == 34 { give "g" }
-    if code == 35 { give "h" }
-    if code == 36 { give "j" }
-    if code == 37 { give "k" }
-    if code == 38 { give "l" }
-    if code == 44 { give "z" }
-    if code == 45 { give "x" }
-    if code == 46 { give "c" }
-    if code == 47 { give "v" }
-    if code == 48 { give "b" }
-    if code == 49 { give "n" }
-    if code == 50 { give "m" }
+make charFor(code, mod) {
+    if code == 2 { if mod == 1 { give "!" } give "1" }
+    if code == 3 { if mod == 1 { give "@" } give "2" }
+    if code == 4 { if mod == 1 { give "#" } give "3" }
+    if code == 5 { if mod == 1 { give "$" } give "4" }
+    if code == 6 { if mod == 1 { give "%" } give "5" }
+    if code == 7 { if mod == 1 { give "^" } give "6" }
+    if code == 8 { if mod == 1 { give "&" } give "7" }
+    if code == 9 { if mod == 1 { give "*" } give "8" }
+    if code == 10 { if mod == 1 { give "(" } give "9" }
+    if code == 11 { if mod == 1 { give ")" } give "0" }
+    if code == 12 { if mod == 1 { give "_" } give "-" }
+    if code == 13 { if mod == 1 { give "+" } give "=" }
+    if code == 16 { if mod == 1 { give "Q" } give "q" }
+    if code == 17 { if mod == 1 { give "W" } give "w" }
+    if code == 18 { if mod == 1 { give "E" } give "e" }
+    if code == 19 { if mod == 1 { give "R" } give "r" }
+    if code == 20 { if mod == 1 { give "T" } give "t" }
+    if code == 21 { if mod == 1 { give "Y" } give "y" }
+    if code == 22 { if mod == 1 { give "U" } give "u" }
+    if code == 23 { if mod == 1 { give "I" } give "i" }
+    if code == 24 { if mod == 1 { give "O" } give "o" }
+    if code == 25 { if mod == 1 { give "P" } give "p" }
+    if code == 26 { if mod == 1 { give "{" } give "[" }
+    if code == 27 { if mod == 1 { give "}" } give "]" }
+    if code == 30 { if mod == 1 { give "A" } give "a" }
+    if code == 31 { if mod == 1 { give "S" } give "s" }
+    if code == 32 { if mod == 1 { give "D" } give "d" }
+    if code == 33 { if mod == 1 { give "F" } give "f" }
+    if code == 34 { if mod == 1 { give "G" } give "g" }
+    if code == 35 { if mod == 1 { give "H" } give "h" }
+    if code == 36 { if mod == 1 { give "J" } give "j" }
+    if code == 37 { if mod == 1 { give "K" } give "k" }
+    if code == 38 { if mod == 1 { give "L" } give "l" }
+    if code == 39 { if mod == 1 { give ":" } give ";" }
+    if code == 40 { if mod == 1 { give "\"" } give "'" }
+    if code == 41 { if mod == 1 { give "~" } give "`" }
+    if code == 43 { if mod == 1 { give "|" } give "\\" }
+    if code == 44 { if mod == 1 { give "Z" } give "z" }
+    if code == 45 { if mod == 1 { give "X" } give "x" }
+    if code == 46 { if mod == 1 { give "C" } give "c" }
+    if code == 47 { if mod == 1 { give "V" } give "v" }
+    if code == 48 { if mod == 1 { give "B" } give "b" }
+    if code == 49 { if mod == 1 { give "N" } give "n" }
+    if code == 50 { if mod == 1 { give "M" } give "m" }
+    if code == 51 { if mod == 1 { give "<" } give "," }
+    if code == 52 { if mod == 1 { give ">" } give "." }
+    if code == 53 { if mod == 1 { give "?" } give "/" }
     if code == 57 { give " " }
     give ""
 }
 
-// The typed line, rebuilt from the first 'count' scancodes
-// in 'buf' (Stone 2).
-make buildline(buf, count) {
+// Whether a key number is one of the letters — the keys
+// Caps Lock speaks to. The figures and marks answer to
+// the shift keys alone.
+make isletter(code) {
+    if code >= 16 {
+        if code <= 25 { give 1 }
+    }
+    if code >= 30 {
+        if code <= 38 { give 1 }
+    }
+    if code >= 44 {
+        if code <= 50 { give 1 }
+    }
+    give 0
+}
+
+// The typed line, rebuilt from 'count' key numbers in
+// 'buf' beginning at 'start', each with the shift standing
+// resolved for it in 'mods' at the same place (Stone 2's
+// building, taught spans and standings at Stone 12 — a
+// span is how the line's first word and its remainder are
+// each built whole).
+make buildline(buf, mods, start, count) {
     let s = ""
     let i = 0
     while i < count {
-        s = s + charFor(buf[i])
+        s = s + charFor(buf[start + i], mods[start + i])
         i = i + 1
     }
     give s
@@ -530,6 +589,12 @@ if rtcok == 1 {
 drawface(offset, utcstart, pix, pixdesk)
 
 let keys = makebytes(48)
+// The shift standing resolved for each key in 'keys', at
+// the same place (Stone 12): 1 when that key stands as its
+// capital or its shifted mark. The standing is resolved
+// when the key is pressed — a shift taken later must not
+// rewrite letters already typed.
+let keymod = makebytes(48)
 let klen = 0
 let ansrow = 13
 if pix == 1 {
@@ -555,6 +620,18 @@ if diskup == 1 {
 // the clearing begin.
 let awaiting = 0
 
+// The shift standing of the two roads together (Stone
+// 12): both roads speak the same key numbers, the shifts
+// among them, so one standing serves both — 1 while the
+// left or right shift key is held, and Caps Lock's own
+// standing beside it, turned over by its key. The rest of
+// the last finished line, after its first word, is kept
+// whole in 'linerest' for the words that want it.
+let lshift = 0
+let rshift = 0
+let caps = 0
+let linerest = ""
+
 while true {
     let nowsec = ticks() / 100
     let utcnow = 0 - 1
@@ -571,30 +648,83 @@ while true {
         k = usbpoll(usbdesk)
     }
     if k != 0 {
-        if k < 128 {
+        // The shift keys and Caps Lock speak first (Stone
+        // 12): their numbers are keys like any other on both
+        // roads — a shift going down is 42 or 54, coming up
+        // is 170 or 182, and Caps Lock's press is 58 — and
+        // they turn the standing the next letter is resolved
+        // under. None of them is itself typed into the line,
+        // and no other key's release (a number of 128 or
+        // more) is typed either, as it never was.
+        let plain = 1
+        if k == 42 {
+            lshift = 1
+            plain = 0
+        }
+        if k == 54 {
+            rshift = 1
+            plain = 0
+        }
+        if k == 170 {
+            lshift = 0
+            plain = 0
+        }
+        if k == 182 {
+            rshift = 0
+            plain = 0
+        }
+        if k == 58 {
+            caps = 1 - caps
+            plain = 0
+        }
+        if k >= 128 {
+            plain = 0
+        }
+        if plain == 1 {
             if k == 28 {
-                // Enter: the word is finished; answer it. The
-                // command library (commands.nifla) decides
-                // what the word is answered with; the doing —
-                // printing the line, drawing the face again,
-                // receiving the guest, keeping the clock's
-                // new offset — happens here, where the state
-                // lives.
-                let cmd = buildline(keys, klen)
+                // Enter: the line is finished; answer it.
+                // The line's first word is its command word,
+                // and the rest of the line is kept whole in
+                // 'linerest' for the words that want it
+                // (Stone 12) — a line of one word is answered
+                // exactly as it always was, its word being
+                // the line itself. The command library
+                // (commands.nifla) decides what the word is
+                // answered with; the doing — printing the
+                // line, drawing the face again, receiving
+                // the guest, keeping the clock's new offset —
+                // happens here, where the state lives.
+                let line = buildline(keys, keymod, 0, klen)
+                let wlen = klen
+                let wi = 0
+                while wi < klen {
+                    if keys[wi] == 57 {
+                        if wlen == klen {
+                            wlen = wi
+                        }
+                    }
+                    wi = wi + 1
+                }
+                let cmd = buildline(keys, keymod, 0, wlen)
+                linerest = ""
+                if wlen < klen {
+                    linerest = buildline(keys, keymod, wlen + 1, klen - wlen - 1)
+                }
                 klen = 0
                 drawtyping("", pix, pixdesk)
                 let kind = wordkind(cmd)
                 if awaiting == 1 {
                     // The setup gate's answer (Stone 8):
-                    // this word answers the gate, not the
+                    // this line answers the gate, not the
                     // command library — only the exact word
-                    // 'yes' lets the clearing begin, and
-                    // anything else leaves the disk exactly
-                    // as it was. The kind is set aside so no
-                    // kind's doing fires for this word.
+                    // 'yes', the whole line and nothing more,
+                    // lets the clearing begin, and anything
+                    // else leaves the disk exactly as it was.
+                    // The kind is set aside so no kind's
+                    // doing fires for this line.
                     awaiting = 0
                     kind = 0 - 1
-                    if cmd == "yes" {
+                    if line == "yes" {
                         if disksetup(offset) == 1 {
                             diskset = 1
                             ansrow = printline(ansrow, "The disk will remember your choices now.", pix, pixdesk)
@@ -735,15 +865,34 @@ while true {
                     if klen > 0 {
                         klen = klen - 1
                     }
-                    drawtyping(buildline(keys, klen), pix, pixdesk)
+                    drawtyping(buildline(keys, keymod, 0, klen), pix, pixdesk)
                 } else {
-                    let ch = charFor(k)
+                    // A letter or a mark: resolve its shift
+                    // standing now, under the shifts as they
+                    // stand — the shift keys, with Caps Lock
+                    // folded in for the letters alone — and
+                    // keep the standing beside the key, so
+                    // the line is rebuilt exactly as it was
+                    // typed (Stone 12).
+                    let sh = lshift
+                    if rshift == 1 {
+                        sh = 1
+                    }
+                    let mod = sh
+                    if isletter(k) == 1 {
+                        mod = sh + caps
+                        if mod == 2 {
+                            mod = 0
+                        }
+                    }
+                    let ch = charFor(k, mod)
                     if length(ch) > 0 {
                         if klen < 48 {
                             keys[klen] = k
+                            keymod[klen] = mod
                             klen = klen + 1
                         }
-                        drawtyping(buildline(keys, klen), pix, pixdesk)
+                        drawtyping(buildline(keys, keymod, 0, klen), pix, pixdesk)
                     }
                 }
             }

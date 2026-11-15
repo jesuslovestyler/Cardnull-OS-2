@@ -582,6 +582,59 @@ offers no matching mode gets the text face, said in
 plain words, exactly as before. The EFI door's own
 Cardnull loader is future work.
 
+### Stone 12 — Real typing
+
+The typing line learns the whole board. The shift keys
+and Caps Lock speak on **both** roads: the roads share
+one key numbering, so one shift standing in the main
+body serves both — the PS/2 road's own numbers for its
+shifts (42 and 54 down, 170 and 182 up, 58 for Caps
+Lock's press) are the numbers the USB road now speaks
+too, its reports' modifier byte turned into those same
+numbers when the standing changes (`src/usbkey.nifla`),
+and its Caps Lock usage translated like any other key.
+When a key is pressed, its standing is resolved at that
+moment — the shift keys, with Caps Lock folded in for
+the letters alone — and kept beside the key, so the
+line is always rebuilt exactly as it was typed: a shift
+taken later never rewrites a letter already standing.
+The letter table (`charFor` in the main body) now knows
+the figures and their shifted marks and the marks
+between the letters, as well as the capitals; the pixel
+face's font has carried every one of those shapes since
+Stone 9.
+
+And a typed line may hold more than one word now. Its
+**first word is its command word**, answered exactly as
+a one-word line always was — the single-word commands
+behave byte-identically, the setup gate included: the
+gate still asks for the exact word `yes` as the whole
+line, and a line of `yes` followed by anything is not
+the gate's word. The rest of the line is kept whole in
+the main body's keeping (`linerest`), as handed text
+for the words that want it — Stone 15's notes are the
+first taker.
+
+Proven by `prove-stone12.sh`, two boots: on the PS/2
+road, a shifted sentence ("Hello Cardnull") read back
+off the typing line exactly, a two-word line answered
+by its first word, `hello world` answered as `hello`,
+Caps Lock's capitals and their turning off, a figure
+and its shifted mark (`a1!`), and `memory` answered as
+it always was. On the USB road, the same grammar from
+the keyboard's own reports — the count in the `usb`
+word's answer (10) is the road's own evidence, as at
+Stone 6 — with Caps Lock making its capitals by its
+usage. The whole earlier proof set passes unchanged.
+
+Honest limits: the line still gathers at most 48 keys,
+so a line — and with it a note's text — is at most 48
+letters long; the keypad and the keys beyond the common
+board (function keys, the arrows) are not spoken yet;
+and a capital command word is an unknown word — the
+machine's words are still spelled small, and it says so
+kindly when it meets one it does not know.
+
 ## The kernel's files
 
 The kernel is built as several files, never one big one — Tyler's
