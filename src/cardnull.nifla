@@ -10,6 +10,11 @@
 //          works at the bottom. The face is drawn with the
 //          system's own screen library (screenlib.nifla,
 //          joined to this program as a prelude at build).
+// Stone 4: remembers — the clock's hour offset is a choice
+//          the person makes in plain words (eastern, utc),
+//          kept on the disk and read back at every boot.
+//          With no choice saved, the clock starts on
+//          Eastern time, this system's home.
 //
 // The arrangement of the screen:
 //   row 0      the bar — "Cardnull" at the left, the clock
@@ -110,13 +115,24 @@ make pad2(n) {
 }
 
 // The clock's face for a count of seconds: hours, minutes,
-// and seconds, each two digits, the hours within the day.
-make clocktext(total) {
+// and seconds, each two digits, the hours within the day and
+// shifted by 'offset' hours — the person's remembered time
+// choice (Stone 4). The count itself is still the honest
+// count since the machine woke; the offset only moves the
+// hour the face shows, the way setting a clock does.
+make clocktext(total, offset) {
     let hours = total / 3600
     let rest = total - hours * 3600
     let minutes = rest / 60
     let seconds = rest - minutes * 60
     while hours >= 24 {
+        hours = hours - 24
+    }
+    hours = hours + offset
+    if hours < 0 {
+        hours = hours + 24
+    }
+    if hours >= 24 {
         hours = hours - 24
     }
     give pad2(hours) + ":" + pad2(minutes) + ":" + pad2(seconds)
@@ -127,17 +143,17 @@ make clocktext(total) {
 // Draws the whole desktop: the bar with its clock, the
 // welcome panel, and the invitation. The answers region is
 // left blank, ready.
-make drawface() {
+make drawface(offset) {
     clearscreen()
     paintrow(0, 31)
     writeat(0, 1, "Cardnull", 31)
-    writeat(0, 72, clocktext(ticks() / 100), 31)
+    writeat(0, 72, clocktext(ticks() / 100, offset), 31)
     paintrect(3, 8, 64, 7, 112)
     writeat(4, 10, "Welcome to Cardnull", 112)
     writeat(5, 10, "This computer is public domain: free for everyone, forever.", 112)
     writeat(7, 10, "\"Unless Yahweh builds the house,", 112)
     writeat(8, 10, "they labor in vain who build it.\" - Psalm 127:1", 112)
-    writeat(11, 2, "Type a word, then press Enter. Try: hello, time, memory, clear", 7)
+    writeat(11, 2, "Type a word, then press Enter. Try: hello, time, memory, eastern, utc, clear", 7)
 }
 
 // Writes one answer in the answer region at 'row', scrolling
@@ -152,9 +168,78 @@ make printline(row, text) {
     give r + 1
 }
 
+// ---- what the machine remembers (Stone 4) ----
+//
+// One setting is kept on the disk: the clock's hour offset,
+// on sector 8, in a small card of the system's own: the
+// letters C and N, then one byte holding the offset with 64
+// added (so -5 is kept as 59 and 0 as 64; a stored byte of 0
+// can only mean nothing was ever saved). When there is no
+// disk, or the card is not there, the choice is Eastern
+// (-5) — the lesson the first Cardnull OS taught on real
+// hardware: a clock that quietly shows the world's standard
+// hour as if it were local is simply wrong, so this system
+// starts from its people's time and says so.
+
+// Selects the disk drive (the master on the first
+// channel), so the drive is awake and answering before the
+// system asks who it is. This small piece of floor work is
+// needed because of how the language's disksectors() asks:
+// it reads the drive's status port before ever selecting
+// the drive, and an unselected drive's status reads as
+// nothing there — so without this, disksectors() would
+// answer 0 even with a disk fitted. Selecting a drive that
+// is not there is harmless: the word goes out on the wire
+// and nothing answers, and disksectors() still says 0.
+make selectdrive() {
+    floor() {
+        mov edx, 0x1F6
+        mov al, 0xE0
+        out dx, al
+    }
+}
+
+// Gives back the stored byte of the card, or 0 when there
+// is no card (or no disk) to read.
+make savedoffset() {
+    selectdrive()
+    if disksectors() > 0 {
+        let block = makebytes(512)
+        let n = diskread(8, block)
+        if block[0] == 67 {
+            if block[1] == 78 {
+                give block[2]
+            }
+        }
+    }
+    give 0
+}
+
+// Writes the card for the given offset. Gives back 1 when
+// the choice was truly written to a disk, 0 when there is
+// no disk to remember it on.
+make remember(value) {
+    selectdrive()
+    if disksectors() > 0 {
+        let block = makebytes(512)
+        block[0] = 67
+        block[1] = 78
+        block[2] = value + 64
+        let w = diskwrite(8, block)
+        give 1
+    }
+    give 0
+}
+
 // ---- the machine ----
 
-drawface()
+let offset = 0 - 5
+let stored = savedoffset()
+if stored != 0 {
+    offset = stored - 64
+}
+
+drawface(offset)
 
 let keys = makebytes(48)
 let klen = 0
@@ -166,7 +251,7 @@ while true {
     let nowsec = ticks() / 100
     if nowsec != lastsec {
         lastsec = nowsec
-        writeat(0, 72, clocktext(nowsec), 31)
+        writeat(0, 72, clocktext(nowsec, offset), 31)
     }
     let k = readkey()
     if k != 0 {
@@ -177,7 +262,7 @@ while true {
                 klen = 0
                 drawtyping("")
                 if cmd == "clear" {
-                    drawface()
+                    drawface(offset)
                     ansrow = 13
                     lastsec = 0 - 1
                 } else {
@@ -194,9 +279,29 @@ while true {
                         ansrow = printline(ansrow, "This machine has " + memorysize() + " bytes of memory (" + (memorysize() / 1048576) + " megabytes).")
                         answered = 1
                     }
+                    if cmd == "eastern" {
+                        offset = 0 - 5
+                        if remember(offset) == 1 {
+                            ansrow = printline(ansrow, "The clock now shows Eastern time, and I will remember it.")
+                        } else {
+                            ansrow = printline(ansrow, "The clock now shows Eastern time. No disk here to keep it.")
+                        }
+                        lastsec = 0 - 1
+                        answered = 1
+                    }
+                    if cmd == "utc" {
+                        offset = 0
+                        if remember(offset) == 1 {
+                            ansrow = printline(ansrow, "The clock now shows the world's standard time, and I will remember it.")
+                        } else {
+                            ansrow = printline(ansrow, "The clock now shows the world's standard time. No disk here to keep it.")
+                        }
+                        lastsec = 0 - 1
+                        answered = 1
+                    }
                     if answered == 0 {
                         if length(cmd) > 0 {
-                            ansrow = printline(ansrow, "I don't know that word yet. Try hello, time, memory, or clear.")
+                            ansrow = printline(ansrow, "I don't know that word yet. Try hello, time, memory, eastern, utc, or clear.")
                         }
                     }
                 }

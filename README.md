@@ -120,6 +120,36 @@ and bar are repainted only when drawn; a guest or a stray writer
 could paint over them, and nothing yet defends the arrangement
 except the system's own manners.
 
+### Stone 4 — Remembers
+
+The system keeps one setting on the disk: the clock's hour offset.
+Two new words set it in plain language — `eastern` (the system's
+home time, five hours behind the world's standard) and `utc` (the
+world's standard time itself) — and the choice is written to a small
+card of the system's own on sector 8 of the disk. At every boot the
+card is read back and the bar's clock applies it, without being told
+again. When no card has ever been saved, the clock starts on Eastern
+time: the first Cardnull OS taught this lesson on real hardware,
+where its clock quietly showed the world's standard hour as if it
+were local, and this system was designed so as never to repeat it.
+Proven by `prove-stone4.sh`: two boots of one scratch disk — a fresh
+disk starts at hour 19, the word `utc` moves it to 00 and the machine
+says it will remember, and the second boot comes up at 00 on its own
+before `eastern` moves it back to 19.
+
+Honest limits, stated exactly: there is still no reading of the
+world's clock — the count is the time since the machine woke, and
+the offset shifts only the hour the face shows, the way setting a
+clock does; nothing here knows the date or the world's present hour.
+The choice is kept on the first disk only, in the system's own small
+card (the letters C and N and one byte), not in any standard format
+another system would read. When there is no disk at all, the words
+still work for the session, and the machine says plainly that there
+is no disk to remember the choice on. Before asking the drive who it
+is, the system selects it with a small piece of floor work — see the
+builder note below; without that, the language's own way of asking
+would report no disk even when one is fitted.
+
 ## Notes for builders
 
 - The visible screen of this system speaks **plain words only** — no codes
@@ -133,3 +163,15 @@ except the system's own manners.
   results — and all state is kept in the main body. (A finding about the
   language as it stands at Stone 18; the language is not changed from
   here.)
+- The language's `disksectors()` reads the drive's status port before
+  selecting the drive, and an unselected drive's status reads as
+  nothing there — so on a freshly booted machine it answers 0 even
+  with a disk fitted, until some transfer has selected the drive.
+  Measured both ways on the bench. This system therefore selects the
+  drive first, with a three-instruction floor block (`selectdrive()`),
+  after which `disksectors()` answers truthfully with and without a
+  disk. A `diskread` or `diskwrite` with no disk fitted still stops
+  the machine, exactly as the language's Stone 16 notes say, so the
+  system never attempts a transfer until the selection and the
+  question have both said a drive is there. (Also a finding, reported
+  rather than repaired from here.)
