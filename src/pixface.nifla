@@ -1,0 +1,532 @@
+// Cardnull OS 2's pixel-face library — drawing the desktop
+// as light on the machine's picture screen (Stone 9).
+//
+// Like the other libraries, this file joins the system as
+// a prelude when it is built (build.sh names it); a prelude
+// may only make functions, and these keep no state of their
+// own. The face's whole estate — where the picture screen
+// stands in memory, its shape, the colors composed for it,
+// the letter shapes' address, and the face's own layout —
+// lives in one desk of bytes the main body takes and hands
+// to every function here, the pattern usbkey.nifla's ledger
+// set. All other state stays in the main body.
+//
+// The desk's ledger (four-byte numbers at byte offsets):
+//    0  the picture screen's address (its low word)
+//    4  its pitch — the bytes one row of it takes
+//    8  its width in pixels      12  its height in pixels
+//   16  the red field's place    20  the green field's place
+//   24  the blue field's place
+//   28  the face's columns       32  the face's rows
+//   36  the letter shapes' address (a block font.nifla fills)
+//   40  a scratch page's address (for the page tables)
+//   56  the pen: the color now being drawn with, composed
+//   60  the paper: the color a letter's cell is filled with
+//   64..127  the palette: sixteen colors, composed for this
+//       screen from the sixteen the text face knows by
+//       number (black 0 through white 15, the VGA order)
+//  128  the answers' first row   132  the answers' last row
+//  136  the typing line's row
+//  140  the panel's left column  144  the panel's top row
+//  148  the panel's width        152  the panel's height
+//       (the panel's measures are in letter cells)
+//
+// A letter cell is sixteen pixels square: the font's eight
+// by eight, drawn at twice size. The face's layout is the
+// text face's own, reckoned onto whatever grid the granted
+// screen makes (layrow and laycol below), so a bigger or
+// smaller screen draws the same desktop, larger or smaller.
+
+// ---- the desk's own words ----
+
+// Reads one of the desk's four-byte numbers.
+make pget(desk: bytes, off: number) -> number {
+    give floor(desk, off) {
+        mov rax, [r10]
+        mov eax, dword ptr [rbx + rax]
+    }
+}
+
+// Writes one of the desk's four-byte numbers.
+make pset(desk: bytes, off: number, value: number) {
+    floor(desk, off, value) {
+        mov rax, [r10]
+        mov rcx, [r10 + 8]
+        mov dword ptr [rbx + rax], ecx
+    }
+}
+
+// A block of bytes, asked where it stands: its address as
+// a plain number. (The drawing floors find the letter
+// shapes and the page scratch by the addresses kept in
+// the desk, so an address must be able to be a number.)
+make blockaddr(block: bytes) -> number {
+    give floor(block) {
+        mov rax, rbx
+    }
+}
+
+// One byte of a piece of text, by its place — 0 when the
+// place is past the text's end.
+make textbyte(text: text, i: number) -> number {
+    give floor(text, i) {
+        mov rax, [r10]
+        cmp rax, r12
+        jae tb_zero
+        movzx eax, byte ptr [rbx + rax]
+        jmp tb_done
+    tb_zero:
+        xor eax, eax
+    tb_done:
+    }
+}
+
+// ---- colors ----
+
+// The red, green, and blue of one of the sixteen colors
+// the text face knows by number, packed into one number
+// (red in the high byte, then green, then blue) — the
+// palette the pixel face is painted in, the same sixteen
+// the text screen's own colors name.
+make vgargb(idx: number) -> number {
+    if idx == 0 { give 0 }
+    if idx == 1 { give 170 }
+    if idx == 2 { give 43520 }
+    if idx == 3 { give 43690 }
+    if idx == 4 { give 11141120 }
+    if idx == 5 { give 11141290 }
+    if idx == 6 { give 11162880 }
+    if idx == 7 { give 11184810 }
+    if idx == 8 { give 5592405 }
+    if idx == 9 { give 5592575 }
+    if idx == 10 { give 5635925 }
+    if idx == 11 { give 5636095 }
+    if idx == 12 { give 16733525 }
+    if idx == 13 { give 16733695 }
+    if idx == 14 { give 16777045 }
+    give 16777215
+}
+
+// Composes one palette color for this screen: the color's
+// red, green, and blue, each moved to the place the
+// loader's answer said its field stands, and kept in the
+// desk's palette at the color's number.
+make pixcompose(desk: bytes, idx: number, rgb: number) {
+    floor(desk, idx, rgb) {
+        mov rax, [r10 + 8]
+        mov rdx, rax
+        shr rdx, 16
+        and rdx, 255
+        mov ecx, dword ptr [rbx + 16]
+        shl rdx, cl
+        mov r8, rdx
+        mov rdx, rax
+        shr rdx, 8
+        and rdx, 255
+        mov ecx, dword ptr [rbx + 20]
+        shl rdx, cl
+        or r8, rdx
+        mov rdx, rax
+        and rdx, 255
+        mov ecx, dword ptr [rbx + 24]
+        shl rdx, cl
+        or r8, rdx
+        mov rax, [r10]
+        shl rax, 2
+        mov dword ptr [rbx + rax + 64], r8d
+    }
+}
+
+// Sets the pen from a palette number: the composed color
+// the drawing now lays down.
+make pixink(desk: bytes, idx: number) {
+    pset(desk, 56, pget(desk, 64 + idx * 4))
+}
+
+// Sets the paper from a palette number: the composed color
+// a letter's cell is first filled with.
+make pixpaper(desk: bytes, idx: number) {
+    pset(desk, 60, pget(desk, 64 + idx * 4))
+}
+
+// ---- the page tables ----
+//
+// The boot stub's own tables map the first gigabyte of the
+// machine, which is where the system and its heap live —
+// but a picture screen commonly stands higher (the bench's
+// grant stands at 0xFD000000). When the granted screen
+// stands above the mapped gigabyte, this floor lays one
+// more page directory in the scratch page the desk names,
+// covering the screen's whole gigabyte quarter, and enters
+// it in the stub's page directory pointer table. A screen
+// already within the mapped gigabyte needs nothing.
+make pixmap(desk: bytes) {
+    floor(desk) {
+        mov eax, dword ptr [rbx]
+        shr eax, 30
+        mov r8d, eax
+        mov rsi, offset __pdpt
+        mov ecx, dword ptr [rsi + r8 * 8]
+        test ecx, 1
+        jnz pm_done
+        mov eax, dword ptr [rbx + 40]
+        add eax, 4095
+        and eax, 0xFFFFF000
+        mov r9d, eax
+        mov r10d, r8d
+        shl r10d, 30
+        xor ecx, ecx
+    pm_fill:
+        mov eax, ecx
+        shl eax, 21
+        add eax, r10d
+        or eax, 0x83
+        mov dword ptr [r9 + rcx * 8], eax
+        mov dword ptr [r9 + rcx * 8 + 4], 0
+        inc ecx
+        cmp ecx, 512
+        jne pm_fill
+        mov eax, r9d
+        or eax, 3
+        mov dword ptr [rsi + r8 * 8], eax
+        mov dword ptr [rsi + r8 * 8 + 4], 0
+        mov rax, offset __pml4
+        mov cr3, rax
+    pm_done:
+    }
+}
+
+// ---- the layout ----
+
+// The face's row for one of the text face's rows (0-24):
+// the text face's proportions, on this screen's grid.
+make layrow(desk: bytes, r: number) -> number {
+    give (r * pget(desk, 32)) / 25
+}
+
+// The face's column for one of the text face's columns
+// (0-79), the same reckoning across.
+make laycol(desk: bytes, c: number) -> number {
+    give (c * pget(desk, 28)) / 80
+}
+
+// Raises the face on the granted screen: the grid reckoned
+// from the screen's shape, the layout laid, the palette
+// composed, and the page tables extended when the screen
+// stands above the mapped gigabyte. The desk's screen
+// fields (offsets 0-24) and the two addresses (36, 40) are
+// the main body's to have filled first. Gives back 1.
+make pixbegin(desk: bytes) -> number {
+    pset(desk, 28, pget(desk, 8) / 16)
+    pset(desk, 32, pget(desk, 12) / 16)
+    let idx = 0
+    while idx < 16 {
+        pixcompose(desk, idx, vgargb(idx))
+        idx = idx + 1
+    }
+    if pget(desk, 0) >= 1073741824 {
+        pixmap(desk)
+    }
+    pset(desk, 128, layrow(desk, 13))
+    pset(desk, 132, layrow(desk, 22))
+    pset(desk, 136, layrow(desk, 24))
+    pset(desk, 140, laycol(desk, 8))
+    pset(desk, 144, layrow(desk, 3))
+    pset(desk, 148, laycol(desk, 72) - laycol(desk, 8))
+    pset(desk, 152, layrow(desk, 10) - layrow(desk, 3))
+    give 1
+}
+
+// ---- the drawing ----
+
+// Fills a rectangle of pixels with the pen's color: its
+// top-left corner and its size, in pixels.
+make pixfill(desk: bytes, x: number, y: number, w: number, h: number) {
+    floor(desk, x, y, w, h) {
+        mov rax, [r10]
+        shl rax, 2
+        mov r11, rax
+        mov rax, [r10 + 8]
+        mov ecx, dword ptr [rbx + 4]
+        mul rcx
+        add rax, r11
+        mov ecx, dword ptr [rbx]
+        add rax, rcx
+        mov rdi, rax
+        mov edx, dword ptr [rbx + 56]
+        mov r8, [r10 + 24]
+    pfl_row:
+        test r8, r8
+        jz pfl_done
+        mov rcx, [r10 + 16]
+        mov rsi, rdi
+    pf_px:
+        test rcx, rcx
+        jz pf_next
+        mov dword ptr [rsi], edx
+        add rsi, 4
+        dec rcx
+        jmp pf_px
+    pf_next:
+        mov eax, dword ptr [rbx + 4]
+        add rdi, rax
+        dec r8
+        jmp pfl_row
+    pfl_done:
+    }
+}
+
+// Draws one letter at a pixel corner with the pen's color:
+// its shape read from the letter block the desk names, its
+// eight rows laid at twice size. Letters outside the
+// font's set (the codes 32 to 126) draw as a space.
+make pixglyph(desk: bytes, x: number, y: number, code: number) {
+    floor(desk, x, y, code) {
+        mov rax, [r10 + 16]
+        sub rax, 32
+        cmp rax, 94
+        jbe pg_g
+        xor eax, eax
+    pg_g:
+        shl rax, 3
+        mov ecx, dword ptr [rbx + 36]
+        add rcx, rax
+        mov r9, rcx
+        mov rax, [r10]
+        shl rax, 2
+        mov r11, rax
+        mov rax, [r10 + 8]
+        mov ecx, dword ptr [rbx + 4]
+        mul rcx
+        add rax, r11
+        mov ecx, dword ptr [rbx]
+        add rax, rcx
+        mov r10, rax
+        mov r8d, dword ptr [rbx + 56]
+        mov r11d, dword ptr [rbx + 4]
+        xor esi, esi
+    pg_row:
+        cmp esi, 8
+        jae pg_done
+        mov eax, esi
+        shl eax, 1
+        imul eax, r11d
+        lea rdi, [r10 + rax]
+        movzx eax, byte ptr [r9 + rsi]
+        mov edx, eax
+        shl edx, 24
+        mov rcx, rdi
+        mov r15d, 8
+    pg_ca:
+        shl edx, 1
+        jnc pg_sa
+        mov dword ptr [rcx], r8d
+        mov dword ptr [rcx + 4], r8d
+    pg_sa:
+        add rcx, 8
+        dec r15d
+        jnz pg_ca
+        add rdi, r11
+        mov edx, eax
+        shl edx, 24
+        mov rcx, rdi
+        mov r15d, 8
+    pg_cb:
+        shl edx, 1
+        jnc pg_sb
+        mov dword ptr [rcx], r8d
+        mov dword ptr [rcx + 4], r8d
+    pg_sb:
+        add rcx, 8
+        dec r15d
+        jnz pg_cb
+        inc esi
+        jmp pg_row
+    pg_done:
+    }
+}
+
+// Draws a piece of text at a letter cell (its row and
+// column on the face's grid): each letter's cell is first
+// filled with the paper, then its shape drawn with the
+// pen. Only the span the desk names (see pixspan) is
+// drawn, and letters past the grid's edge are let go.
+make pixtext(desk: bytes, row: number, col: number, text: text) {
+    let cols = pget(desk, 28)
+    let from = pget(desk, 160)
+    let count = pget(desk, 164)
+    let n = length(text)
+    let i = 0
+    while i < count {
+        let at = from + i
+        if at < n {
+            let c = col + i
+            if c < cols {
+                pset(desk, 56, pget(desk, 60))
+                pixfill(desk, c * 16, row * 16, 16, 16)
+                let code = textbyte(text, at)
+                if code != 32 {
+                    pixink(desk, pget(desk, 168))
+                    pixglyph(desk, c * 16, row * 16, code)
+                }
+            }
+        }
+        i = i + 1
+    }
+}
+
+// Names the span of a text the next pixtext draws: where
+// it begins and how many letters. (A text cannot be cut on
+// bare metal, so a span is how a long line is wrapped: the
+// same text, drawn in pieces.) The pen's palette number is
+// kept with the span, at 168, for pixtext's letters.
+make pixspan(desk: bytes, from: number, count: number, fgidx: number) {
+    pset(desk, 160, from)
+    pset(desk, 164, count)
+    pset(desk, 168, fgidx)
+}
+
+// Draws a whole text at a cell, in one span. The place is
+// named by 'cell' — the row times 256 plus the column —
+// and the colors by 'attr', the text face's own attribute
+// reckoning: the ink's palette place plus sixteen times
+// the paper's. (A call can carry only six words, and the
+// desk and the text take four of them.)
+make pixline(desk: bytes, cell: number, text: text, attr: number) {
+    let row = cell / 256
+    let col = cell - row * 256
+    let fg = attr - (attr / 16) * 16
+    let bg = (attr / 16) - (attr / 128) * 8
+    pixpaper(desk, bg)
+    pixspan(desk, 0, length(text), fg)
+    pixtext(desk, row, col, text)
+}
+
+// Scrolls the answers region up one letter row: the rows
+// move, and the last row is wiped to black.
+make pixscroll(desk: bytes) {
+    floor(desk) {
+        mov eax, dword ptr [rbx + 128]
+        shl eax, 4
+        mov ecx, dword ptr [rbx + 4]
+        mul rcx
+        mov ecx, dword ptr [rbx]
+        add rax, rcx
+        mov rdi, rax
+        mov eax, dword ptr [rbx + 4]
+        shl eax, 4
+        lea rsi, [rdi + rax]
+        mov eax, dword ptr [rbx + 132]
+        sub eax, dword ptr [rbx + 128]
+        shl eax, 4
+        mov r8d, eax
+        mov eax, dword ptr [rbx + 8]
+        shl eax, 2
+        mov r9d, eax
+    ps_row:
+        test r8d, r8d
+        jz ps_wipe
+        mov rcx, r9
+        rep movsb
+        mov eax, dword ptr [rbx + 4]
+        sub eax, r9d
+        add rsi, rax
+        add rdi, rax
+        dec r8d
+        jmp ps_row
+    ps_wipe:
+        mov eax, dword ptr [rbx + 4]
+        mov ecx, 16
+        mul rcx
+        mov rcx, rax
+        xor eax, eax
+    ps_b:
+        test rcx, rcx
+        jz ps_done
+        mov dword ptr [rdi], eax
+        add rdi, 4
+        sub rcx, 4
+        jmp ps_b
+    ps_done:
+    }
+}
+
+// Prints one answer line in the answers region, wrapped at
+// the region's width onto as many rows as it needs, in the
+// answers' colors (light gray on black); gives back the
+// next free row. A word longer than the whole width is
+// simply cut at the width — no word the system speaks is.
+make pixprintline(desk: bytes, row: number, text: text) -> number {
+    let usable = pget(desk, 28) - 4
+    let bot = pget(desk, 132)
+    let n = length(text)
+    let r = row
+    let start = 0
+    let going = 1
+    if n == 0 {
+        going = 0
+    }
+    while going == 1 {
+        let end = start + usable
+        if end >= n {
+            end = n
+        } else {
+            let j = end
+            let hunting = 1
+            while hunting == 1 {
+                if j <= start {
+                    hunting = 0
+                } else {
+                    if textbyte(text, j) == 32 {
+                        hunting = 0
+                    } else {
+                        j = j - 1
+                    }
+                }
+            }
+            if j > start {
+                end = j
+            }
+        }
+        if r > bot {
+            pixscroll(desk)
+            r = bot
+        }
+        pixpaper(desk, 0)
+        pixspan(desk, start, end - start, 7)
+        pixtext(desk, r, 2, text)
+        r = r + 1
+        start = end
+        if start < n {
+            if textbyte(text, start) == 32 {
+                start = start + 1
+            }
+        }
+        if start >= n {
+            going = 0
+        }
+    }
+    give r
+}
+
+// ---- the guest's cells, read back for the drawing ----
+//
+// In the pixel face the guest paints a block of cells the
+// host hands it (through the doorstep word placeguest
+// lays — see guestdoor.nifla), and the host draws those
+// cells as pixels after the visit. The guest cannot paint
+// the text screen's own memory for this: on a machine
+// showing a picture screen that memory is not a screen,
+// and its cells cannot be read back from it — measured on
+// the bench, it reads back as one repeated byte, the
+// painting lost among the picture screen's own workings.
+
+// One byte of the guest's cell block: the byte at 'off' —
+// a cell's letter stands at its even byte, its color at
+// the odd one after it.
+make cellbyte(block: bytes, off: number) -> number {
+    give floor(block, off) {
+        mov rax, [r10]
+        movzx eax, byte ptr [rbx + rax]
+    }
+}

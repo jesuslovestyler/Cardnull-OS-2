@@ -115,6 +115,52 @@ make modend(i) {
     }
 }
 
+// ---- the loader's other answer (Stone 9) ----
+//
+// The same boot information carries the loader's answer to
+// the kernel's video request (the header's asking is the
+// compiler's --video): when the first word's twelfth bit
+// (4096) stands, a picture screen was granted, and its
+// shape stands further down the same information — the
+// address at 88 (eight bytes), the pitch at 96, the width
+// at 100, the height at 104, the depth in bits at 108, the
+// kind at 109 (1 is a direct color screen), and the color
+// fields' places and sizes at 112 to 117. These two read
+// one word or one byte of the information at the offset
+// named. Like the module table's, the information stands
+// in low memory the heap grows into, so the main body asks
+// these in its first breath too, into plain numbers.
+
+// The four-byte word of the boot information at 'off'.
+make mbwordat(off: number) -> number {
+    give floor(off) {
+        mov esi, dword ptr [__mb_info]
+        test esi, esi
+        jz mz_zero
+        mov rax, [r10]
+        mov eax, dword ptr [rsi + rax]
+        jmp mz_done
+    mz_zero:
+        xor eax, eax
+    mz_done:
+    }
+}
+
+// The one byte of the boot information at 'off'.
+make mbbyteat(off: number) -> number {
+    give floor(off) {
+        mov esi, dword ptr [__mb_info]
+        test esi, esi
+        jz mbz_zero
+        mov rax, [r10]
+        movzx eax, byte ptr [rsi + rax]
+        jmp mbz_done
+    mbz_zero:
+        xor eax, eax
+    mbz_done:
+    }
+}
+
 // Copies bytes out of a module the loader left at 'addr',
 // 'len' of them, into the block handed in — never more
 // than the block holds — and gives back how many were

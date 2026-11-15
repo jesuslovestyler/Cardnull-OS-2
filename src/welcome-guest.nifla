@@ -29,14 +29,30 @@
 // being a letter wearing this guest's color — 0x2F, white
 // on green, in the high byte, the letter's own code in the
 // low — with each line quoted above the run that writes it.
-// The panel stands at rows 15-19, columns 14-65 (it begins
-// at screen address 0xB897C); the lines begin at column 16
-// of rows 16, 17, and 18.
+// The panel stands at rows 15-19, columns 14-65 of the
+// screen it is given; the lines begin at column 16 of rows
+// 16, 17, and 18.
+//
+// Which screen it is given stands in a word at the top of
+// the guest's own doorstep (address 0x27FFF8), laid there
+// by the host before the call (Stone 9): on a machine
+// showing the text screen it is that screen's own address,
+// 0xB8000, and the guest paints the screen itself, as it
+// always has; on a machine showing the face of light it is
+// a block of the host's own memory holding a text screen's
+// worth of letter-and-color cells, which the host then
+// shows as light. A missing word (an older host) means the
+// text screen, as before.
 
 let gift = guestvalue()
 
 floor() {
-    mov rdi, 0xB897C
+    mov rdi, qword ptr [0x27FFF8]
+    test rdi, rdi
+    jnz wg_p1
+    mov rdi, 0xB8000
+wg_p1:
+    add rdi, 2428
     mov r8, 5
 wg_rows:
     mov rcx, 52
@@ -45,7 +61,12 @@ wg_rows:
     add rdi, 56
     dec r8
     jnz wg_rows
-    mov rdi, 0xB8A20
+    mov rdi, qword ptr [0x27FFF8]
+    test rdi, rdi
+    jnz wg_p2
+    mov rdi, 0xB8000
+wg_p2:
+    add rdi, 2592
     // "A guest is visiting"
     mov ax, 0x2F41
     stosw

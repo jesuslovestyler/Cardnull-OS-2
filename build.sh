@@ -37,15 +37,26 @@ mkdir -p build
 #              calendar reckoning (Stone 7)
 #   diskkeep   what the system remembers on a hard disk
 #              (Stone 8)
-LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/guestdoor.nifla src/commands.nifla src/usbkey.nifla src/rtclock.nifla src/diskkeep.nifla"
+#   font       the letters of the face of light: the
+#              hand-drawn bitmap font (Stone 9)
+#   pixface    the face of light: the picture screen's
+#              desk, its palette, and its drawing (Stone 9)
+LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/guestdoor.nifla src/commands.nifla src/usbkey.nifla src/rtclock.nifla src/diskkeep.nifla src/font.nifla src/pixface.nifla"
 PRELUDE=""
 for lib in $LIBRARIES; do
     # Word splitting is intended: one --prelude pair per file.
     PRELUDE="$PRELUDE --prelude $lib"
 done
 
+# The shipped kernel asks the loader for a picture screen
+# (Stone 9): 1024x768, thirty-two bits a pixel. The same
+# kernel is also built once without the asking, as
+# cardnull-text.elf — the disc laid down with it proves
+# the text face's honest fallback (prove-stone9.sh).
 # shellcheck disable=SC2086
-"$NIFLA_REPO/niflac" --bare src/cardnull.nifla $PRELUDE -o build/cardnull.elf
+"$NIFLA_REPO/niflac" --bare --video 1024x768x32 src/cardnull.nifla $PRELUDE -o build/cardnull.elf
+# shellcheck disable=SC2086
+"$NIFLA_REPO/niflac" --bare src/cardnull.nifla $PRELUDE -o build/cardnull-text.elf
 
 if [ -f src/welcome-guest.nifla ]; then
     # The guest is built WITHOUT the screen-library prelude:

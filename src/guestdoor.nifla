@@ -70,9 +70,14 @@ make fnv1a(block, count) {
 // Lays the guest at the doorstep: the region is wiped
 // clean first (a guest's scratch memory must start at
 // zero, as a booted program's does), then the image is
-// copied to its first bytes.
-make placeguest(img, count) {
-    floor(img, count) {
+// copied to its first bytes. Last, the screen the guest is
+// to paint is named in a word at the very top of the
+// doorstep (0x27FFF8): the text screen's own address, or —
+// on a machine showing the face of light, where the text
+// screen's memory is not a screen at all — the address of
+// a block of cells the host will show as light (Stone 9).
+make placeguest(img, count, paintbase) {
+    floor(img, count, paintbase) {
         mov rdi, 0x200000
         mov rcx, 0x80000
         xor eax, eax
@@ -81,17 +86,21 @@ make placeguest(img, count) {
         mov rdi, 0x200000
         mov rcx, [r10]
         rep movsb
+        mov rax, [r10 + 8]
+        mov qword ptr [0x27FFF8], rax
     }
 }
 
 // Tries to receive the guest, from what was lifted at
 // boot: the image block, how many bytes of it were truly
 // lifted ('got'), how long its card says it is ('imglen'),
-// and the checksum its card promises ('want'). Gives back
+// the checksum its card promises ('want'), and the screen
+// it is to paint ('paintbase', laid at the doorstep by
+// placeguest). Gives back
 // a number saying how it went: 1 — there is no guest on
 // this disc; 2 — the guest on this disc is not whole, and
 // was refused; 3 — the guest visited and went home again.
-make runguest(img, got, imglen, want) {
+make runguest(img, got, imglen, want, paintbase) {
     if imglen <= 0 {
         give 1
     }
@@ -104,7 +113,7 @@ make runguest(img, got, imglen, want) {
     if fnv1a(img, imglen) != want {
         give 2
     }
-    placeguest(img, imglen)
+    placeguest(img, imglen, paintbase)
     let back = callguest(2097152, 7)
     give 3
 }

@@ -33,6 +33,11 @@
 //   src/diskkeep.nifla   what the system remembers on a
 //                        hard disk: the card, its reading,
 //                        and the setup clearing
+//   src/font.nifla       the letters of the face of
+//                        light: the hand-drawn bitmap font
+//   src/pixface.nifla    the face of light: the picture
+//                        screen's desk, palette, and
+//                        drawing
 //   src/cardnull.nifla   this main body: the boot
 //                        sequence, the first-breath lift,
 //                        the state, the face, the typing
@@ -81,6 +86,15 @@
 //          offered its keeping behind a typed gate
 //          ('setup', then 'yes'), and thereafter holds the
 //          time choice in preference to the disc's.
+// Stone 9: a face with light — when the loader grants the
+//          picture screen the kernel asks for, the desktop
+//          is drawn in pixels (pixface.nifla, font.nifla),
+//          the guest's visit composited from the cells it
+//          paints in the host's keeping; when none is
+//          granted, the text face below carries the
+//          desktop and says so in plain words. The drawn
+//          face is also what the EFI door needed: the disc
+//          now boots under UEFI firmware too.
 //
 // The arrangement of the screen:
 //   row 0      the bar — "Cardnull" at the left, the date
@@ -142,7 +156,14 @@ make buildline(buf, count) {
 }
 
 // Draws the typing line on the screen's last row.
-make drawtyping(text) {
+make drawtyping(text, pix, pixdesk) {
+    if pix == 1 {
+        let trow = pget(pixdesk, 136)
+        pixink(pixdesk, 0)
+        pixfill(pixdesk, 0, trow * 16, pget(pixdesk, 8), 16)
+        pixline(pixdesk, (trow) * 256 + (0), ">", 7)
+        pixline(pixdesk, (trow) * 256 + (2), text, 7)
+    } else {
     floor(text) {
         mov rdx, 0xB8000
         add rdx, 3840
@@ -169,6 +190,7 @@ make drawtyping(text) {
         jmp dt_blank
     dt_done:
     }
+    }
 }
 
 // ---- the face ----
@@ -179,40 +201,90 @@ make drawtyping(text) {
 // person's time choice applied here; when it stands below
 // zero — no true reading could be had at boot — the bar
 // keeps the honest count since waking, as it did before
-// this stone, and no date is shown.
-make drawclock(offset, utcnow) {
-    if utcnow < 0 {
-        writeat(0, 72, clocktext(ticks() / 100, offset), 31)
+// this stone, and no date is shown. In the pixel face
+// (Stone 9) the same words are drawn as light; 'pix' says
+// which face is up, and 'pixdesk' is the pixel face's desk.
+make drawclock(offset, utcnow, pix, pixdesk) {
+    if pix == 1 {
+        let cols = pget(pixdesk, 28)
+        pixink(pixdesk, 1)
+        pixfill(pixdesk, (cols - 40) * 16, 0, 40 * 16, 16)
+        if utcnow < 0 {
+            pixline(pixdesk, (0) * 256 + (cols - 8), clocktext(ticks() / 100, offset), 31)
+        } else {
+            let local = utcnow + offset * 3600
+            let days = local / 86400
+            let daysec = local - days * 86400
+            let dt = datetext(days)
+            pixline(pixdesk, (0) * 256 + (cols - 10 - length(dt)), dt, 31)
+            pixline(pixdesk, (0) * 256 + (cols - 8), clocktext(daysec, 0), 31)
+        }
     } else {
-        let local = utcnow + offset * 3600
-        let days = local / 86400
-        let daysec = local - days * 86400
-        let dt = datetext(days)
-        writeat(0, 10, "                                                            ", 31)
-        writeat(0, 70 - length(dt), dt, 31)
-        writeat(0, 72, clocktext(daysec, 0), 31)
+        if utcnow < 0 {
+            writeat(0, 72, clocktext(ticks() / 100, offset), 31)
+        } else {
+            let local = utcnow + offset * 3600
+            let days = local / 86400
+            let daysec = local - days * 86400
+            let dt = datetext(days)
+            writeat(0, 10, "                                                            ", 31)
+            writeat(0, 70 - length(dt), dt, 31)
+            writeat(0, 72, clocktext(daysec, 0), 31)
+        }
     }
 }
 
 // Draws the whole desktop: the bar with its clock, the
 // welcome panel, and the invitation. The answers region is
-// left blank, ready.
-make drawface(offset, utcnow) {
+// left blank, ready. Two faces draw it (Stone 9): the
+// pixel face when the loader granted a picture screen, and
+// the text face — the system's first face — when it did
+// not; the words are the same words either way.
+make drawface(offset, utcnow, pix, pixdesk) {
+    if pix == 1 {
+        pixink(pixdesk, 0)
+        pixfill(pixdesk, 0, 0, pget(pixdesk, 8), pget(pixdesk, 12))
+        pixink(pixdesk, 1)
+        pixfill(pixdesk, 0, 0, pget(pixdesk, 8), 16)
+        pixline(pixdesk, (0) * 256 + (1), "Cardnull", 31)
+        drawclock(offset, utcnow, pix, pixdesk)
+        let pl = pget(pixdesk, 140)
+        let pt = pget(pixdesk, 144)
+        let pw = pget(pixdesk, 148)
+        let ph = pget(pixdesk, 152)
+        pixink(pixdesk, 7)
+        pixfill(pixdesk, pl * 16, pt * 16, pw * 16, ph * 16)
+        pixline(pixdesk, (pt + (ph * 1) / 7) * 256 + (pl + 2), "Welcome to Cardnull", 112)
+        pixline(pixdesk, (pt + (ph * 2) / 7) * 256 + (pl + 2), "This computer is public domain:", 112)
+        pixline(pixdesk, (pt + (ph * 3) / 7) * 256 + (pl + 2), "free for everyone, forever.", 112)
+        pixline(pixdesk, (pt + (ph * 4) / 7) * 256 + (pl + 2), "\"Unless Yahweh builds the house,", 112)
+        pixline(pixdesk, (pt + (ph * 5) / 7) * 256 + (pl + 2), "they labor in vain who build it.\" - Psalm 127:1", 112)
+        pixline(pixdesk, (layrow(pixdesk, 11)) * 256 + (2), "Type a word, then press Enter:", 7)
+        pixline(pixdesk, (layrow(pixdesk, 12)) * 256 + (2), "hello, time, memory, eastern, utc, guest, usb, setup, clear", 7)
+    } else {
     clearscreen()
     paintrow(0, 31)
     writeat(0, 1, "Cardnull", 31)
-    drawclock(offset, utcnow)
+    drawclock(offset, utcnow, pix, pixdesk)
     paintrect(3, 8, 64, 7, 112)
     writeat(4, 10, "Welcome to Cardnull", 112)
     writeat(5, 10, "This computer is public domain: free for everyone, forever.", 112)
     writeat(7, 10, "\"Unless Yahweh builds the house,", 112)
     writeat(8, 10, "they labor in vain who build it.\" - Psalm 127:1", 112)
     writeat(11, 2, "Type a word: hello, time, memory, eastern, utc, guest, usb, setup, clear", 7)
+    }
 }
 
 // Writes one answer in the answer region at 'row', scrolling
 // the region when it is full, and gives back the next row.
-make printline(row, text) {
+// In the pixel face the line is drawn by pixface's printer,
+// which wraps words at the narrower grid and scrolls its own
+// region; the rows it counts are the pixel face's layout
+// rows, not the text face's.
+make printline(row, text, pix, pixdesk) {
+    if pix == 1 {
+        give pixprintline(pixdesk, row, text)
+    }
     let r = row
     if r > 22 {
         scrollanswers()
@@ -255,6 +327,24 @@ if nmods > 3 {
     s3 = modstart(3)
     l3 = modend(3) - s3
 }
+
+// In the same first breath, the loader's answer to the
+// kernel's video request (Stone 9) is read into plain
+// numbers, for the same reason: the information stands in
+// low memory the heap grows into. fbflags' twelfth bit
+// (4096) says a picture screen was granted; the rest is
+// its shape, read by bootmods' mbwordat and mbbyteat.
+let fbflags = mbwordat(0)
+let fbaddrlo = mbwordat(88)
+let fbaddrhi = mbwordat(92)
+let fbpitch = mbwordat(96)
+let fbwidth = mbwordat(100)
+let fbheight = mbwordat(104)
+let fbbpp = mbbyteat(108)
+let fbtype = mbbyteat(109)
+let fbrpos = mbbyteat(112)
+let fbgpos = mbbyteat(114)
+let fbbpos = mbbyteat(116)
 
 // What the lift gathers: the clock's offset (Eastern, -5,
 // unless the disc's settings carry a choice), and the
@@ -346,6 +436,61 @@ if diskup == 1 {
     }
 }
 
+// The pixel face (Stone 9): when the loader granted a
+// picture screen of the shape this face can draw on — a
+// direct-color screen, thirty-two bits a pixel, its whole
+// address under four billion, and room enough for the
+// desktop's words — the face of light is prepared: its
+// desk, the font's letters lifted into a block, and a
+// scratch page for reaching a screen that stands above
+// the waking map. When nothing was granted, or the grant
+// is not of that shape, pix stays 0 and the text face —
+// the system's first face — carries the desktop, with a
+// plain line at boot saying why.
+let pix = 0
+let pixdesk = makebytes(0)
+let cellblock = makebytes(0)
+if fbflags - (fbflags / 8192) * 8192 >= 4096 {
+    if fbtype == 1 {
+        if fbbpp == 32 {
+            if fbaddrhi == 0 {
+                if fbwidth >= 768 {
+                    if fbheight >= 256 {
+                        pix = 1
+                    }
+                }
+            }
+        }
+    }
+}
+if pix == 1 {
+    pixdesk = makebytes(256)
+    let fontblock = makebytes(1024)
+    fontload(fontblock)
+    let pdblock = makebytes(8192)
+    pset(pixdesk, 0, fbaddrlo)
+    pset(pixdesk, 4, fbpitch)
+    pset(pixdesk, 8, fbwidth)
+    pset(pixdesk, 12, fbheight)
+    pset(pixdesk, 16, fbrpos)
+    pset(pixdesk, 20, fbgpos)
+    pset(pixdesk, 24, fbbpos)
+    pset(pixdesk, 36, blockaddr(fontblock))
+    pset(pixdesk, 40, blockaddr(pdblock))
+    pixbegin(pixdesk)
+    // The guest's canvas on this face: a text screen's
+    // worth of cells, laid out as the text screen's own
+    // are — a letter byte and a color byte to a cell —
+    // and filled with the resting cell (a space, light
+    // gray on black) the text screen itself starts with.
+    cellblock = makebytes(4000)
+    let ci = 0
+    while ci < 1000 {
+        pset(cellblock, ci * 4, 119539488)
+        ci = ci + 1
+    }
+}
+
 // Ears on the USB road (Stone 6): the driver's whole
 // estate lives in one desk of bytes, taken here and handed
 // to its library (usbkey.nifla) at every asking — the
@@ -382,19 +527,25 @@ if rtcok == 1 {
     utcstart = rtcbase
 }
 
-drawface(offset, utcstart)
+drawface(offset, utcstart, pix, pixdesk)
 
 let keys = makebytes(48)
 let klen = 0
 let ansrow = 13
+if pix == 1 {
+    ansrow = pget(pixdesk, 128)
+}
 let lastsec = 0 - 1
-drawtyping("")
+drawtyping("", pix, pixdesk)
+if pix == 0 {
+    ansrow = printline(ansrow, "No picture screen was granted, so this face stays in words.", pix, pixdesk)
+}
 if usbup == 1 {
-    ansrow = printline(ansrow, "A USB keyboard is ready.")
+    ansrow = printline(ansrow, "A USB keyboard is ready.", pix, pixdesk)
 }
 if diskup == 1 {
     if diskset == 0 {
-        ansrow = printline(ansrow, "A hard disk is here. Type setup to let it remember your choices.")
+        ansrow = printline(ansrow, "A hard disk is here. Type setup to let it remember your choices.", pix, pixdesk)
     }
 }
 
@@ -412,7 +563,7 @@ while true {
     }
     if nowsec != lastsec {
         lastsec = nowsec
-        drawclock(offset, utcnow)
+        drawclock(offset, utcnow, pix, pixdesk)
     }
     let k = readkey()
     if k == 0 {
@@ -431,7 +582,7 @@ while true {
                 // lives.
                 let cmd = buildline(keys, klen)
                 klen = 0
-                drawtyping("")
+                drawtyping("", pix, pixdesk)
                 let kind = wordkind(cmd)
                 if awaiting == 1 {
                     // The setup gate's answer (Stone 8):
@@ -446,41 +597,80 @@ while true {
                     if cmd == "yes" {
                         if disksetup(offset) == 1 {
                             diskset = 1
-                            ansrow = printline(ansrow, "The disk will remember your choices now.")
+                            ansrow = printline(ansrow, "The disk will remember your choices now.", pix, pixdesk)
                         } else {
-                            ansrow = printline(ansrow, "The disk could not be written, so nothing was changed.")
+                            ansrow = printline(ansrow, "The disk could not be written, so nothing was changed.", pix, pixdesk)
                         }
                     } else {
-                        ansrow = printline(ansrow, "The disk was left as it was.")
+                        ansrow = printline(ansrow, "The disk was left as it was.", pix, pixdesk)
                     }
                 }
                 if kind == 2 {
                     // 'clear': the face is drawn again, empty.
-                    drawface(offset, utcnow)
+                    drawface(offset, utcnow, pix, pixdesk)
                     ansrow = 13
+                    if pix == 1 {
+                        ansrow = pget(pixdesk, 128)
+                    }
                     lastsec = 0 - 1
                 }
                 if kind == 3 {
                     // 'guest': receive it through the door
                     // (guestdoor.nifla), and say how it went.
-                    let how = runguest(guestimg, guestgot, guestimglen, guestwant)
+                    // The guest is told which screen to paint:
+                    // the text screen itself, or — on the face
+                    // of light — the host's block of cells.
+                    let paintbase = 753664
+                    if pix == 1 {
+                        paintbase = blockaddr(cellblock)
+                    }
+                    let how = runguest(guestimg, guestgot, guestimglen, guestwant, paintbase)
                     if how == 1 {
-                        ansrow = printline(ansrow, "There is no guest on this disc to visit.")
+                        ansrow = printline(ansrow, "There is no guest on this disc to visit.", pix, pixdesk)
                     }
                     if how == 2 {
-                        ansrow = printline(ansrow, "The guest on this disc is not whole, so it was not let in.")
+                        ansrow = printline(ansrow, "The guest on this disc is not whole, so it was not let in.", pix, pixdesk)
                     }
                     if how == 3 {
-                        writeat(21, 2, "The guest visited, and has gone home again.", 7)
+                        if pix == 1 {
+                            // The guest painted the host's block
+                            // of cells; the host now shows the
+                            // visit as light, cell by cell, in
+                            // the colors the guest itself chose
+                            // (Stone 9).
+                            let gr = 15
+                            while gr < 20 {
+                                let gc = 0
+                                while gc < 80 {
+                                    let ch = cellbyte(cellblock, (gr * 80 + gc) * 2)
+                                    let at = cellbyte(cellblock, (gr * 80 + gc) * 2 + 1)
+                                    let fg = at - (at / 16) * 16
+                                    let bgv = (at / 16) - (at / 128) * 8
+                                    let lr = layrow(pixdesk, gr)
+                                    let lc = laycol(pixdesk, gc)
+                                    pset(pixdesk, 56, pget(pixdesk, 64 + bgv * 4))
+                                    pixfill(pixdesk, lc * 16, lr * 16, 16, 16)
+                                    if ch != 32 {
+                                        pset(pixdesk, 56, pget(pixdesk, 64 + fg * 4))
+                                        pixglyph(pixdesk, lc * 16, lr * 16, ch)
+                                    }
+                                    gc = gc + 1
+                                }
+                                gr = gr + 1
+                            }
+                            pixline(pixdesk, (layrow(pixdesk, 21)) * 256 + (2), "The guest visited, and has gone home again.", 7)
+                        } else {
+                            writeat(21, 2, "The guest visited, and has gone home again.", 7)
+                        }
                     }
                 }
                 if kind == 4 {
                     // 'usb': the USB road reports its own
                     // standing, from its ledger.
                     if usbup == 1 {
-                        ansrow = printline(ansrow, "A USB keyboard is ready. It has brought " + usbcount(usbdesk) + " keys so far.")
+                        ansrow = printline(ansrow, "A USB keyboard is ready. It has brought " + usbcount(usbdesk) + " keys so far.", pix, pixdesk)
                     } else {
-                        ansrow = printline(ansrow, "No USB keyboard is plugged in.")
+                        ansrow = printline(ansrow, "No USB keyboard is plugged in.", pix, pixdesk)
                     }
                 }
                 if kind == 5 {
@@ -493,21 +683,21 @@ while true {
                         let local = utcnow + offset * 3600
                         let days = local / 86400
                         let daysec = local - days * 86400
-                        ansrow = printline(ansrow, "The time is " + clocktext(daysec, 0) + " on " + datetext(days) + ".")
+                        ansrow = printline(ansrow, "The time is " + clocktext(daysec, 0) + " on " + datetext(days) + ".", pix, pixdesk)
                     }
-                    ansrow = printline(ansrow, "This machine has been awake for " + nowsec + " seconds.")
+                    ansrow = printline(ansrow, "This machine has been awake for " + nowsec + " seconds.", pix, pixdesk)
                 }
                 if kind == 6 {
                     // 'setup': the disk is offered its
                     // keeping, behind the gate (Stone 8).
                     // The asking itself writes nothing.
                     if diskup == 0 {
-                        ansrow = printline(ansrow, "There is no hard disk here to set up.")
+                        ansrow = printline(ansrow, "There is no hard disk here to set up.", pix, pixdesk)
                     } else {
                         if diskset == 1 {
-                            ansrow = printline(ansrow, "This disk is already keeping your choices.")
+                            ansrow = printline(ansrow, "This disk is already keeping your choices.", pix, pixdesk)
                         } else {
-                            ansrow = printline(ansrow, "This will clear everything on the disk. Type yes to go on.")
+                            ansrow = printline(ansrow, "This will clear everything on the disk. Type yes to go on.", pix, pixdesk)
                             awaiting = 1
                         }
                     }
@@ -527,17 +717,17 @@ while true {
                     if diskset == 1 {
                         let kept = remember(offset)
                         if cmd == "eastern" {
-                            ansrow = printline(ansrow, "The clock now shows Eastern time. The disk will remember it.")
+                            ansrow = printline(ansrow, "The clock now shows Eastern time. The disk will remember it.", pix, pixdesk)
                         } else {
-                            ansrow = printline(ansrow, "The clock now shows the world's standard time. The disk will remember it.")
+                            ansrow = printline(ansrow, "The clock now shows the world's standard time. The disk will remember it.", pix, pixdesk)
                         }
                     } else {
-                        ansrow = printline(ansrow, wordline(cmd))
+                        ansrow = printline(ansrow, wordline(cmd), pix, pixdesk)
                     }
                 }
                 if kind == 1 {
                     // A line of words answers it.
-                    ansrow = printline(ansrow, wordline(cmd))
+                    ansrow = printline(ansrow, wordline(cmd), pix, pixdesk)
                 }
             } else {
                 if k == 14 {
@@ -545,7 +735,7 @@ while true {
                     if klen > 0 {
                         klen = klen - 1
                     }
-                    drawtyping(buildline(keys, klen))
+                    drawtyping(buildline(keys, klen), pix, pixdesk)
                 } else {
                     let ch = charFor(k)
                     if length(ch) > 0 {
@@ -553,7 +743,7 @@ while true {
                             keys[klen] = k
                             klen = klen + 1
                         }
-                        drawtyping(buildline(keys, klen))
+                        drawtyping(buildline(keys, klen), pix, pixdesk)
                     }
                 }
             }

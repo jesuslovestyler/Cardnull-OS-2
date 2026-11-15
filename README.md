@@ -370,6 +370,95 @@ sixty-four sectors plus the card — the disk is given over
 wholly in intent and in its arrangement, though the system
 does not scrub every sector of a large disk.
 
+### Stone 9 — A face with light
+
+The desktop leaves the text screen. The kernel now asks
+its loader for a picture screen — 1024×768, thirty-two
+bits a pixel (the asking is a compiler addition, recorded
+in the Nifla repository: `niflac --bare --video` lays the
+request in the kernel's multiboot header) — and when the
+loader grants it, the desktop is **drawn**: the blue bar
+with its title, date, and clock; the light-gray welcome
+panel with its words; the invitation; the answers; the
+typing line — all as light, in a hand-drawn 8×8 bitmap
+font defined in `src/font.nifla` (ours, public domain,
+drawn at twice size in 16-pixel letter cells) by the
+drawing library `src/pixface.nifla`. The layout is the
+text face's own, reckoned onto whatever grid the granted
+screen makes, so the same desktop is drawn larger or
+smaller on another screen. Answers wrap at the narrower
+grid and scroll as before; the clock is drawn afresh each
+second, as before.
+
+Requested and granted, stated honestly: on the bench,
+GRUB grants **exactly what was asked** — 1024×768×32,
+its framebuffer standing at 0xFD000000, above the first
+gigabyte the boot stub maps, so the kernel lays one more
+page directory of its own to reach it. The colors are
+composed from the field places the loader's answer names,
+not assumed. QEMU's own `-kernel` loader grants no
+picture at all — which is what the fallback is for.
+
+**The fallback:** when no picture screen is granted, or
+the grant is not of a shape this face can draw on (a
+direct-color screen, thirty-two bits a pixel, its whole
+address under four billion, at least 768×256), the system
+does not halt or sit black: the text face — the system's
+first face, unchanged — carries the desktop, and its
+first answer line says so in plain words: "No picture
+screen was granted, so this face stays in words."
+`build.sh` also builds the kernel once without the asking
+(`build/cardnull-text.elf`), and the disc laid down with
+it proves the fallback exactly.
+
+**The guest's visit in light:** the guest still paints a
+text screen's cells — but on a machine showing a picture,
+the text screen's memory is not a screen, and its cells
+cannot be read back from it (measured on the bench: the
+painting reads back as one repeated byte, lost among the
+picture screen's own workings). So the door changed,
+slightly and in the open: the host now tells the guest
+which screen to paint, in a word laid at the top of the
+guest's doorstep — the text screen's own address on a
+text machine (the visit exactly as it always was), or the
+address of a block of cells the host keeps, on a picture
+machine. The host then draws those cells as light, in the
+colors the guest itself chose. The guest's card, check,
+and refusals are untouched.
+
+**And the EFI door is healed.** The framebuffer kernel
+is what the UEFI handoff needed: the hybrid disc (an EFI
+system partition beside the BIOS boot image, GRUB at both
+doors) now boots under OVMF to the same drawn desktop,
+and the guest visits through that door too. One bench
+finding rides with it: the EFI partition must be formed
+as mtools forms a small image by default (FAT12) — a
+partition forced to FAT32 at that size was measured to be
+one the firmware would not boot. Tyler's UTM machine may
+now keep its UEFI firmware.
+
+Proven by `prove-stone9.sh`, four boots of ISO files:
+the shipped disc through the BIOS door (the drawn
+desktop, the typing echo, an answer in light, the drawn
+clock's hand moving between two dumps, the guest's green
+panel and white letters); a tampered-guest disc (the
+refusal drawn, no green anywhere); the no-asking disc
+(the text face and its plain-words line); and the shipped
+disc through the EFI door, the same checks as the first
+boot. The full earlier proof set still passes —
+`prove-iso.sh` now reads the disc's words through the
+same kernel's fallback text face on identical disc
+layouts, as its header says.
+
+Honest limits: no mouse yet; one resolution is asked
+for, and another grant is drawn as it comes, but the
+asking is fixed at 1024×768×32; the guest's cells are
+composited once, when the visit ends — a guest that
+painted and repainted would be shown only as it left
+things; and the EFI door's loader is still GRUB — its
+own replacement is future work, as the BIOS door's is
+Stone 11's.
+
 ## The kernel's files
 
 The kernel is built as several files, never one big one — Tyler's
@@ -410,6 +499,17 @@ was split by duty, without changing its behavior:
   disk (Stone 8): waking the drive, the settings card and its
   reading, the write-back, and the setup clearing
   (diskhere, savedoffset, remember, disksetup).
+- `src/font.nifla` — the letters of the face of light
+  (Stone 9): the hand-drawn 8×8 bitmap font for the letters
+  a person can type, drawn in this file's own comments and
+  laid into a block of bytes by fontload.
+- `src/pixface.nifla` — the face of light (Stone 9): the
+  picture screen's desk and palette, the page-table reach
+  to a screen above the waking map, and the drawing —
+  fills, letters, whole lines, the wrapped and scrolling
+  answers, and the reading of the guest's cells
+  (pixbegin, pixfill, pixglyph, pixline, pixprintline,
+  cellbyte, and their helpers).
 
 The libraries join the main body as preludes at build (build.sh
 names them all): files of pure functions — values in as arguments,
@@ -433,9 +533,10 @@ Cardnull OS 2 ships as **one disc and nothing else** — Tyler's word
 on the founding morning (November 15, 2026): "we should've built the
 iso from day one like the first OS." `./build-iso.sh` lays it:
 
-- `dist/cardnull-os-2.iso` — 563,200 bytes, as built November 15, 2026
-  (rebuilt from the split kernel — see "The kernel's files" above).
-  sha256: `29fd550c9237ed5c4e8080d6a3d01f900a5e9133df8d5ef303ecc194ee825dd0`
+- `dist/cardnull-os-2.iso` — 9,050,112 bytes, as built November 15,
+  2026 (the hybrid disc of Stone 9: the framebuffer kernel, booting
+  through both the BIOS and the EFI doors).
+  sha256: `1f26f3c996076e8f9a12da108f56125c3d728eb9388c162b98a1b648d88d3f83`
   (The ISO file itself is a build product and is not kept in this
   repository; the hash records the disc the proof below was run
   against, and `./build-iso.sh` rebuilds it.)
@@ -443,19 +544,23 @@ iso from day one like the first OS." `./build-iso.sh` lays it:
 On the disc: the system (`/boot/cardnull.elf`), the settings module,
 the guest's card, and the guest itself — everything Stones 4 and 5
 need rides as multiboot modules the loader brings with the system —
-plus the loader's own files under `/boot/grub/`.
+plus the loader's own files under `/boot/grub/`, and the EFI system
+partition at `/boot/efi.img` carrying its own copies for the EFI
+door.
 
-The loader is GRUB, named honestly: it is a means to boot the
-multiboot kernel, not part of Cardnull. Cardnull's own bootloader
-remains future work, as it was in the first Cardnull OS's early
-doors. The disc boots on a BIOS (SeaBIOS) machine; an EFI boot
-image is future work too.
+The loader is GRUB at both doors, named honestly: it is a means to
+boot the multiboot kernel, not part of Cardnull. Cardnull's own
+bootloader remains future work (the BIOS door's is Stone 11's).
 
 **To witness it in UTM:** make a new x86_64 machine, give it
 **4096 MB** of memory, attach `cardnull-os-2.iso` as the machine's
 CD/DVD drive, and boot. Nothing else is attached — no hard disk,
-no second image. The desktop comes up on Eastern time; the words
-on its invitation line all work, `guest` included.
+no second image. **Either firmware works now** — SeaBIOS or UEFI;
+for typing, the USB 2.0 arrangement with USB Support **on** (or
+the PS/2 keyboard either way), and for a remembering disk,
+Stone 8's arrangement in its section above. The desktop comes up
+drawn in light, on Eastern time; the words on its invitation line
+all work, `guest` included.
 
 Proven by `prove-iso.sh`, booting the ISO file itself as a CD-ROM
 (no `-kernel` shortcut) at 4096 MB: the shipped disc shows the
@@ -493,6 +598,15 @@ disc keeps its BIOS door (in UTM: a machine whose firmware is
 SeaBIOS, or UTM's QEMU backend with BIOS), and the EFI attempt
 stands here as the record, to be taken up again when the desktop
 is drawn in pixels.
+
+**Taken up again at Stone 9, and healed:** the desktop is now
+drawn in pixels, the kernel asks its loader for the picture
+screen, and the hybrid disc ships: under OVMF the EFI GRUB hands
+over the granted framebuffer (1024×768, exactly as asked), the
+desktop is drawn, and the guest visits through that door too —
+proven in `prove-stone9.sh`'s fourth boot. The record above
+stands as the finding that led here; the door it describes is
+open now.
 
 ## Notes for builders
 
