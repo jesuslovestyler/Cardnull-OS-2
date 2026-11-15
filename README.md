@@ -690,6 +690,71 @@ interrupt's; and the one button-press the desktop yet
 understands is the guest's panel — the rest of the
 desktop does not answer presses yet.
 
+### Stone 14 — Two windows
+
+On the face of light, the welcome panel and the guest's
+panel stand as windows now. Each is framed in gray, and
+each carries a title bar across its top with its plain
+name — Welcome, Guest — and a close mark, a small x at
+the bar's right end. One window stands forward: its
+title bar is blue, the other's quiet gray, and whenever
+the standing changes the windows are painted
+back-to-front, so the forward window always stands
+whole. The standing itself — which windows are open,
+which is forward, and whether a guest has visited — is
+kept in the pixel face's desk (offsets 172 to 184),
+where the face keeps all its estate; the painting is
+`paintwindows` and its helpers in the main body.
+
+The guest's window stands around the panel the guest
+has always painted, with its title row above it. Before
+any visit, its body says so in plain words: "No guest
+has visited yet." A visit — by the word `guest`, or by
+the pointer's press on the panel, as since Stone 13 —
+opens the window if it stood closed, brings it forward,
+and the guest's cells stand in it afterward, kept by
+the window until it is closed or the face is drawn
+again; the showing itself is the same cell-by-cell
+light as Stone 9's.
+
+Bringing forward and closing are a person's own acts:
+the Tab key brings the other window forward, and a
+press of the pointer on a window brings that window
+forward; the Escape key closes the forward window back
+to the desktop, and a press on a window's close mark
+closes that window, its place painted as the plain
+desktop it covered. The word `welcome` opens the
+welcome window again and brings it forward, as `guest`
+does for its own, and the invitation line on the face
+of light names `welcome` among the words now.
+
+Proven by `prove-stone14.sh`: the shipped disc booted
+from the ISO file, the windows driven as a person
+drives them — Tab bringing each forward in turn (the
+title bars read back as pictures: blue forward, gray
+behind), a press on the guest's panel visiting with
+its window forward, Escape closing the guest window to
+a black desktop with the welcome forward in its place,
+the word `guest` opening the window and visiting
+again, a press on the welcome's close mark closing it
+while the guest stands whole, the word `welcome`
+opening it again forward, and `hello` answered in
+light at the end. The whole earlier proof set passes
+unchanged.
+
+Honest limits: the windows live on the face of light
+only — the text face keeps its one welcome panel and
+has no windows (the word `welcome` there answers in
+plain words that the face has no windows to open); the
+two windows stand each in its own place and do not move
+or change size, and they do not overlap one another —
+each paints whole over the desktop, never over its
+sister; and where the guest window's ground meets the
+answers region, the layering is the desktop's own, as
+it has been since Stone 9: an answer printed afterward
+may cross the window's lower rows, and the window
+paints whole again whenever its standing changes.
+
 ## The kernel's files
 
 The kernel is built as several files, never one big one — Tyler's
@@ -701,7 +766,9 @@ was split by duty, without changing its behavior:
 - `src/cardnull.nifla` — the main body: the boot sequence, the
   first-breath lift of what the loader brought, all the system's
   state, the face, the typing line, and the loop that calls the
-  libraries.
+  libraries. The two windows' painting lives here too (Stone 14:
+  winframe, onewelcome, oneguest, paintwindows), reading the
+  windows' standing from the pixel face's desk.
 - `src/screenlib.nifla` — the screen library: drawing on the text
   screen's own memory (clearscreen, writeat, paintrow, paintrect,
   scrollanswers).
@@ -771,10 +838,11 @@ Cardnull OS 2 ships as **one disc and nothing else** — Tyler's word
 on the founding morning (November 15, 2026): "we should've built the
 iso from day one like the first OS." `./build-iso.sh` lays it:
 
-- `dist/cardnull-os-2.iso` — 8,904,704 bytes, as built November 15,
-  2026 (the disc of Stone 11: the framebuffer kernel, Cardnull's own
-  bootloader at the BIOS door, GRUB still at the EFI door).
-  sha256: `1cbdb059ca65d916cb16f565b9253d79d2fbe8220f3589386424e3c02c3917e4`
+- `dist/cardnull-os-2.iso` — 8,935,424 bytes, as built November 15,
+  2026 (the disc of Stone 14: the framebuffer kernel with its two
+  windows, Cardnull's own bootloader at the BIOS door, GRUB still
+  at the EFI door).
+  sha256: `00f9f2b5455082581bc07f0246fd3ea8b4a552e90357b76eaeab3036c615fd92`
   (The ISO file itself is a build product and is not kept in this
   repository; the hash records the disc the proof below was run
   against, and `./build-iso.sh` rebuilds it.)

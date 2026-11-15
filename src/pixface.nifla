@@ -35,6 +35,12 @@
 //  140  the panel's left column  144  the panel's top row
 //  148  the panel's width        152  the panel's height
 //       (the panel's measures are in letter cells)
+//  172  the windows' standing (Stone 14), kept here in the
+//       desk like the rest of the face's estate: whether
+//       the welcome window stands open (172), whether the
+//       guest window stands open (176), which window is
+//       forward (180: 1 the welcome, 2 the guest, 0 none),
+//       and whether a guest has visited (184)
 //
 // A letter cell is sixteen pixels square: the font's eight
 // by eight, drawn at twice size. The face's layout is the

@@ -34,6 +34,9 @@
 //       moves (see wordoffset), and the main body answers
 //       it, because the true answer depends on whether a
 //       disk is keeping the choices (Stone 8)
+//   8 — the welcome window is opened and brought forward
+//       ('welcome'; the windows are the face of light's,
+//       Stone 14, and the doing is the main body's)
 make wordkind(word) {
     if word == "" {
         give 0
@@ -58,6 +61,9 @@ make wordkind(word) {
     }
     if word == "utc" {
         give 7
+    }
+    if word == "welcome" {
+        give 8
     }
     give 1
 }

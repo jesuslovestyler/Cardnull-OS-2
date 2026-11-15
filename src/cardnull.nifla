@@ -110,6 +110,18 @@
 //          harmless by a save block), and a press of its
 //          first button on the guest's panel receives the
 //          guest, as the word 'guest' does.
+// Stone 14: two windows — on the face of light the
+//          welcome panel and the guest's panel stand as
+//          framed windows, each with a plain title bar
+//          and a close mark; the Tab key or a press of
+//          the pointer brings one forward, the Escape
+//          key or the close mark closes the forward one
+//          back to the desktop, and the words 'welcome'
+//          and 'guest' open them again. The windows'
+//          standing is kept in the pixel face's desk
+//          (see pixface.nifla's ledger), and the painting
+//          is paintwindows below. The text face keeps
+//          its one panel, as it always has.
 //
 // The arrangement of the screen:
 //   row 0      the bar — "Cardnull" at the left, the date
@@ -301,12 +313,15 @@ make drawclock(offset, utcnow, pix, pixdesk) {
     }
 }
 
-// Draws the whole desktop: the bar with its clock, the
-// welcome panel, and the invitation. The answers region is
-// left blank, ready. Two faces draw it (Stone 9): the
-// pixel face when the loader granted a picture screen, and
-// the text face — the system's first face — when it did
-// not; the words are the same words either way.
+// Draws the whole desktop: the bar with its clock and the
+// invitation, and — on the text face — the welcome panel.
+// The answers region is left blank, ready. Two faces draw
+// it (Stone 9): the pixel face when the loader granted a
+// picture screen, and the text face — the system's first
+// face — when it did not; the words are the same words
+// either way. On the pixel face the welcome panel is one
+// of the two windows (Stone 14), painted by paintwindows
+// below, which the main body calls after this drawing.
 make drawface(offset, utcnow, pix, pixdesk) {
     if pix == 1 {
         pixink(pixdesk, 0)
@@ -315,19 +330,8 @@ make drawface(offset, utcnow, pix, pixdesk) {
         pixfill(pixdesk, 0, 0, pget(pixdesk, 8), 16)
         pixline(pixdesk, (0) * 256 + (1), "Cardnull", 31)
         drawclock(offset, utcnow, pix, pixdesk)
-        let pl = pget(pixdesk, 140)
-        let pt = pget(pixdesk, 144)
-        let pw = pget(pixdesk, 148)
-        let ph = pget(pixdesk, 152)
-        pixink(pixdesk, 7)
-        pixfill(pixdesk, pl * 16, pt * 16, pw * 16, ph * 16)
-        pixline(pixdesk, (pt + (ph * 1) / 7) * 256 + (pl + 2), "Welcome to Cardnull", 112)
-        pixline(pixdesk, (pt + (ph * 2) / 7) * 256 + (pl + 2), "This computer is public domain:", 112)
-        pixline(pixdesk, (pt + (ph * 3) / 7) * 256 + (pl + 2), "free for everyone, forever.", 112)
-        pixline(pixdesk, (pt + (ph * 4) / 7) * 256 + (pl + 2), "\"Unless Yahweh builds the house,", 112)
-        pixline(pixdesk, (pt + (ph * 5) / 7) * 256 + (pl + 2), "they labor in vain who build it.\" - Psalm 127:1", 112)
         pixline(pixdesk, (layrow(pixdesk, 11)) * 256 + (2), "Type a word, then press Enter:", 7)
-        pixline(pixdesk, (layrow(pixdesk, 12)) * 256 + (2), "hello, time, memory, eastern, utc, guest, usb, setup, clear", 7)
+        pixline(pixdesk, (layrow(pixdesk, 12)) * 256 + (2), "hello time memory eastern utc guest welcome usb setup clear", 7)
     } else {
     clearscreen()
     paintrow(0, 31)
@@ -359,6 +363,151 @@ make printline(row, text, pix, pixdesk) {
     }
     writeat(r, 2, text, 7)
     give r + 1
+}
+
+// ---- the two windows (Stone 14) ----
+//
+// On the face of light the welcome panel and the guest's
+// panel stand as windows: each is framed, each carries a
+// plain title bar with its name and a close mark (a small
+// x at the bar's right end), and one of them stands
+// forward — its title bar blue, the other's quiet gray.
+// The windows' standing lives in the pixel face's desk
+// (offsets 172 to 184, pixface.nifla's ledger): which are
+// open, which is forward, and whether a guest has visited.
+// These painters read that standing from the desk they are
+// handed, as all the face's drawing does. A window that
+// stands closed is painted as the plain desktop it covers,
+// so closing one leaves the desktop whole.
+
+// Draws one window's frame and title bar: a gray edge
+// around the whole window, the bar across its top — blue
+// when the window stands forward, gray when it stands
+// behind — and the close mark at the bar's right end. The
+// window's place and size are in letter cells, packed as
+// the face packs a cell: 'pos' is the top row times 256
+// plus the left column, 'size' the height times 256 plus
+// the width. The bar's paper is left set for the caller,
+// which draws the window's name next.
+make winframe(desk, pos, size, front) {
+    let y = pos / 256
+    let x = pos - y * 256
+    let h = size / 256
+    let w = size - h * 256
+    pixink(desk, 8)
+    pixfill(desk, x * 16, y * 16, w * 16, h * 16)
+    if front == 1 {
+        pixink(desk, 1)
+    } else {
+        pixink(desk, 8)
+    }
+    pixfill(desk, x * 16 + 2, y * 16 + 2, w * 16 - 4, 16)
+    if front == 1 {
+        pixpaper(desk, 1)
+    } else {
+        pixpaper(desk, 8)
+    }
+    pixspan(desk, 0, 1, 15)
+    pixtext(desk, y, x + w - 2, "x")
+}
+
+// Paints the welcome window from the desk's standing:
+// closed, the plain desktop; open, its frame and title
+// bar and the welcome's own words on their light ground,
+// exactly where they have always stood.
+make onewelcome(desk) {
+    let pl = pget(desk, 140)
+    let pt = pget(desk, 144)
+    let pw = pget(desk, 148)
+    let ph = pget(desk, 152)
+    if pget(desk, 172) == 0 {
+        pixink(desk, 0)
+        pixfill(desk, pl * 16, pt * 16, pw * 16, ph * 16)
+    } else {
+        let front = 0
+        if pget(desk, 180) == 1 {
+            front = 1
+        }
+        winframe(desk, pt * 256 + pl, ph * 256 + pw, front)
+        pixspan(desk, 0, 7, 15)
+        pixtext(desk, pt, pl + 1, "Welcome")
+        pixink(desk, 7)
+        pixfill(desk, pl * 16 + 2, pt * 16 + 18, pw * 16 - 4, ph * 16 - 20)
+        pixline(desk, (pt + (ph * 1) / 7) * 256 + (pl + 2), "Welcome to Cardnull", 112)
+        pixline(desk, (pt + (ph * 2) / 7) * 256 + (pl + 2), "This computer is public domain:", 112)
+        pixline(desk, (pt + (ph * 3) / 7) * 256 + (pl + 2), "free for everyone, forever.", 112)
+        pixline(desk, (pt + (ph * 4) / 7) * 256 + (pl + 2), "\"Unless Yahweh builds the house,", 112)
+        pixline(desk, (pt + (ph * 5) / 7) * 256 + (pl + 2), "they labor in vain who build it.\" - Psalm 127:1", 112)
+    }
+}
+
+// Paints the guest window from the desk's standing: its
+// frame stands around the panel the guest paints (the
+// text face's rows 15 to 19, columns 14 to 65), with a
+// title row above it. Before any visit its body says so
+// in plain words; after one, the guest's own cells are
+// shown as light, cell by cell in the colors the guest
+// chose — the showing the visit has always had (Stone 9),
+// now kept by the window, so the visit stands until the
+// window is closed or the face is drawn again.
+make oneguest(desk, block) {
+    let gx = laycol(desk, 13)
+    let gy = layrow(desk, 14)
+    let gw = laycol(desk, 68) - gx
+    let gh = layrow(desk, 21) - gy
+    if pget(desk, 176) == 0 {
+        pixink(desk, 0)
+        pixfill(desk, gx * 16, gy * 16, gw * 16, gh * 16)
+    } else {
+        let front = 0
+        if pget(desk, 180) == 2 {
+            front = 1
+        }
+        winframe(desk, gy * 256 + gx, gh * 256 + gw, front)
+        pixspan(desk, 0, 5, 15)
+        pixtext(desk, gy, gx + 1, "Guest")
+        pixink(desk, 0)
+        pixfill(desk, gx * 16 + 2, gy * 16 + 18, gw * 16 - 4, gh * 16 - 20)
+        if pget(desk, 184) == 1 {
+            let gr = 15
+            while gr < 20 {
+                let gc = 14
+                while gc < 66 {
+                    let ch = cellbyte(block, (gr * 80 + gc) * 2)
+                    let at = cellbyte(block, (gr * 80 + gc) * 2 + 1)
+                    let fg = at - (at / 16) * 16
+                    let bgv = (at / 16) - (at / 128) * 8
+                    let lr = layrow(desk, gr)
+                    let lc = laycol(desk, gc)
+                    pset(desk, 56, pget(desk, 64 + bgv * 4))
+                    pixfill(desk, lc * 16, lr * 16, 16, 16)
+                    if ch != 32 {
+                        pset(desk, 56, pget(desk, 64 + fg * 4))
+                        pixglyph(desk, lc * 16, lr * 16, ch)
+                    }
+                    gc = gc + 1
+                }
+                gr = gr + 1
+            }
+        } else {
+            pixline(desk, (layrow(desk, 15)) * 256 + (laycol(desk, 14) + 2), "No guest has visited yet.", 7)
+        }
+    }
+}
+
+// Paints both windows, the one behind first and the one
+// forward last, so the forward window always stands
+// whole. Called whenever the windows' standing changes:
+// at the desktop's rising, on a clearing of the face, and
+// on every opening, closing, and bringing-forward.
+make paintwindows(desk, block) {
+    if pget(desk, 180) == 2 {
+        onewelcome(desk)
+        oneguest(desk, block)
+    } else {
+        oneguest(desk, block)
+        onewelcome(desk)
+    }
 }
 
 // ---- the machine ----
@@ -552,6 +701,13 @@ if pix == 1 {
     pset(pixdesk, 40, blockaddr(pdblock))
     pset(pixdesk, 44, blockaddr(arrowblock))
     pset(pixdesk, 48, blockaddr(saveblock))
+    // The two windows' standing (Stone 14), kept in the
+    // desk at 172 to 184: both windows stand open, the
+    // welcome forward, and no guest has visited yet.
+    pset(pixdesk, 172, 1)
+    pset(pixdesk, 176, 1)
+    pset(pixdesk, 180, 1)
+    pset(pixdesk, 184, 0)
     pixbegin(pixdesk)
     // The guest's canvas on this face: a text screen's
     // worth of cells, laid out as the text screen's own
@@ -625,6 +781,9 @@ if rtcok == 1 {
 }
 
 drawface(offset, utcstart, pix, pixdesk)
+if pix == 1 {
+    paintwindows(pixdesk, cellblock)
+}
 
 let keys = makebytes(48)
 // The shift standing resolved for each key in 'keys', at
@@ -798,6 +957,9 @@ while true {
                 if kind == 2 {
                     // 'clear': the face is drawn again, empty.
                     drawface(offset, utcnow, pix, pixdesk)
+                    if pix == 1 {
+                        paintwindows(pixdesk, cellblock)
+                    }
                     ansrow = 13
                     if pix == 1 {
                         ansrow = pget(pixdesk, 128)
@@ -871,11 +1033,73 @@ while true {
                         ansrow = printline(ansrow, wordline(cmd), pix, pixdesk)
                     }
                 }
+                if kind == 8 {
+                    // 'welcome': the welcome window is
+                    // opened and brought forward (Stone
+                    // 14). The text face has no windows —
+                    // its welcome panel simply stands —
+                    // and says so in plain words.
+                    if pix == 1 {
+                        pset(pixdesk, 172, 1)
+                        pset(pixdesk, 180, 1)
+                        paintwindows(pixdesk, cellblock)
+                    } else {
+                        ansrow = printline(ansrow, "This face has no windows to open.", pix, pixdesk)
+                    }
+                }
                 if kind == 1 {
                     // A line of words answers it.
                     ansrow = printline(ansrow, wordline(cmd), pix, pixdesk)
                 }
             } else {
+                if k == 15 {
+                    // Tab: the other window comes forward
+                    // (Stone 14). The key types nothing, as
+                    // it never has; on the text face, which
+                    // has no windows, it simply passes.
+                    if pix == 1 {
+                        if pget(pixdesk, 172) == 1 {
+                            if pget(pixdesk, 176) == 1 {
+                                if pget(pixdesk, 180) == 1 {
+                                    pset(pixdesk, 180, 2)
+                                    paintwindows(pixdesk, cellblock)
+                                } else {
+                                    if pget(pixdesk, 180) == 2 {
+                                        pset(pixdesk, 180, 1)
+                                        paintwindows(pixdesk, cellblock)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    if k == 1 {
+                        // Escape: the forward window closes
+                        // back to the desktop (Stone 14),
+                        // and the other, if it stands open,
+                        // comes forward in its place.
+                        if pix == 1 {
+                            let fr = pget(pixdesk, 180)
+                            if fr == 1 {
+                                pset(pixdesk, 172, 0)
+                                if pget(pixdesk, 176) == 1 {
+                                    pset(pixdesk, 180, 2)
+                                } else {
+                                    pset(pixdesk, 180, 0)
+                                }
+                                paintwindows(pixdesk, cellblock)
+                            }
+                            if fr == 2 {
+                                pset(pixdesk, 176, 0)
+                                if pget(pixdesk, 172) == 1 {
+                                    pset(pixdesk, 180, 1)
+                                } else {
+                                    pset(pixdesk, 180, 0)
+                                }
+                                paintwindows(pixdesk, cellblock)
+                            }
+                        }
+                    } else {
                 if k == 14 {
                     // Backspace: forget the last key.
                     if klen > 0 {
@@ -911,6 +1135,8 @@ while true {
                         drawtyping(buildline(keys, keymod, 0, klen), pix, pixdesk)
                     }
                 }
+                    }
+                }
             }
         }
     }
@@ -918,9 +1144,11 @@ while true {
     // packets move the arrow's place — the mouse speaks
     // of up as forward, so its travel is taken from the
     // screen's reckoning — and a fresh press of its first
-    // button with the arrow's point on the guest's panel
-    // asks for the guest, as the word does. The place is
-    // kept on the screen, the arrow's square whole.
+    // button speaks to the windows (Stone 14): a close
+    // mark closes, a press on the guest's panel asks for
+    // the guest as the word does, and a press on a window
+    // brings it forward. The place is kept on the screen,
+    // the arrow's square whole.
     if pix == 1 {
         if mouseup == 1 {
             let mp = 0
@@ -946,13 +1174,114 @@ while true {
                     if btn != mbtn {
                         if andmask(btn, 1) == 1 {
                             if andmask(mbtn, 1) == 0 {
+                                // A fresh press (Stone 14):
+                                // the arrow's point is tried
+                                // against the windows, in
+                                // their order of meaning —
+                                // a close mark closes its
+                                // window; a press on the
+                                // guest's panel receives the
+                                // guest, as it has since
+                                // Stone 13, and brings its
+                                // window forward; a press
+                                // anywhere else on a window
+                                // brings that window forward.
                                 let cxp = mx + 2
                                 let cyp = my + 2
-                                if cxp >= laycol(pixdesk, 14) * 16 {
-                                    if cxp < laycol(pixdesk, 66) * 16 {
-                                        if cyp >= layrow(pixdesk, 15) * 16 {
-                                            if cyp < layrow(pixdesk, 20) * 16 {
-                                                guestask = 1
+                                let pl = pget(pixdesk, 140)
+                                let pt = pget(pixdesk, 144)
+                                let pw = pget(pixdesk, 148)
+                                let ph = pget(pixdesk, 152)
+                                let gx = laycol(pixdesk, 13)
+                                let gy = layrow(pixdesk, 14)
+                                let gw = laycol(pixdesk, 68) - gx
+                                let gh = layrow(pixdesk, 21) - gy
+                                let acted = 0
+                                if acted == 0 {
+                                    if pget(pixdesk, 172) == 1 {
+                                        if cxp >= (pl + pw - 2) * 16 {
+                                            if cxp < (pl + pw - 1) * 16 {
+                                                if cyp >= pt * 16 {
+                                                    if cyp < (pt + 1) * 16 {
+                                                        pset(pixdesk, 172, 0)
+                                                        if pget(pixdesk, 180) == 1 {
+                                                            if pget(pixdesk, 176) == 1 {
+                                                                pset(pixdesk, 180, 2)
+                                                            } else {
+                                                                pset(pixdesk, 180, 0)
+                                                            }
+                                                        }
+                                                        paintwindows(pixdesk, cellblock)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    if pget(pixdesk, 176) == 1 {
+                                        if cxp >= (gx + gw - 2) * 16 {
+                                            if cxp < (gx + gw - 1) * 16 {
+                                                if cyp >= gy * 16 {
+                                                    if cyp < (gy + 1) * 16 {
+                                                        pset(pixdesk, 176, 0)
+                                                        if pget(pixdesk, 180) == 2 {
+                                                            if pget(pixdesk, 172) == 1 {
+                                                                pset(pixdesk, 180, 1)
+                                                            } else {
+                                                                pset(pixdesk, 180, 0)
+                                                            }
+                                                        }
+                                                        paintwindows(pixdesk, cellblock)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    if pget(pixdesk, 176) == 1 {
+                                        if cxp >= laycol(pixdesk, 14) * 16 {
+                                            if cxp < laycol(pixdesk, 66) * 16 {
+                                                if cyp >= layrow(pixdesk, 15) * 16 {
+                                                    if cyp < layrow(pixdesk, 20) * 16 {
+                                                        pset(pixdesk, 180, 2)
+                                                        guestask = 1
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    if pget(pixdesk, 172) == 1 {
+                                        if cxp >= pl * 16 {
+                                            if cxp < (pl + pw) * 16 {
+                                                if cyp >= pt * 16 {
+                                                    if cyp < (pt + ph) * 16 {
+                                                        pset(pixdesk, 180, 1)
+                                                        paintwindows(pixdesk, cellblock)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    if pget(pixdesk, 176) == 1 {
+                                        if cxp >= gx * 16 {
+                                            if cxp < (gx + gw) * 16 {
+                                                if cyp >= gy * 16 {
+                                                    if cyp < (gy + gh) * 16 {
+                                                        pset(pixdesk, 180, 2)
+                                                        paintwindows(pixdesk, cellblock)
+                                                        acted = 1
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -971,9 +1300,15 @@ while true {
 
     // A guest asked for — by the word, or by the pointer's
     // press on its panel — is received here, the one doing
-    // for both askings (Stone 13).
+    // for both askings (Stone 13). The asking opens the
+    // guest's window and brings it forward (Stone 14),
+    // whether the visit then stands or is refused.
     if guestask == 1 {
         guestask = 0
+        if pix == 1 {
+            pset(pixdesk, 176, 1)
+            pset(pixdesk, 180, 2)
+        }
         // 'guest': receive it through the door
         // (guestdoor.nifla), and say how it went.
         // The guest is told which screen to paint:
@@ -984,6 +1319,18 @@ while true {
             paintbase = blockaddr(cellblock)
         }
         let how = runguest(guestimg, guestgot, guestimglen, guestwant, paintbase)
+        if how == 3 {
+            if pix == 1 {
+                // The visit stands in the guest's window
+                // now (Stone 14): the window's painting
+                // shows the cells the guest painted, and
+                // keeps showing them.
+                pset(pixdesk, 184, 1)
+            }
+        }
+        if pix == 1 {
+            paintwindows(pixdesk, cellblock)
+        }
         if how == 1 {
             ansrow = printline(ansrow, "There is no guest on this disc to visit.", pix, pixdesk)
         }
@@ -992,31 +1339,6 @@ while true {
         }
         if how == 3 {
             if pix == 1 {
-                // The guest painted the host's block
-                // of cells; the host now shows the
-                // visit as light, cell by cell, in
-                // the colors the guest itself chose
-                // (Stone 9).
-                let gr = 15
-                while gr < 20 {
-                    let gc = 0
-                    while gc < 80 {
-                        let ch = cellbyte(cellblock, (gr * 80 + gc) * 2)
-                        let at = cellbyte(cellblock, (gr * 80 + gc) * 2 + 1)
-                        let fg = at - (at / 16) * 16
-                        let bgv = (at / 16) - (at / 128) * 8
-                        let lr = layrow(pixdesk, gr)
-                        let lc = laycol(pixdesk, gc)
-                        pset(pixdesk, 56, pget(pixdesk, 64 + bgv * 4))
-                        pixfill(pixdesk, lc * 16, lr * 16, 16, 16)
-                        if ch != 32 {
-                            pset(pixdesk, 56, pget(pixdesk, 64 + fg * 4))
-                            pixglyph(pixdesk, lc * 16, lr * 16, ch)
-                        }
-                        gc = gc + 1
-                    }
-                    gr = gr + 1
-                }
                 pixline(pixdesk, (layrow(pixdesk, 21)) * 256 + (2), "The guest visited, and has gone home again.", 7)
             } else {
                 writeat(21, 2, "The guest visited, and has gone home again.", 7)
