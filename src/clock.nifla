@@ -1,0 +1,46 @@
+// Cardnull OS 2's clock library — the clock's face, and
+// the reckoning behind the person's time choice.
+//
+// Like the screen library, this file joins the system as a
+// prelude when it is built (build.sh names it); a prelude
+// may only make functions, and these keep no state of their
+// own: the count of seconds and the chosen offset come in
+// as arguments, and the clock's face goes back as the
+// result. All state stays in the system's main body
+// (src/cardnull.nifla) — the standing discipline of this
+// kernel, whose files the README's file map gathers.
+
+// ---- the clock ----
+
+// A number written with a leading zero when it is small:
+// 7 becomes "07", so the clock's face keeps its shape.
+make pad2(n) {
+    if n < 10 {
+        give "0" + n
+    }
+    give "" + n
+}
+
+// The clock's face for a count of seconds: hours, minutes,
+// and seconds, each two digits, the hours within the day and
+// shifted by 'offset' hours — the person's time choice
+// (Stone 4). The count itself is still the honest
+// count since the machine woke; the offset only moves the
+// hour the face shows, the way setting a clock does.
+make clocktext(total, offset) {
+    let hours = total / 3600
+    let rest = total - hours * 3600
+    let minutes = rest / 60
+    let seconds = rest - minutes * 60
+    while hours >= 24 {
+        hours = hours - 24
+    }
+    hours = hours + offset
+    if hours < 0 {
+        hours = hours + 24
+    }
+    if hours >= 24 {
+        hours = hours - 24
+    }
+    give pad2(hours) + ":" + pad2(minutes) + ":" + pad2(seconds)
+}

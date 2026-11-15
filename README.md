@@ -216,14 +216,59 @@ carries one plain assumption: a guest image is never as small as
 the 512-byte settings or the 32-byte card, so a module of exactly
 the card's promised length can only be the image.
 
+## The kernel's files
+
+The kernel is built as several files, never one big one — Tyler's
+standing rule (November 15, 2026), kept from the first Cardnull OS,
+whose kernel stood in twenty files. The seed kernel began the
+founding morning as a single file; the same day, at Tyler's word, it
+was split by duty, without changing its behavior:
+
+- `src/cardnull.nifla` — the main body: the boot sequence, the
+  first-breath lift of what the loader brought, all the system's
+  state, the face, the typing line, and the loop that calls the
+  libraries.
+- `src/screenlib.nifla` — the screen library: drawing on the text
+  screen's own memory (clearscreen, writeat, paintrow, paintrect,
+  scrollanswers).
+- `src/clock.nifla` — the clock's face, and the reckoning behind the
+  person's time choice (pad2, clocktext).
+- `src/bootmods.nifla` — the hands that read what the loader
+  brought: the module table and the modules that ride the disc
+  (modcount, modstart, modend, modcopyfrom).
+- `src/guestdoor.nifla` — the guest door: the card's FNV-1a check,
+  the doorstep, the call, and the plain-words refusals (cardnum,
+  fnv1a, placeguest, runguest).
+- `src/commands.nifla` — deciding what a typed word is answered
+  with: what kind of answer, the line that answers it, and the
+  clock's offset once the word is done (wordkind, wordline,
+  wordoffset).
+
+The libraries join the main body as preludes at build (build.sh
+names them all): files of pure functions — values in as arguments,
+results back — because on bare metal a function that reads or
+assigns the program's shared variables is given a broken value (see
+"Notes for builders"). Every function that moved kept its exact
+body; the one piece of deciding that used to live in the main loop
+(the command dispatch) now asks the command library its three
+questions, and the doing still happens in the body, where the state
+lives. The welcome guest (`src/welcome-guest.nifla`) is a separate
+program that visits through the door, and is no part of the kernel.
+
+Proven after the split by the full shipped proof set —
+`prove-stone3.sh`, `prove-stone4.sh`, `prove-stone5.sh`, and
+`prove-iso.sh` all PASS, with readback checks identical to the
+same proofs run against the single file before it was split.
+
 ## The witness disc
 
 Cardnull OS 2 ships as **one disc and nothing else** — Tyler's word
 on the founding morning (November 15, 2026): "we should've built the
 iso from day one like the first OS." `./build-iso.sh` lays it:
 
-- `dist/cardnull-os-2.iso` — 561,152 bytes, as built November 15, 2026.
-  sha256: `8dbc0860fd356ad7903317877b242b26451ec4e288a128a27182579e5c1d8dec`
+- `dist/cardnull-os-2.iso` — 563,200 bytes, as built November 15, 2026
+  (rebuilt from the split kernel — see "The kernel's files" above).
+  sha256: `29fd550c9237ed5c4e8080d6a3d01f900a5e9133df8d5ef303ecc194ee825dd0`
   (The ISO file itself is a build product and is not kept in this
   repository; the hash records the disc the proof below was run
   against, and `./build-iso.sh` rebuilds it.)

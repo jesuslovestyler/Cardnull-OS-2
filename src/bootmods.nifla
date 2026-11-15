@@ -1,0 +1,132 @@
+// Cardnull OS 2's boot-modules library — the hands that
+// read what the loader brought.
+//
+// Like the screen library, this file joins the system as a
+// prelude when it is built (build.sh names it); a prelude
+// may only make functions, and these keep no state of their
+// own: each is asked about one module or one stretch of
+// memory, as arguments, and gives back a number or a count.
+// The lifting itself — gathering the modules' bytes into
+// the system's own keeping in its first breath — is the
+// main body's work, in src/cardnull.nifla; these are only
+// the hands it lifts with. The long note below, carried
+// whole from the seed kernel, tells what rides the disc and
+// why the lift must happen before anything else.
+
+// ---- what the loader brought (Stones 4 and 5) ----
+//
+// This system ships as one disc and nothing else: no disk
+// is attached, ever. Everything the system needs beyond its
+// own image rides the disc as modules the bootloader loads
+// alongside it, reported in the boot information the
+// machine is handed at startup — the word the boot stub
+// keeps at __mb_info. In that information, the third bit of
+// the first word says whether a module table is there; the
+// count of modules stands at offset 20 and the table's
+// address at offset 24; each entry is sixteen bytes: where
+// a module begins, where it ends, the name it was given,
+// and a spare word.
+//
+// Three modules ride the Cardnull disc:
+//   the settings (512 bytes): the letters C and N, then one
+//     byte holding the clock's hour offset with 64 added
+//     (so -5 is kept as 59 and 0 as 64; a byte of 0 means
+//     the disc carries no choice, and the clock starts on
+//     Eastern time — the lesson the first Cardnull OS
+//     taught on real hardware: a clock that quietly shows
+//     the world's standard hour as if it were local is
+//     simply wrong, so this system starts from its people's
+//     time and says so).
+//   the guest's card (32 bytes): the letters C, N, C, G,
+//     then the guest image's length and its FNV-1a checksum,
+//     each as an eight-byte number.
+//   the guest image itself: the welcome guest, built for
+//     the doorstep (Stone 5).
+//
+// One discipline governs all of it: the loader leaves its
+// table and the modules in low memory that this system's
+// own heap also grows into from below (measured on the
+// bench: the table was found overwritten by the system's
+// own early allocations when it was read late). So the
+// system's first act — in the main body below, before the
+// face is drawn — is to lift everything it needs out of
+// the modules into its own keeping: first the table's
+// addresses into plain numbers, while nothing is yet
+// allocated; then the modules' bytes into blocks of its
+// own. After that first breath the loader's table is never
+// touched again. Kernels have always done this with what
+// their loaders bring; here it is simply done in the open.
+
+// How many modules the loader brought (0 when it brought
+// none, or when the table is not there).
+make modcount() {
+    give floor() {
+        mov esi, dword ptr [__mb_info]
+        test esi, esi
+        jz mc_zero
+        mov eax, dword ptr [rsi]
+        test eax, 8
+        jz mc_zero
+        mov eax, dword ptr [rsi + 20]
+        jmp mc_done
+    mc_zero:
+        xor eax, eax
+    mc_done:
+    }
+}
+
+// Where module 'i' begins, as the loader left it.
+make modstart(i) {
+    give floor(i) {
+        mov rax, [r10]
+        mov esi, dword ptr [__mb_info]
+        test esi, esi
+        jz ms_zero
+        mov ecx, dword ptr [rsi]
+        test ecx, 8
+        jz ms_zero
+        mov edx, dword ptr [rsi + 24]
+        shl rax, 4
+        mov eax, dword ptr [rdx + rax]
+        jmp ms_done
+    ms_zero:
+        xor eax, eax
+    ms_done:
+    }
+}
+
+// Where module 'i' ends (the first byte past it).
+make modend(i) {
+    give floor(i) {
+        mov rax, [r10]
+        mov esi, dword ptr [__mb_info]
+        test esi, esi
+        jz me_zero
+        mov ecx, dword ptr [rsi]
+        test ecx, 8
+        jz me_zero
+        mov edx, dword ptr [rsi + 24]
+        shl rax, 4
+        mov eax, dword ptr [rdx + rax + 4]
+        jmp me_done
+    me_zero:
+        xor eax, eax
+    me_done:
+    }
+}
+
+// Copies bytes out of a module the loader left at 'addr',
+// 'len' of them, into the block handed in — never more
+// than the block holds — and gives back how many were
+// copied.
+make modcopyfrom(addr, len, block) {
+    give floor(block, addr, len) {
+        mov rax, [r10 + 8]
+        cmp rax, r12
+        cmova rax, r12
+        mov rsi, [r10]
+        mov rdi, rbx
+        mov rcx, rax
+        rep movsb
+    }
+}

@@ -1,0 +1,72 @@
+// Cardnull OS 2's command library — deciding what a typed
+// word is answered with.
+//
+// Like the screen library, this file joins the system as a
+// prelude when it is built (build.sh names it); a prelude
+// may only make functions, and these keep no state of their
+// own: the word comes in as an argument, and the decision
+// goes back as a result. The doing itself — printing the
+// line in the answer region, drawing the face again,
+// receiving the guest, keeping the clock's new offset — is
+// the main body's work, in src/cardnull.nifla, which asks
+// these three questions of every finished word:
+//
+//   wordkind   — what kind of answer the word gets
+//   wordline   — the line of words that answers it
+//   wordoffset — the clock's offset once the word is done
+
+// What kind of answer a word gets:
+//   0 — no answer at all (the word is empty)
+//   1 — a line of words answers it (see wordline below)
+//   2 — the face is cleared and drawn again ('clear')
+//   3 — a guest is to be received through the guest door
+//       ('guest'; the door itself is guestdoor.nifla)
+make wordkind(word) {
+    if word == "" {
+        give 0
+    }
+    if word == "clear" {
+        give 2
+    }
+    if word == "guest" {
+        give 3
+    }
+    give 1
+}
+
+// The line that answers a word of kind 1: the greeting, the
+// reports, the time choices' own say-so, and the kind word
+// for a word the machine does not know yet. The 'time' and
+// 'memory' lines are reckoned as they are asked for, from
+// the machine's own tick and memory figure.
+make wordline(word) {
+    if word == "hello" {
+        give "Hello. It is good to see you."
+    }
+    if word == "time" {
+        give "This machine has been awake for " + (ticks() / 100) + " seconds."
+    }
+    if word == "memory" {
+        give "This machine has " + memorysize() + " bytes of memory (" + (memorysize() / 1048576) + " megabytes)."
+    }
+    if word == "eastern" {
+        give "The clock now shows Eastern time until the machine is turned off."
+    }
+    if word == "utc" {
+        give "The clock now shows the world's standard time until turned off."
+    }
+    give "I don't know that word yet. Try hello, time, memory, guest, or clear."
+}
+
+// The clock's hour offset once a word is done: 'eastern'
+// and 'utc' set it (the time choice, Stone 4), and every
+// other word leaves it exactly as it was.
+make wordoffset(word, offset) {
+    if word == "eastern" {
+        give 0 - 5
+    }
+    if word == "utc" {
+        give 0
+    }
+    give offset
+}

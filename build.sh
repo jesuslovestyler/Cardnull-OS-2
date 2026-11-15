@@ -21,12 +21,23 @@ fi
 
 mkdir -p build
 
-# The screen library joins the build once it exists (Stone 3).
+# The kernel is several files, never one big one: the main
+# body (src/cardnull.nifla) holds the boot sequence and all
+# the system's state, and the libraries join it as preludes
+# — files of pure functions laid under the body, as if they
+# stood at its top. Each is named here, in the order they
+# are laid:
+#   screenlib  the screen library (Stone 3)
+#   clock      the clock's face and the time choice
+#   bootmods   reading what the loader brought (Stones 4–5)
+#   guestdoor  the guest door (Stone 5)
+#   commands   deciding what a typed word is answered with
+LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/guestdoor.nifla src/commands.nifla"
 PRELUDE=""
-if [ -f src/screenlib.nifla ]; then
-    # Word splitting is intended: this is either empty or two words.
-    PRELUDE="--prelude src/screenlib.nifla"
-fi
+for lib in $LIBRARIES; do
+    # Word splitting is intended: one --prelude pair per file.
+    PRELUDE="$PRELUDE --prelude $lib"
+done
 
 # shellcheck disable=SC2086
 "$NIFLA_REPO/niflac" --bare src/cardnull.nifla $PRELUDE -o build/cardnull.elf
