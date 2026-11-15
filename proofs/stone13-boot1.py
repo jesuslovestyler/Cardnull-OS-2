@@ -4,8 +4,8 @@
 # (its +x is right and its +y is down, as the bench
 # speaks); where it left, the desktop stands whole again;
 # and a press of the first button with the arrow's point
-# on the guest's panel brings the guest — the same visit
-# the word 'guest' brings, its green panel and all. No
+# on the feather's panel brings the feather — the same visit
+# the word 'feather' brings, its green panel and all. No
 # green stands anywhere before the press.
 
 BLUE = (0, 0, 170)
@@ -29,7 +29,7 @@ def arrow_white(d, x0, y0):
 d = waitdump(lambda d: d is not None and d[0] == 1024 and count(d, BLUE) > 5000, 40)
 expect(d is not None, "the desktop is drawn")
 if d:
-    expect(count(d, GREEN) == 0, "no guest panel stands before the press")
+    expect(count(d, GREEN) == 0, "no feather panel stands before the press")
     expect(arrow_white(d, 504, 376) > 20,
            "the arrow stands at the screen's middle")
 
@@ -41,18 +41,18 @@ if d:
     expect(arrow_white(d, 504, 376) == 0,
            "where the arrow left, the desktop stands whole")
 
-# Onto the guest's panel, and press: the panel's ground
+# Onto the feather's panel, and press: the panel's ground
 # on the face is x 176..832, y 448..608; the arrow's
 # point is its square's (2, 2), standing at (706, 478)
 # now — a move of (-306, +42) lays it at (400, 520),
 # well inside.
 mousemove(-306, 42)
 d = waitdump(lambda d: d is not None and arrow_white(d, 398, 518) > 20, 15)
-expect(d is not None, "the arrow stands on the guest's panel")
+expect(d is not None, "the arrow stands on the feather's panel")
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None and count(d, GREEN) > 10000, 25)
-expect(d is not None, "the press brought the guest: its green panel stands")
+expect(d is not None, "the press brought the feather: its green panel stands")
 
 # The typing line still works, with the pointer about.
 typewrite("hello")

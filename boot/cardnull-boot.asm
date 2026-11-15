@@ -12,7 +12,7 @@
 #      the ISO9660 filesystem from the primary volume
 #      descriptor: root directory, then BOOT, then the
 #      four files — CARDNULL.ELF, SETTINGS.BIN, CARD.BIN,
-#      GUEST.BIN — each staged in low memory.
+#      FEATHER.BIN — each staged in low memory.
 #   2. It asks the machine its memory map (int 15h, E820)
 #      and lays the multiboot information down: the map,
 #      the memory figures, and a module table for the
@@ -48,8 +48,8 @@
 #   0x7C00  this loader (its stack grows down from here)
 #   0x40000 the system file, staged (up to 192 KiB)
 #   0x60000 the settings module, staged
-#   0x61000 the guest's card, staged
-#   0x62000 the guest, staged (up to 56 KiB)
+#   0x61000 the feather's card, staged
+#   0x62000 the feather, staged (up to 56 KiB)
 # (The stages stand ABOVE the system's stage: the system
 # is some 123 KiB, so its stage reaches past 0x5E000 —
 # the modules' stages must not sit inside it, or their
@@ -153,14 +153,14 @@ _start:
     mov eax, [found_len]
     mov [card_len], eax
 
-    mov si, offset name_guest
+    mov si, offset name_feather
     call find_in_dir
     jc fail_files
     mov edi, 0x62000
     call stage_file
     jc fail_disc
     mov eax, [found_len]
-    mov [guest_len], eax
+    mov [feather_len], eax
 
     # ---- the memory map (int 15h, E820) ----
     # Each entry is laid in the multiboot shape: a size
@@ -272,7 +272,7 @@ info_flags_done:
     mov dword ptr [0x4418], 0
     mov dword ptr [0x441C], 0
     mov dword ptr [0x4420], eax
-    add eax, [guest_len]
+    add eax, [feather_len]
     mov dword ptr [0x4424], eax
     mov dword ptr [0x4428], 0
     mov dword ptr [0x442C], 0
@@ -625,7 +625,7 @@ ph_done:
     mov ecx, [card_len]
     rep movsb
     mov esi, 0x62000
-    mov ecx, [guest_len]
+    mov ecx, [feather_len]
     rep movsb
 
     # Hand over.
@@ -690,7 +690,7 @@ settings_len:
     .long 0
 card_len:
     .long 0
-guest_len:
+feather_len:
     .long 0
 mmap_count:
     .long 0
@@ -743,8 +743,8 @@ name_settings:
     .asciz "SETTINGS.BIN"
 name_card:
     .asciz "CARD.BIN"
-name_guest:
-    .asciz "GUEST.BIN"
+name_feather:
+    .asciz "FEATHER.BIN"
 
 msg_services:
     .asciz "Cardnull could not start: this machine's disc services are not the extended kind it needs."

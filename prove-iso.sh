@@ -8,13 +8,13 @@
 #
 #   Boot 1: the shipped disc (dist/cardnull-os-2.iso, built
 #     fresh by build-iso.sh) — the desktop on the disc's
-#     Eastern choice, the guest's visit, and 'utc' moving
+#     Eastern choice, the feather's visit, and 'utc' moving
 #     the clock for the session.
 #   Boot 2: a variant disc whose settings carry the world's
 #     standard time — the clock must come up at hour 00 on
 #     its own, proving the choice rides the disc.
-#   Boot 3: a variant disc with one byte of the guest
-#     flipped — the refusal in plain words, the guest never
+#   Boot 3: a variant disc with one byte of the feather
+#     flipped — the refusal in plain words, the feather never
 #     appearing, the desktop unharmed.
 #
 # Since Stone 9 the shipped kernel asks the loader for a
@@ -90,17 +90,17 @@ ISO_OUT="$WORK/cardnull-text.iso" KERNEL_FILE=build/cardnull-text.elf ./build-is
 boot_iso "$WORK/cardnull-text.iso" proofs/iso-boot1.py 1 || exit 1
 
 echo "--- boot 2 (a disc carrying the world's time) ---"
-python3 tools/make-modules.py build/guest.bin "$WORK/settings-utc.bin" "$WORK/card.bin" 64 >/dev/null
+python3 tools/make-modules.py build/feather.bin "$WORK/settings-utc.bin" "$WORK/card.bin" 64 >/dev/null
 ISO_OUT="$WORK/cardnull-utc.iso" KERNEL_FILE=build/cardnull-text.elf SETTINGS_FILE="$WORK/settings-utc.bin" ./build-iso.sh >/dev/null || { echo "FAIL: variant build failed"; exit 1; }
 boot_iso "$WORK/cardnull-utc.iso" proofs/iso-boot2.py 2 || exit 1
 
-echo "--- boot 3 (a disc carrying a tampered guest) ---"
+echo "--- boot 3 (a disc carrying a tampered feather) ---"
 python3 - "$WORK" <<'PYEOF'
 import sys
 work = sys.argv[1]
-guest = bytearray(open("build/guest.bin", "rb").read())
-guest[100] ^= 0xFF
-open(work + "/guest-tampered.bin", "wb").write(guest)
+feather = bytearray(open("build/feather.bin", "rb").read())
+feather[100] ^= 0xFF
+open(work + "/feather-tampered.bin", "wb").write(feather)
 PYEOF
-ISO_OUT="$WORK/cardnull-tampered.iso" KERNEL_FILE=build/cardnull-text.elf GUEST_FILE="$WORK/guest-tampered.bin" ./build-iso.sh >/dev/null || { echo "FAIL: variant build failed"; exit 1; }
+ISO_OUT="$WORK/cardnull-tampered.iso" KERNEL_FILE=build/cardnull-text.elf FEATHER_FILE="$WORK/feather-tampered.bin" ./build-iso.sh >/dev/null || { echo "FAIL: variant build failed"; exit 1; }
 boot_iso "$WORK/cardnull-tampered.iso" proofs/iso-boot3.py 3

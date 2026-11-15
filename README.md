@@ -31,7 +31,7 @@ one. By default the build looks for it at `~/workspace/nifla-repo`; set
 `NIFLA_REPO` to point somewhere else.
 
 ```
-./build.sh            # makes build/cardnull.elf, build/guest.bin, and the
+./build.sh            # makes build/cardnull.elf, build/feather.bin, and the
                       # disc's two small modules (build/settings.bin,
                       # build/card.bin)
 ```
@@ -125,7 +125,7 @@ it is an honest count of uptime, not the world's time; nothing reads
 a real-time clock yet, and Stone 4's time choice shifts the
 shown hour without changing that. The face is drawn in the text
 screen's sixteen colors, one panel, no windows, no mouse. The panel
-and bar are repainted only when drawn; a guest or a stray writer
+and bar are repainted only when drawn; a feather or a stray writer
 could paint over them, and nothing yet defends the arrangement
 except the system's own manners.
 
@@ -151,7 +151,7 @@ bootloader brings (QEMU's `-initrd` is the bench form of the same
 handoff): a disc carrying the world's time comes up at hour 00 on
 its own and `eastern` moves it to 19; a disc carrying Eastern comes
 up at 19 and `utc` moves it to 00; and with no modules at all, the
-clock starts on Eastern and `guest` is answered plainly.
+clock starts on Eastern and `feather` is answered plainly.
 
 How this stone came to its present shape, recorded honestly: it was
 first built and proven earlier the same day (November 15, 2026)
@@ -215,6 +215,12 @@ floor, for the reason in the builder note below. And the layout
 carries one plain assumption: a guest image is never as small as
 the 512-byte settings or the 32-byte card, so a module of exactly
 the card's promised length can only be the image.
+
+*A note on this section's words (November 15, 2026): the
+programs this section calls guests are called feathers
+now — see the rename note at the end of Stone 10's
+section. The section above keeps the words of its
+morning, as the record of it.*
 
 ### Stone 6 — Ears on the USB road
 
@@ -507,6 +513,35 @@ Proven by the shipped proofs that cover the guest —
 in light, at both doors) — all PASS with the guest in
 its new shape.
 
+**The rename (November 15, 2026).** Later on the
+founding day Tyler restored the name these programs
+were always meant to carry: *"Can you name them
+feathers instead? Just name them feathers because
+that was the original plan of Cardinal OS."* Feathers
+are Cardnull's programs, written in Nifla — the
+original Cardinal OS plan's name for its programs,
+kept from the first Cardnull OS, whose programs were
+plain-text feathers with their cards. So the word is
+feather now, everywhere the person at the screen
+reads: the command is `feather` (the old word `guest`
+answers in plain words, "Programs are called feathers
+here — type feather."), the window is the feather's,
+the messages speak of the feather, and the sources
+and the disc follow — `src/welcome-feather.nifla`,
+`src/featherdoor.nifla`, and the module `feather.bin`
+on the disc, checked against the feather's card as
+before. The sections above (Stones 5 and 10, and the
+ladder's history between them) keep the words of
+their morning; everything that speaks of the system
+as it now stands speaks of feathers. One layer
+deliberately keeps the old word: Nifla's own
+language-level words for this door — `callguest`,
+`guestvalue`, `guestgive`, and the `--guest` building
+flag — are the language's plumbing, not the system's
+names, and they stay unchanged underneath, as does
+the language repository's own proof of the doorstep
+(`run-bare-guest-desk.sh` there).
+
 ### Stone 11 — Our own doorman
 
 The BIOS door is Cardnull's own now. `boot/cardnull-boot.asm`
@@ -665,8 +700,8 @@ on — the desktop under it is never harmed, and each
 pass of the loop takes the arrow off before anything is
 drawn and lays it again at the pass's end. A fresh
 press of the mouse's first button with the arrow's
-point on the guest's panel asks for the guest, and the
-receiving is the very doing the word `guest` has always
+point on the feather's panel asks for the feather, and the
+receiving is the very doing the word `feather` has always
 had — the two askings gathered into one at this stone.
 
 Proven by `prove-stone13.sh`: the shipped disc booted
@@ -675,7 +710,7 @@ monitor — the arrow standing at the screen's middle
 when the desktop rises, following a move (the monitor's
 own reckoning: right and down are forward), the desktop
 whole where it left, no green anywhere before the
-press, and the guest's green panel standing after a
+press, and the feather's green panel standing after a
 press on its panel, with `hello` still answered in
 light afterward. The whole earlier proof set passes
 unchanged.
@@ -687,32 +722,32 @@ later road if it is ever taken (the USB road today
 carries a keyboard, Stone 6); the arrow's travel is
 polled, so it moves in the loop's own steps, not in an
 interrupt's; and the one button-press the desktop yet
-understands is the guest's panel — the rest of the
+understands is the feather's panel — the rest of the
 desktop does not answer presses yet.
 
 ### Stone 14 — Two windows
 
-On the face of light, the welcome panel and the guest's
+On the face of light, the welcome panel and the feather's
 panel stand as windows now. Each is framed in gray, and
 each carries a title bar across its top with its plain
-name — Welcome, Guest — and a close mark, a small x at
+name — Welcome, Feather — and a close mark, a small x at
 the bar's right end. One window stands forward: its
 title bar is blue, the other's quiet gray, and whenever
 the standing changes the windows are painted
 back-to-front, so the forward window always stands
 whole. The standing itself — which windows are open,
-which is forward, and whether a guest has visited — is
+which is forward, and whether a feather has visited — is
 kept in the pixel face's desk (offsets 172 to 184),
 where the face keeps all its estate; the painting is
 `paintwindows` and its helpers in the main body.
 
-The guest's window stands around the panel the guest
+The feather's window stands around the panel the feather
 has always painted, with its title row above it. Before
-any visit, its body says so in plain words: "No guest
-has visited yet." A visit — by the word `guest`, or by
+any visit, its body says so in plain words: "No feather
+has visited yet." A visit — by the word `feather`, or by
 the pointer's press on the panel, as since Stone 13 —
 opens the window if it stood closed, brings it forward,
-and the guest's cells stand in it afterward, kept by
+and the feather's cells stand in it afterward, kept by
 the window until it is closed or the face is drawn
 again; the showing itself is the same cell-by-cell
 light as Stone 9's.
@@ -724,7 +759,7 @@ forward; the Escape key closes the forward window back
 to the desktop, and a press on a window's close mark
 closes that window, its place painted as the plain
 desktop it covered. The word `welcome` opens the
-welcome window again and brings it forward, as `guest`
+welcome window again and brings it forward, as `feather`
 does for its own, and the invitation line on the face
 of light names `welcome` among the words now.
 
@@ -732,12 +767,12 @@ Proven by `prove-stone14.sh`: the shipped disc booted
 from the ISO file, the windows driven as a person
 drives them — Tab bringing each forward in turn (the
 title bars read back as pictures: blue forward, gray
-behind), a press on the guest's panel visiting with
-its window forward, Escape closing the guest window to
+behind), a press on the feather's panel visiting with
+its window forward, Escape closing the feather window to
 a black desktop with the welcome forward in its place,
-the word `guest` opening the window and visiting
+the word `feather` opening the window and visiting
 again, a press on the welcome's close mark closing it
-while the guest stands whole, the word `welcome`
+while the feather stands whole, the word `welcome`
 opening it again forward, and `hello` answered in
 light at the end. The whole earlier proof set passes
 unchanged.
@@ -749,7 +784,7 @@ plain words that the face has no windows to open); the
 two windows stand each in its own place and do not move
 or change size, and they do not overlap one another —
 each paints whole over the desktop, never over its
-sister; and where the guest window's ground meets the
+sister; and where the feather window's ground meets the
 answers region, the layering is the desktop's own, as
 it has been since Stone 9: an answer printed afterward
 may cross the window's lower rows, and the window
@@ -872,7 +907,7 @@ and the BOOTX64.EFI known as Cardnull's own by its
 plain-words failure line standing inside it — then the
 shipped disc booted under OVMF through the new door
 with Stone 9's own scenario (the desktop drawn in
-light, the clock's hand moving, the guest's visit in
+light, the clock's hand moving, the feather's visit in
 its green), and the same disc booted through the BIOS
 door with the same scenario, unregressed. The whole
 earlier proof set passes unchanged — Stone 9's fourth
@@ -904,7 +939,7 @@ was split by duty, without changing its behavior:
   first-breath lift of what the loader brought, all the system's
   state, the face, the typing line, and the loop that calls the
   libraries. The two windows' painting lives here too (Stone 14:
-  winframe, onewelcome, oneguest, paintwindows), reading the
+  winframe, onewelcome, onefeather, paintwindows), reading the
   windows' standing from the pixel face's desk.
 - `src/screenlib.nifla` — the screen library: drawing on the text
   screen's own memory (clearscreen, writeat, paintrow, paintrect,
@@ -914,9 +949,9 @@ was split by duty, without changing its behavior:
 - `src/bootmods.nifla` — the hands that read what the loader
   brought: the module table and the modules that ride the disc
   (modcount, modstart, modend, modcopyfrom).
-- `src/guestdoor.nifla` — the guest door: the card's FNV-1a check,
+- `src/featherdoor.nifla` — the feather door: the card's FNV-1a check,
   the doorstep, the call, and the plain-words refusals (cardnum,
-  fnv1a, placeguest, runguest).
+  fnv1a, placefeather, runfeather).
 - `src/commands.nifla` — deciding what a typed word is answered
   with: what kind of answer, the line that answers it, and the
   clock's offset once the word is done (wordkind, wordline,
@@ -944,7 +979,7 @@ was split by duty, without changing its behavior:
   picture screen's desk and palette, the page-table reach
   to a screen above the waking map, and the drawing —
   fills, letters, whole lines, the wrapped and scrolling
-  answers, and the reading of the guest's cells
+  answers, and the reading of the feather's cells
   (pixbegin, pixfill, pixglyph, pixline, pixprintline,
   cellbyte, and their helpers). The pointer's arrow is
   drawn here too (Stone 13: arrowload, pixsave,
@@ -963,7 +998,7 @@ assigns the program's shared variables is given a broken value (see
 body; the one piece of deciding that used to live in the main loop
 (the command dispatch) now asks the command library its three
 questions, and the doing still happens in the body, where the state
-lives. The welcome guest (`src/welcome-guest.nifla`) is a separate
+lives. The welcome feather (`src/welcome-feather.nifla`) is a separate
 program that visits through the door, and is no part of the kernel.
 
 Proven after the split by the full shipped proof set —
@@ -978,17 +1013,17 @@ on the founding morning (November 15, 2026): "we should've built the
 iso from day one like the first OS." `./build-iso.sh` lays it:
 
 - `dist/cardnull-os-2.iso` — 8,941,568 bytes, as built November 15,
-  2026 (the disc of Stone 16: the framebuffer kernel with its two
-  windows and its notes that stay, and Cardnull's own loaders at
-  both doors — the BIOS bootloader and the EFI loader; no GRUB
-  anywhere on it).
-  sha256: `9ecb199c0a2e90732321f29b66e67eef67f16b4c973b394e13c536ebabe251ac`
+  2026 (the disc after the feather rename: the framebuffer kernel
+  with its two windows and its notes that stay, and Cardnull's
+  own loaders at both doors — the BIOS bootloader and the EFI
+  loader; no GRUB anywhere on it).
+  sha256: `47dc0e2633aff23d23bb5f4afb09af1ae23e8b41a1a74caf3745d537f29ff39b`
   (The ISO file itself is a build product and is not kept in this
   repository; the hash records the disc the proof below was run
   against, and `./build-iso.sh` rebuilds it.)
 
 On the disc: the system (`/boot/cardnull.elf`), the settings module,
-the guest's card, and the guest itself — everything Stones 4 and 5
+the feather's card, and the feather itself — everything Stones 4 and 5
 need rides as multiboot modules the loader brings with the system —
 plus `/boot/boot.img`, Cardnull's own bootloader (the El Torito
 catalog's BIOS image), and the EFI system partition at
@@ -1009,15 +1044,15 @@ for typing, the USB 2.0 arrangement with USB Support **on** (or
 the PS/2 keyboard either way), and for a remembering disk,
 Stone 8's arrangement in its section above. The desktop comes up
 drawn in light, on Eastern time; the words on its invitation line
-all work, `guest` included.
+all work, `feather` included.
 
 Proven by `prove-iso.sh`, booting the ISO file itself as a CD-ROM
 (no `-kernel` shortcut) at 4096 MB: the shipped disc shows the
 desktop, its carried Eastern choice on the clock (hour 19), the
-guest's visit in its color, and `utc` moving the clock for the
+feather's visit in its color, and `utc` moving the clock for the
 session; a variant disc carrying the world's time in its settings
 comes up at hour 00 uninvited; and a variant disc with one byte of
-the guest flipped refuses the guest in plain words, with the
+the feather flipped refuses the feather in plain words, with the
 desktop unharmed.
 
 **The EFI door, attempted the same day and recorded honestly:**
@@ -1052,7 +1087,7 @@ is drawn in pixels.
 drawn in pixels, the kernel asks its loader for the picture
 screen, and the hybrid disc ships: under OVMF the EFI GRUB hands
 over the granted framebuffer (1024×768, exactly as asked), the
-desktop is drawn, and the guest visits through that door too —
+desktop is drawn, and the feather visits through that door too —
 proven in `prove-stone9.sh`'s fourth boot. The record above
 stands as the finding that led here; the door it describes is
 open now.
@@ -1081,23 +1116,23 @@ open now.
   language. A `diskread` or `diskwrite` with no disk fitted still
   stops the machine, exactly as the language's Stone 16 notes say.
   (Also a finding, reported rather than repaired from here.)
-- A floor block in a **guest** program that is handed a piece of text
+- A floor block in a **feather** program that is handed a piece of text
   or a block of bytes is given a desk whose length reads as zero:
   measured on the bench both ways (a host's floor blocks, handed the
   same things, work), and confirmed in the compiler's own generated
-  assembly — the guest build never stores the handed values into the
+  assembly — the feather build never stores the handed values into the
   floor-inputs table the block reads, where the host build does. A
-  guest's floor blocks that are handed nothing work, and `say` works,
-  so the welcome guest paints with a nothing-handed floor block and
+  feather's floor blocks that are handed nothing work, and `say` works,
+  so the welcome feather paints with a nothing-handed floor block and
   writes its letters as immediate values, each quoted in its source.
   (A finding about the language as it stands at Stone 18.)
   **Correction (Stone 10, November 15, 2026): this finding did not
   survive re-measurement.** Shape by shape — literals, blocks,
   functions handing their own words onward, joined and returned
   text, text with numbers, the letters themselves read back — a
-  guest's floor blocks receive the desk whole, and the generated
+  feather's floor blocks receive the desk whole, and the generated
   assembly for the handing is the same in both builds. The welcome
-  guest is written with handed text now, and the language carries
+  feather is written with handed text now, and the language carries
   a standing proof of the desk (`run-bare-guest-desk.sh` in its
   repository). The words above stand as they were recorded on the
   founding morning; this correction stands beside them.

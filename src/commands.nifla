@@ -7,7 +7,7 @@
 // own: the word comes in as an argument, and the decision
 // goes back as a result. The doing itself — printing the
 // line in the answer region, drawing the face again,
-// receiving the guest, keeping the clock's new offset — is
+// receiving the feather, keeping the clock's new offset — is
 // the main body's work, in src/cardnull.nifla, which asks
 // these three questions of every finished word:
 //
@@ -19,8 +19,8 @@
 //   0 — no answer at all (the word is empty)
 //   1 — a line of words answers it (see wordline below)
 //   2 — the face is cleared and drawn again ('clear')
-//   3 — a guest is to be received through the guest door
-//       ('guest'; the door itself is guestdoor.nifla)
+//   3 — a feather is to be received through the feather door
+//       ('feather'; the door itself is featherdoor.nifla)
 //   4 — the USB keyboard's standing is reported ('usb';
 //       the road itself is usbkey.nifla, and the report is
 //       the main body's to give, from the road's ledger)
@@ -51,7 +51,7 @@ make wordkind(word) {
     if word == "clear" {
         give 2
     }
-    if word == "guest" {
+    if word == "feather" {
         give 3
     }
     if word == "usb" {
@@ -100,7 +100,14 @@ make wordline(word) {
     if word == "utc" {
         give "The clock now shows the world's standard time until turned off."
     }
-    give "I don't know that word yet. Try hello, time, memory, guest, usb, setup, or clear."
+    if word == "guest" {
+        // The old word for the system's programs, before
+        // Tyler restored their Cardinal name (November 15,
+        // 2026): it is answered with the way to the new
+        // one, in plain words.
+        give "Programs are called feathers here — type feather."
+    }
+    give "I don't know that word yet. Try hello, time, memory, feather, usb, setup, or clear."
 }
 
 // The clock's hour offset once a word is done: 'eastern'

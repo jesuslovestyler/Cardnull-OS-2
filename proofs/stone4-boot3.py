@@ -1,8 +1,8 @@
 # Stone 4 proof, boot 3: no modules at all — a bare system,
 # as Stones 1-3 booted. The clock must start on the honest
 # default, Eastern time (hour 19 against a count near
-# zero), and the word 'guest' must be answered plainly:
-# this disc holds no guest.
+# zero), and the word 'feather' must be answered plainly:
+# this disc holds no feather.
 import re
 
 
@@ -21,9 +21,9 @@ if found:
     expect(hour_of(found) == "19",
            f"with no settings carried, the clock starts on Eastern (hour {hour_of(found)}, want 19)")
 
-typewrite("guest")
+typewrite("feather")
 enter()
-found = waitfor(lambda r: region_has(r, "no guest on this disc"), 15)
-expect(found is not None, "'guest' with no modules is answered plainly")
+found = waitfor(lambda r: region_has(r, "no feather on this disc"), 15)
+expect(found is not None, "'feather' with no modules is answered plainly")
 
 done()

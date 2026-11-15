@@ -3,7 +3,7 @@
 #
 #   build/cardnull.elf — the system itself: a bare-metal Nifla
 #                        program that boots on its own.
-#   build/guest.bin    — the welcome guest (built only when its
+#   build/feather.bin    — the welcome feather (built only when its
 #                        source is present, from Stone 5 on).
 #
 # The compiler is Nifla's own `niflac`; it stays in the Nifla
@@ -30,7 +30,7 @@ mkdir -p build
 #   screenlib  the screen library (Stone 3)
 #   clock      the clock's face and the time choice
 #   bootmods   reading what the loader brought (Stones 4–5)
-#   guestdoor  the guest door (Stone 5)
+#   featherdoor  the feather door (Stone 5)
 #   commands   deciding what a typed word is answered with
 #   usbkey     ears on the USB road (Stone 6)
 #   rtclock    the real clock: the CMOS reading and the
@@ -43,7 +43,7 @@ mkdir -p build
 #              desk, its palette, and its drawing (Stone 9)
 #   mouse      the pointer: the PS/2 mouse's waking and
 #              its packets (Stone 13)
-LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/guestdoor.nifla src/commands.nifla src/usbkey.nifla src/rtclock.nifla src/diskkeep.nifla src/font.nifla src/pixface.nifla src/mouse.nifla"
+LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/featherdoor.nifla src/commands.nifla src/usbkey.nifla src/rtclock.nifla src/diskkeep.nifla src/font.nifla src/pixface.nifla src/mouse.nifla"
 PRELUDE=""
 for lib in $LIBRARIES; do
     # Word splitting is intended: one --prelude pair per file.
@@ -60,18 +60,18 @@ done
 # shellcheck disable=SC2086
 "$NIFLA_REPO/niflac" --bare src/cardnull.nifla $PRELUDE -o build/cardnull-text.elf
 
-if [ -f src/welcome-guest.nifla ]; then
-    # The guest is built WITHOUT the screen-library prelude:
-    # as the language stands, a guest's floor blocks must be
+if [ -f src/welcome-feather.nifla ]; then
+    # The feather is built WITHOUT the screen-library prelude:
+    # as the language stands, a feather's floor blocks must be
     # handed plainly-shaped values where they are handed, and
     # the library's parameterized floor tools are refused in a
-    # guest build even when uncalled. The guest carries its
-    # own drawing code. (See src/welcome-guest.nifla.)
-    "$NIFLA_REPO/niflac" --bare --guest src/welcome-guest.nifla -o build/guest.bin
-    echo "Built build/guest.bin (the welcome guest)"
+    # feather build even when uncalled. The feather carries its
+    # own drawing code. (See src/welcome-feather.nifla.)
+    "$NIFLA_REPO/niflac" --bare --guest src/welcome-feather.nifla -o build/feather.bin
+    echo "Built build/feather.bin (the welcome feather)"
     # The two small modules that ride beside it on the disc:
-    # the settings and the guest's card (Stones 4 and 5).
-    python3 tools/make-modules.py build/guest.bin build/settings.bin build/card.bin
+    # the settings and the feather's card (Stones 4 and 5).
+    python3 tools/make-modules.py build/feather.bin build/settings.bin build/card.bin
 fi
 
 echo "Built build/cardnull.elf (Cardnull OS 2)"

@@ -2,7 +2,7 @@
 # Booted from the ISO file as a CD-ROM — no -kernel, no
 # other drive attached. The desktop must come up on the
 # disc's carried choice (Eastern: hour 19 against a count
-# near zero); the word 'guest' must bring the guest through
+# near zero); the word 'feather' must bring the feather through
 # the door (its panel in its color, then the system's
 # continuation); and the word 'utc' must move the clock for
 # the session (hour 00).
@@ -24,16 +24,16 @@ if found:
     expect(hour_of(found) == "19",
            f"the disc's Eastern choice is on the clock (hour {hour_of(found)}, want 19)")
 
-typewrite("guest")
+typewrite("feather")
 enter()
 found = waitfor(
-    lambda r: "A guest is visiting" in r[16]
-    and "The guest visited, and has gone home again." in r[21], 25)
-expect(found is not None, "the guest visited from the disc and went home")
+    lambda r: "A feather is visiting" in r[16]
+    and "The feather visited, and has gone home again." in r[21], 25)
+expect(found is not None, "the feather visited from the disc and went home")
 colors = attrs()
 expect(colors is not None, "the color bytes could be read")
 if colors:
-    expect(colors[16][16] == 47, "the guest's panel wears its color on the disc boot")
+    expect(colors[16][16] == 47, "the feather's panel wears its color on the disc boot")
 
 typewrite("utc")
 enter()

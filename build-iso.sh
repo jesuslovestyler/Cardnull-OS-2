@@ -5,8 +5,8 @@
 #
 #   /boot/cardnull.elf    the system itself
 #   /boot/settings.bin    the settings module (Stone 4)
-#   /boot/card.bin        the guest's card module (Stone 5)
-#   /boot/guest.bin       the welcome guest (Stone 5)
+#   /boot/card.bin        the feather's card module (Stone 5)
+#   /boot/feather.bin       the welcome feather (Stone 5)
 #   /boot/boot.img        the BIOS boot image: Cardnull's
 #                         own bootloader (Stone 11 —
 #                         boot/cardnull-boot.asm)
@@ -55,7 +55,7 @@
 # assembler and linker from the system.
 #
 # Overrides (used by prove-iso.sh to lay variant discs):
-#   ISO_OUT, KERNEL_FILE, SETTINGS_FILE, CARD_FILE, GUEST_FILE
+#   ISO_OUT, KERNEL_FILE, SETTINGS_FILE, CARD_FILE, FEATHER_FILE
 
 set -e
 cd "$(dirname "$0")"
@@ -66,7 +66,7 @@ ISO_OUT="${ISO_OUT:-dist/cardnull-os-2.iso}"
 KERNEL_FILE="${KERNEL_FILE:-build/cardnull.elf}"
 SETTINGS_FILE="${SETTINGS_FILE:-build/settings.bin}"
 CARD_FILE="${CARD_FILE:-build/card.bin}"
-GUEST_FILE="${GUEST_FILE:-build/guest.bin}"
+FEATHER_FILE="${FEATHER_FILE:-build/feather.bin}"
 
 if command -v clang >/dev/null 2>&1; then
     CLANG=clang
@@ -90,7 +90,7 @@ mkdir -p "$WORK/root/boot" "$(dirname "$ISO_OUT")"
 cp "$KERNEL_FILE" "$WORK/root/boot/cardnull.elf"
 cp "$SETTINGS_FILE" "$WORK/root/boot/settings.bin"
 cp "$CARD_FILE" "$WORK/root/boot/card.bin"
-cp "$GUEST_FILE" "$WORK/root/boot/guest.bin"
+cp "$FEATHER_FILE" "$WORK/root/boot/feather.bin"
 
 # The BIOS door: Cardnull's own bootloader (Stone 11),
 # assembled from boot/cardnull-boot.asm and linked flat at
@@ -130,7 +130,7 @@ PYEOF
 cp "$KERNEL_FILE" "$WORK/esp/boot/cardnull.elf"
 cp "$SETTINGS_FILE" "$WORK/esp/boot/settings.bin"
 cp "$CARD_FILE" "$WORK/esp/boot/card.bin"
-cp "$GUEST_FILE" "$WORK/esp/boot/guest.bin"
+cp "$FEATHER_FILE" "$WORK/esp/boot/feather.bin"
 dd if=/dev/zero of="$WORK/root/boot/efi.img" bs=1M count=8 2>/dev/null
 mformat -i "$WORK/root/boot/efi.img" ::
 mcopy -i "$WORK/root/boot/efi.img" -s "$WORK/esp/EFI" ::

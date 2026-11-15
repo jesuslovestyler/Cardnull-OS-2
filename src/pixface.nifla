@@ -38,9 +38,9 @@
 //  172  the windows' standing (Stone 14), kept here in the
 //       desk like the rest of the face's estate: whether
 //       the welcome window stands open (172), whether the
-//       guest window stands open (176), which window is
-//       forward (180: 1 the welcome, 2 the guest, 0 none),
-//       and whether a guest has visited (184)
+//       feather window stands open (176), which window is
+//       forward (180: 1 the welcome, 2 the feather, 0 none),
+//       and whether a feather has visited (184)
 //
 // A letter cell is sixteen pixels square: the font's eight
 // by eight, drawn at twice size. The face's layout is the
@@ -552,19 +552,19 @@ make pixnoteline(desk: bytes, block: bytes, row: number, off: number) -> number 
     give r + 1
 }
 
-// ---- the guest's cells, read back for the drawing ----
+// ---- the feather's cells, read back for the drawing ----
 //
-// In the pixel face the guest paints a block of cells the
-// host hands it (through the doorstep word placeguest
-// lays — see guestdoor.nifla), and the host draws those
-// cells as pixels after the visit. The guest cannot paint
+// In the pixel face the feather paints a block of cells the
+// host hands it (through the doorstep word placefeather
+// lays — see featherdoor.nifla), and the host draws those
+// cells as pixels after the visit. The feather cannot paint
 // the text screen's own memory for this: on a machine
 // showing a picture screen that memory is not a screen,
 // and its cells cannot be read back from it — measured on
 // the bench, it reads back as one repeated byte, the
 // painting lost among the picture screen's own workings.
 
-// One byte of the guest's cell block: the byte at 'off' —
+// One byte of the feather's cell block: the byte at 'off' —
 // a cell's letter stands at its even byte, its color at
 // the odd one after it.
 make cellbyte(block: bytes, off: number) -> number {

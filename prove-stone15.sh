@@ -48,7 +48,7 @@ DISK2_BEFORE=$(sha256sum "$WORK/disk2.img" | cut -d' ' -f1)
 boot() {
     # $1 = scenario, $2 = disk image ("" for none), $3 = socket tag
     SOCK="$WORK/monitor-$3.sock"
-    QEMU_PID=$(tools/launch.sh build/cardnull.elf "$SOCK" 96 "$2" "build/settings.bin,build/card.bin,build/guest.bin")
+    QEMU_PID=$(tools/launch.sh build/cardnull.elf "$SOCK" 96 "$2" "build/settings.bin,build/card.bin,build/feather.bin")
     python3 tools/screen.py "$1" "$SOCK"
     RC=$?
     [ -n "$QEMU_PID" ] && kill "$QEMU_PID" 2>/dev/null

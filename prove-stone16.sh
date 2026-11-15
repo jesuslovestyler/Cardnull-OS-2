@@ -10,7 +10,7 @@
 #     by its own plain-words failure line inside it.
 #   Boot 1 (the EFI door, OVMF firmware): the shipped
 #     disc, Stone 9's own scenario — the desktop drawn
-#     in light, the clock's hand moving, the guest's
+#     in light, the clock's hand moving, the feather's
 #     visit in its green — now through Cardnull's own
 #     EFI loader where GRUB stood before.
 #   Boot 2 (the BIOS door, the same disc): the same

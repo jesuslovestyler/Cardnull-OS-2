@@ -1,11 +1,11 @@
 # Stone 14 proof, boot 1: the two windows on the face of
 # light. The welcome window stands forward at the rising
-# (its title bar blue, the guest's quiet gray, the guest's
-# body saying no guest has visited yet); Tab brings each
-# window forward in turn; a press on the guest's panel
-# receives the guest and brings its window forward;
+# (its title bar blue, the feather's quiet gray, the feather's
+# body saying no feather has visited yet); Tab brings each
+# window forward in turn; a press on the feather's panel
+# receives the feather and brings its window forward;
 # Escape closes the forward window back to the desktop;
-# the word 'guest' opens it again; a press on the welcome
+# the word 'feather' opens it again; a press on the welcome
 # window's close mark closes it; the word 'welcome' opens
 # it again, forward; and the typing line works throughout.
 
@@ -27,29 +27,29 @@ def band_count(d, rgb, x0, y0, x1, y1):
     return n
 
 
-# The desktop rises: the welcome forward, the guest behind.
+# The desktop rises: the welcome forward, the feather behind.
 d = waitdump(lambda d: d is not None and d[0] == 1024 and count(d, BLUE) > 5000, 40)
 expect(d is not None, "the desktop is drawn")
 if d:
     expect(pixel(d, 400, 90) == BLUE,
            "the welcome window stands forward: its title bar is blue")
     expect(pixel(d, 400, 426) == DARK,
-           "the guest window stands behind: its title bar is quiet gray")
-    expect(count(d, GREEN) == 0, "no guest panel stands before any visit")
+           "the feather window stands behind: its title bar is quiet gray")
+    expect(count(d, GREEN) == 0, "no feather panel stands before any visit")
     expect(band_count(d, GRAY, 208, 448, 608, 464) > 20,
-           "the guest window's body says no guest has visited yet")
+           "the feather window's body says no feather has visited yet")
 
-# Tab brings the guest forward; Tab again, the welcome.
+# Tab brings the feather forward; Tab again, the welcome.
 sendkey("tab")
 d = waitdump(lambda d: d is not None and pixel(d, 400, 426) == BLUE
              and pixel(d, 400, 90) == DARK, 15)
-expect(d is not None, "Tab brought the guest window forward")
+expect(d is not None, "Tab brought the feather window forward")
 sendkey("tab")
 d = waitdump(lambda d: d is not None and pixel(d, 400, 90) == BLUE
              and pixel(d, 400, 426) == DARK, 15)
 expect(d is not None, "Tab again brought the welcome window forward")
 
-# A press on the guest's panel: the visit, and its window
+# A press on the feather's panel: the visit, and its window
 # forward. The arrow's square stands at (504, 376); a move
 # of (-106, +142) lays its point at (400, 520), well
 # inside the panel.
@@ -57,26 +57,26 @@ mousemove(-106, 142)
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None and count(d, GREEN) > 10000, 25)
-expect(d is not None, "the press brought the guest: its green panel stands")
+expect(d is not None, "the press brought the feather: its green panel stands")
 if d:
     expect(pixel(d, 400, 426) == BLUE,
-           "the visit brought the guest window forward")
+           "the visit brought the feather window forward")
 
-# Escape closes the forward window — the guest's — back
+# Escape closes the forward window — the feather's — back
 # to the desktop; the welcome stands forward in its place.
 sendkey("esc")
 d = waitdump(lambda d: d is not None and count(d, GREEN) == 0
              and pixel(d, 600, 520) == BLACK, 15)
-expect(d is not None, "Escape closed the guest window back to the desktop")
+expect(d is not None, "Escape closed the feather window back to the desktop")
 if d:
     expect(pixel(d, 400, 90) == BLUE,
            "the welcome window stands forward in its place")
 
-# The word 'guest' opens the window again, and visits.
-typewrite("guest")
+# The word 'feather' opens the window again, and visits.
+typewrite("feather")
 enter()
 d = waitdump(lambda d: d is not None and count(d, GREEN) > 10000, 25)
-expect(d is not None, "the word 'guest' opened its window and visited again")
+expect(d is not None, "the word 'feather' opened its window and visited again")
 
 # A press on the welcome window's close mark closes it:
 # the mark stands at the title bar's right end, the cell
@@ -90,7 +90,7 @@ d = waitdump(lambda d: d is not None and pixel(d, 200, 120) == BLACK
 expect(d is not None, "the close mark closed the welcome window")
 if d:
     expect(count(d, GREEN) > 10000,
-           "the guest window stands whole while the welcome is closed")
+           "the feather window stands whole while the welcome is closed")
 
 # The word 'welcome' opens it again, forward.
 typewrite("welcome")

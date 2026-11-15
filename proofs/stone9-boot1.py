@@ -4,8 +4,8 @@
 # desktop must be DRAWN: the blue bar with its title and
 # clock, the light-gray welcome panel with its words, the
 # invitation, the typing line's echo, an answer in light,
-# the clock's hand moving, and the guest's visit shown as
-# light in the guest's own colors. Read back by sampling
+# the clock's hand moving, and the feather's visit shown as
+# light in the feather's own colors. Read back by sampling
 # the monitor's screendump (tools/pixels.py).
 
 BLUE = (0, 0, 170)
@@ -55,12 +55,12 @@ diff = sum(1 for x in range(880, 1024) for y in range(0, 16)
            if pixel(d1, x, y) != pixel(d2, x, y))
 expect(diff > 20, f"the drawn clock's hand moves ({diff} pixels changed)")
 
-typewrite("guest")
+typewrite("feather")
 enter()
 d = waitdump(lambda d: d is not None and count(d, GREEN) > 10000, 25)
-expect(d is not None, "the guest's visit is shown: its green panel as light")
+expect(d is not None, "the feather's visit is shown: its green panel as light")
 if d:
     expect(band(d, 448, 592, WHITE, 100, 900) > 1000,
-           "the guest's own white letters are drawn in its panel")
+           "the feather's own white letters are drawn in its panel")
 
 done()

@@ -5,7 +5,7 @@
 # keys by sendkey, the pointer by mouse_move and
 # mouse_button — while the screen is read back as pictures
 # (tools/pixels.py): each window forward in turn, the
-# guest's visit standing in its window, each window closed
+# feather's visit standing in its window, each window closed
 # back to the desktop and opened again, and the typing
 # line answering throughout.
 #

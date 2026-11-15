@@ -19,7 +19,7 @@
 //   src/bootmods.nifla   the hands that read what the
 //                        loader brought — the modules
 //                        that ride the disc
-//   src/guestdoor.nifla  the guest door: the card's check,
+//   src/featherdoor.nifla  the feather door: the card's check,
 //                        the doorstep, the call, the
 //                        plain-words refusals
 //   src/commands.nifla   deciding what a typed word is
@@ -47,7 +47,7 @@
 //                        line, and the loop that calls
 //                        the libraries
 //
-// (The welcome guest, src/welcome-guest.nifla, is a
+// (The welcome feather, src/welcome-feather.nifla, is a
 // separate program that visits through the door; it is no
 // part of the kernel.)
 //
@@ -71,8 +71,8 @@
 //          system ships as one disc and nothing else
 //          re-pointed it here the same day — the README's
 //          Stone 4 section tells it in full.)
-// Stone 5: first guest — the word 'guest' receives the
-//          welcome guest through the guest door: the guest
+// Stone 5: first feather — the word 'feather' receives the
+//          welcome feather through the feather door: the feather
 //          rides the disc as a module too, lifted into the
 //          system's keeping at boot, checked against its
 //          card (which rides as its own small module), run
@@ -92,7 +92,7 @@
 // Stone 9: a face with light — when the loader grants the
 //          picture screen the kernel asks for, the desktop
 //          is drawn in pixels (pixface.nifla, font.nifla),
-//          the guest's visit composited from the cells it
+//          the feather's visit composited from the cells it
 //          paints in the host's keeping; when none is
 //          granted, the text face below carries the
 //          desktop and says so in plain words. The drawn
@@ -108,16 +108,16 @@
 // Stone 13: a pointer — a PS/2 mouse is woken on the
 //          face of light, an arrow follows it (kept
 //          harmless by a save block), and a press of its
-//          first button on the guest's panel receives the
-//          guest, as the word 'guest' does.
+//          first button on the feather's panel receives the
+//          feather, as the word 'feather' does.
 // Stone 14: two windows — on the face of light the
-//          welcome panel and the guest's panel stand as
+//          welcome panel and the feather's panel stand as
 //          framed windows, each with a plain title bar
 //          and a close mark; the Tab key or a press of
 //          the pointer brings one forward, the Escape
 //          key or the close mark closes the forward one
 //          back to the desktop, and the words 'welcome'
-//          and 'guest' open them again. The windows'
+//          and 'feather' open them again. The windows'
 //          standing is kept in the pixel face's desk
 //          (see pixface.nifla's ledger), and the painting
 //          is paintwindows below. The text face keeps
@@ -340,7 +340,7 @@ make drawface(offset, utcnow, pix, pixdesk) {
         pixline(pixdesk, (0) * 256 + (1), "Cardnull", 31)
         drawclock(offset, utcnow, pix, pixdesk)
         pixline(pixdesk, (layrow(pixdesk, 11)) * 256 + (2), "Type a word, then press Enter:", 7)
-        pixline(pixdesk, (layrow(pixdesk, 12)) * 256 + (2), "hello time memory eastern utc guest welcome usb setup clear", 7)
+        pixline(pixdesk, (layrow(pixdesk, 12)) * 256 + (2), "hello time memory eastern utc feather welcome usb setup clear", 7)
     } else {
     clearscreen()
     paintrow(0, 31)
@@ -351,7 +351,7 @@ make drawface(offset, utcnow, pix, pixdesk) {
     writeat(5, 10, "This computer is public domain: free for everyone, forever.", 112)
     writeat(7, 10, "\"Unless Yahweh builds the house,", 112)
     writeat(8, 10, "they labor in vain who build it.\" - Psalm 127:1", 112)
-    writeat(11, 2, "Type a word: hello, time, memory, eastern, utc, guest, usb, setup, clear", 7)
+    writeat(11, 2, "Type a word: hello, time, memory, eastern, utc, feather, usb, setup, clear", 7)
     }
 }
 
@@ -422,14 +422,14 @@ make printnote(row, block, slotpix, pixdesk) {
 
 // ---- the two windows (Stone 14) ----
 //
-// On the face of light the welcome panel and the guest's
+// On the face of light the welcome panel and the feather's
 // panel stand as windows: each is framed, each carries a
 // plain title bar with its name and a close mark (a small
 // x at the bar's right end), and one of them stands
 // forward — its title bar blue, the other's quiet gray.
 // The windows' standing lives in the pixel face's desk
 // (offsets 172 to 184, pixface.nifla's ledger): which are
-// open, which is forward, and whether a guest has visited.
+// open, which is forward, and whether a feather has visited.
 // These painters read that standing from the desk they are
 // handed, as all the face's drawing does. A window that
 // stands closed is painted as the plain desktop it covers,
@@ -496,16 +496,16 @@ make onewelcome(desk) {
     }
 }
 
-// Paints the guest window from the desk's standing: its
-// frame stands around the panel the guest paints (the
+// Paints the feather window from the desk's standing: its
+// frame stands around the panel the feather paints (the
 // text face's rows 15 to 19, columns 14 to 65), with a
 // title row above it. Before any visit its body says so
-// in plain words; after one, the guest's own cells are
-// shown as light, cell by cell in the colors the guest
+// in plain words; after one, the feather's own cells are
+// shown as light, cell by cell in the colors the feather
 // chose — the showing the visit has always had (Stone 9),
 // now kept by the window, so the visit stands until the
 // window is closed or the face is drawn again.
-make oneguest(desk, block) {
+make onefeather(desk, block) {
     let gx = laycol(desk, 13)
     let gy = layrow(desk, 14)
     let gw = laycol(desk, 68) - gx
@@ -520,7 +520,7 @@ make oneguest(desk, block) {
         }
         winframe(desk, gy * 256 + gx, gh * 256 + gw, front)
         pixspan(desk, 0, 5, 15)
-        pixtext(desk, gy, gx + 1, "Guest")
+        pixtext(desk, gy, gx + 1, "Feather")
         pixink(desk, 0)
         pixfill(desk, gx * 16 + 2, gy * 16 + 18, gw * 16 - 4, gh * 16 - 20)
         if pget(desk, 184) == 1 {
@@ -545,7 +545,7 @@ make oneguest(desk, block) {
                 gr = gr + 1
             }
         } else {
-            pixline(desk, (layrow(desk, 15)) * 256 + (laycol(desk, 14) + 2), "No guest has visited yet.", 7)
+            pixline(desk, (layrow(desk, 15)) * 256 + (laycol(desk, 14) + 2), "No feather has visited yet.", 7)
         }
     }
 }
@@ -558,9 +558,9 @@ make oneguest(desk, block) {
 make paintwindows(desk, block) {
     if pget(desk, 180) == 2 {
         onewelcome(desk)
-        oneguest(desk, block)
+        onefeather(desk, block)
     } else {
-        oneguest(desk, block)
+        onefeather(desk, block)
         onewelcome(desk)
     }
 }
@@ -619,13 +619,13 @@ let fbbpos = mbbyteat(116)
 
 // What the lift gathers: the clock's offset (Eastern, -5,
 // unless the disc's settings carry a choice), and the
-// guest — its card's word (how long the image is, and the
+// feather — its card's word (how long the image is, and the
 // checksum it must match) and the image itself, once found.
 let offset = 0 - 5
-let guestimg = makebytes(0)
-let guestgot = 0
-let guestimglen = 0
-let guestwant = 0
+let featherimg = makebytes(0)
+let feathergot = 0
+let featherimglen = 0
+let featherwant = 0
 
 let mi = 0
 while mi < nmods {
@@ -653,8 +653,8 @@ while mi < nmods {
             if blk[1] == 78 {
                 if blk[2] == 67 {
                     if blk[3] == 71 {
-                        guestimglen = cardnum(blk, 8)
-                        guestwant = cardnum(blk, 16)
+                        featherimglen = cardnum(blk, 8)
+                        featherwant = cardnum(blk, 16)
                     }
                 }
             }
@@ -663,13 +663,13 @@ while mi < nmods {
     mi = mi + 1
 }
 
-// The guest image itself, found by the length its card
+// The feather image itself, found by the length its card
 // promises. (The layout's one assumption, stated plainly:
-// a guest image is never as small as the 512-byte settings
+// a feather image is never as small as the 512-byte settings
 // or the 32-byte card, so a module of exactly the promised
 // length can only be the image.)
-if guestimglen > 0 {
-    if guestimglen <= 524288 {
+if featherimglen > 0 {
+    if featherimglen <= 524288 {
         let mi2 = 0
         while mi2 < nmods {
             let s = 0
@@ -678,10 +678,10 @@ if guestimglen > 0 {
             if mi2 == 1 { s = s1  l = l1 }
             if mi2 == 2 { s = s2  l = l2 }
             if mi2 == 3 { s = s3  l = l3 }
-            if l == guestimglen {
+            if l == featherimglen {
                 let blk = makebytes(l)
-                guestgot = modcopyfrom(s, l, blk)
-                guestimg = blk
+                feathergot = modcopyfrom(s, l, blk)
+                featherimg = blk
             }
             mi2 = mi2 + 1
         }
@@ -773,13 +773,13 @@ if pix == 1 {
     pset(pixdesk, 48, blockaddr(saveblock))
     // The two windows' standing (Stone 14), kept in the
     // desk at 172 to 184: both windows stand open, the
-    // welcome forward, and no guest has visited yet.
+    // welcome forward, and no feather has visited yet.
     pset(pixdesk, 172, 1)
     pset(pixdesk, 176, 1)
     pset(pixdesk, 180, 1)
     pset(pixdesk, 184, 0)
     pixbegin(pixdesk)
-    // The guest's canvas on this face: a text screen's
+    // The feather's canvas on this face: a text screen's
     // worth of cells, laid out as the text screen's own
     // are — a letter byte and a color byte to a cell —
     // and filled with the resting cell (a space, light
@@ -808,9 +808,9 @@ let usbup = usbinit(usbdesk)
 // it never has. Its packet desk, its standing, the
 // arrow's place and the button standing live here; the
 // driver itself is mouse.nifla, and the arrow's drawing
-// is pixface.nifla's. A guest may be asked for by the
-// word 'guest' or by a press of the mouse's first button
-// on the guest's panel; 'guestask' carries either asking
+// is pixface.nifla's. A feather may be asked for by the
+// word 'feather' or by a press of the mouse's first button
+// on the feather's panel; 'featherask' carries either asking
 // to the one receiving, in the loop below.
 let mousedesk = makebytes(64)
 let mouseup = 0
@@ -818,7 +818,7 @@ let mx = 0
 let my = 0
 let mbtn = 0
 let mshown = 0
-let guestask = 0
+let featherask = 0
 if pix == 1 {
     mouseup = mouseinit()
     mx = pget(pixdesk, 8) / 2 - 8
@@ -981,7 +981,7 @@ while true {
                 // (commands.nifla) decides what the word is
                 // answered with; the doing — printing the
                 // line, drawing the face again, receiving
-                // the guest, keeping the clock's new offset —
+                // the feather, keeping the clock's new offset —
                 // happens here, where the state lives.
                 let line = buildline(keys, keymod, 0, klen)
                 let wlen = klen
@@ -1045,10 +1045,10 @@ while true {
                     lastsec = 0 - 1
                 }
                 if kind == 3 {
-                    // 'guest': the receiving stands below,
+                    // 'feather': the receiving stands below,
                     // where the pointer's asking meets it —
                     // the one doing serves both (Stone 13).
-                    guestask = 1
+                    featherask = 1
                 }
                 if kind == 4 {
                     // 'usb': the USB road reports its own
@@ -1276,8 +1276,8 @@ while true {
     // of up as forward, so its travel is taken from the
     // screen's reckoning — and a fresh press of its first
     // button speaks to the windows (Stone 14): a close
-    // mark closes, a press on the guest's panel asks for
-    // the guest as the word does, and a press on a window
+    // mark closes, a press on the feather's panel asks for
+    // the feather as the word does, and a press on a window
     // brings it forward. The place is kept on the screen,
     // the arrow's square whole.
     if pix == 1 {
@@ -1311,8 +1311,8 @@ while true {
                                 // their order of meaning —
                                 // a close mark closes its
                                 // window; a press on the
-                                // guest's panel receives the
-                                // guest, as it has since
+                                // feather's panel receives the
+                                // feather, as it has since
                                 // Stone 13, and brings its
                                 // window forward; a press
                                 // anywhere else on a window
@@ -1379,7 +1379,7 @@ while true {
                                                 if cyp >= layrow(pixdesk, 15) * 16 {
                                                     if cyp < layrow(pixdesk, 20) * 16 {
                                                         pset(pixdesk, 180, 2)
-                                                        guestask = 1
+                                                        featherask = 1
                                                         acted = 1
                                                     }
                                                 }
@@ -1429,32 +1429,32 @@ while true {
         }
     }
 
-    // A guest asked for — by the word, or by the pointer's
+    // A feather asked for — by the word, or by the pointer's
     // press on its panel — is received here, the one doing
     // for both askings (Stone 13). The asking opens the
-    // guest's window and brings it forward (Stone 14),
+    // feather's window and brings it forward (Stone 14),
     // whether the visit then stands or is refused.
-    if guestask == 1 {
-        guestask = 0
+    if featherask == 1 {
+        featherask = 0
         if pix == 1 {
             pset(pixdesk, 176, 1)
             pset(pixdesk, 180, 2)
         }
-        // 'guest': receive it through the door
-        // (guestdoor.nifla), and say how it went.
-        // The guest is told which screen to paint:
+        // 'feather': receive it through the door
+        // (featherdoor.nifla), and say how it went.
+        // The feather is told which screen to paint:
         // the text screen itself, or — on the face
         // of light — the host's block of cells.
         let paintbase = 753664
         if pix == 1 {
             paintbase = blockaddr(cellblock)
         }
-        let how = runguest(guestimg, guestgot, guestimglen, guestwant, paintbase)
+        let how = runfeather(featherimg, feathergot, featherimglen, featherwant, paintbase)
         if how == 3 {
             if pix == 1 {
-                // The visit stands in the guest's window
+                // The visit stands in the feather's window
                 // now (Stone 14): the window's painting
-                // shows the cells the guest painted, and
+                // shows the cells the feather painted, and
                 // keeps showing them.
                 pset(pixdesk, 184, 1)
             }
@@ -1463,16 +1463,16 @@ while true {
             paintwindows(pixdesk, cellblock)
         }
         if how == 1 {
-            ansrow = printline(ansrow, "There is no guest on this disc to visit.", pix, pixdesk)
+            ansrow = printline(ansrow, "There is no feather on this disc to visit.", pix, pixdesk)
         }
         if how == 2 {
-            ansrow = printline(ansrow, "The guest on this disc is not whole, so it was not let in.", pix, pixdesk)
+            ansrow = printline(ansrow, "The feather on this disc is not whole, so it was not let in.", pix, pixdesk)
         }
         if how == 3 {
             if pix == 1 {
-                pixline(pixdesk, (layrow(pixdesk, 21)) * 256 + (2), "The guest visited, and has gone home again.", 7)
+                pixline(pixdesk, (layrow(pixdesk, 21)) * 256 + (2), "The feather visited, and has gone home again.", 7)
             } else {
-                writeat(21, 2, "The guest visited, and has gone home again.", 7)
+                writeat(21, 2, "The feather visited, and has gone home again.", 7)
             }
         }
     }

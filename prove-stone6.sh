@@ -42,7 +42,7 @@ boot() {
         --library-path "$HOME/qemu10-root/usr/lib/x86_64-linux-gnu:$HOME/qemu10-root/lib/x86_64-linux-gnu" \
         "$HOME/qemu10-root/usr/bin/qemu-system-x86_64" \
         -kernel build/cardnull.elf -display none -m 128 -nic none \
-        -initrd build/settings.bin,build/card.bin,build/guest.bin \
+        -initrd build/settings.bin,build/card.bin,build/feather.bin \
         -monitor "unix:$SOCK,server,nowait" \
         -L "$HOME/qemu10-root/usr/share/qemu" \
         -L "$HOME/qemu10-root/usr/share/seabios" \

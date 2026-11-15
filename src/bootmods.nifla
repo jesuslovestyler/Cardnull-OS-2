@@ -37,10 +37,10 @@
 //     the world's standard hour as if it were local is
 //     simply wrong, so this system starts from its people's
 //     time and says so).
-//   the guest's card (32 bytes): the letters C, N, C, G,
-//     then the guest image's length and its FNV-1a checksum,
+//   the feather's card (32 bytes): the letters C, N, C, G,
+//     then the feather image's length and its FNV-1a checksum,
 //     each as an eight-byte number.
-//   the guest image itself: the welcome guest, built for
+//   the feather image itself: the welcome feather, built for
 //     the doorstep (Stone 5).
 //
 // One discipline governs all of it: the loader leaves its

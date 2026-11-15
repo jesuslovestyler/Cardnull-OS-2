@@ -5,8 +5,8 @@
 # mouse_move to carry it, mouse_button to press — while
 # the screen is read back as pictures (tools/pixels.py):
 # the arrow at the middle, the arrow following, the
-# desktop whole where it left, no guest before the press,
-# and the guest's green panel after a press on its panel.
+# desktop whole where it left, no feather before the press,
+# and the feather's green panel after a press on its panel.
 #
 # Prints PASS or FAIL.
 

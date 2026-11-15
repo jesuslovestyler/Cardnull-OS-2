@@ -1,4 +1,4 @@
-# Stone 9 proof, boot 2: a disc carrying a tampered guest,
+# Stone 9 proof, boot 2: a disc carrying a tampered feather,
 # booted from its ISO — the face of light must refuse it
 # exactly as the text face does: no green anywhere, and the
 # refusal drawn as an answer in light.
@@ -20,14 +20,14 @@ def band(d, y0, y1, rgb, x0=0, x1=1024):
 
 
 d = waitdump(lambda d: d is not None and d[0] == 1024 and count(d, BLUE) > 5000, 40)
-expect(d is not None, "the pixel desktop came up on the tampered-guest disc")
+expect(d is not None, "the pixel desktop came up on the tampered-feather disc")
 
-typewrite("guest")
+typewrite("feather")
 enter()
 d = waitdump(lambda d: d is not None and band(d, 384, 448, GRAY) > 50, 25)
 expect(d is not None, "the refusal is drawn as an answer in light")
 if d:
     expect(count(d, GREEN) < 100,
-           f"the refused guest never appears (green pixels: {count(d, GREEN)})")
+           f"the refused feather never appears (green pixels: {count(d, GREEN)})")
 
 done()
