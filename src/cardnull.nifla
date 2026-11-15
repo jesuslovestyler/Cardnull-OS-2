@@ -1,23 +1,165 @@
 // Cardnull OS 2 — the seed kernel.
 //
-// Stone 1: first boot. This program is compiled with
-// `niflac --bare` into a binary that boots on its own — no
-// operating system underneath it. It clears nothing and owns
-// everything: it greets the person in plain words, says how
-// much memory the machine has (the loader's memory map, read
-// with memorysize()), and then stays alive, sleeping between
-// timer ticks — the tick has been running since the machine
-// woke, and Stone 2 will let a person hear it.
+// Stone 1: first boot — the greeting and the memory figure.
+// Stone 2: ears — the keyboard is heard. A typing line lives
+// on the screen's last row; a word typed there, ended with
+// Enter, is answered in plain words. The machine knows four
+// words so far: hello, time, memory, and clear.
 //
-// The screen is the text screen; `say` writes there, line by
-// line, and scrolls when it must.
+// How the typing works: every keystroke's number (its
+// scancode) is kept in a block of bytes, in order. The line
+// the person sees is rebuilt from those numbers whenever it
+// changes — which is also how Backspace un-types: it simply
+// forgets the last number, and the line is rebuilt shorter.
+// Letters are turned from scancodes by charFor below; the
+// keyboard's release numbers (128 and up) are ignored, as is
+// any key this table does not know.
+
+make charFor(code) {
+    if code == 16 { give "q" }
+    if code == 17 { give "w" }
+    if code == 18 { give "e" }
+    if code == 19 { give "r" }
+    if code == 20 { give "t" }
+    if code == 21 { give "y" }
+    if code == 22 { give "u" }
+    if code == 23 { give "i" }
+    if code == 24 { give "o" }
+    if code == 25 { give "p" }
+    if code == 30 { give "a" }
+    if code == 31 { give "s" }
+    if code == 32 { give "d" }
+    if code == 33 { give "f" }
+    if code == 34 { give "g" }
+    if code == 35 { give "h" }
+    if code == 36 { give "j" }
+    if code == 37 { give "k" }
+    if code == 38 { give "l" }
+    if code == 44 { give "z" }
+    if code == 45 { give "x" }
+    if code == 46 { give "c" }
+    if code == 47 { give "v" }
+    if code == 48 { give "b" }
+    if code == 49 { give "n" }
+    if code == 50 { give "m" }
+    if code == 57 { give " " }
+    give ""
+}
+
+// The typed line, rebuilt from the first 'count' scancodes
+// in 'buf'.
+make buildline(buf, count) {
+    let s = ""
+    let i = 0
+    while i < count {
+        s = s + charFor(buf[i])
+        i = i + 1
+    }
+    give s
+}
+
+// Draws the typing line on the screen's last row: a prompt
+// and the line so far, with whatever stood there before
+// blanked away behind it.
+make drawtyping(text) {
+    floor(text) {
+        mov rdx, 0xB8000
+        add rdx, 3840
+        mov byte ptr [rdx], 62
+        mov byte ptr [rdx + 1], 0x07
+        mov byte ptr [rdx + 2], 32
+        mov byte ptr [rdx + 3], 0x07
+        add rdx, 4
+        mov rcx, 0
+    dt_loop:
+        cmp rcx, r12
+        jae dt_blank
+        mov al, [rbx + rcx]
+        mov [rdx + rcx * 2], al
+        mov byte ptr [rdx + rcx * 2 + 1], 0x07
+        inc rcx
+        jmp dt_loop
+    dt_blank:
+        cmp rcx, 48
+        jae dt_done
+        mov byte ptr [rdx + rcx * 2], 32
+        mov byte ptr [rdx + rcx * 2 + 1], 0x07
+        inc rcx
+        jmp dt_blank
+    dt_done:
+    }
+}
+
+// Wipes the whole screen to blank — the 'clear' word.
+make clearstage() {
+    floor() {
+        mov rdi, 0xB8000
+        mov rcx, 2000
+        mov ax, 0x0720
+        rep stosw
+    }
+}
 
 say "Cardnull"
 say "Welcome. This computer is yours, and everything on it is given freely."
 say "This machine has " + memorysize() + " bytes of memory (" + (memorysize() / 1048576) + " megabytes)."
+say "Type a word, then press Enter. Try: hello, time, memory, clear"
 
-// An operating system does not exit. Sleep a tick at a time,
-// forever; the timer interrupt keeps the count while we rest.
+let keys = makebytes(48)
+let klen = 0
+drawtyping("")
+
 while true {
+    let k = readkey()
+    if k != 0 {
+        if k < 128 {
+            if k == 28 {
+                // Enter: the word is finished; answer it.
+                let cmd = buildline(keys, klen)
+                klen = 0
+                if cmd == "clear" {
+                    clearstage()
+                    drawtyping("")
+                } else {
+                    drawtyping("")
+                    let answered = 0
+                    if cmd == "hello" {
+                        say "Hello. It is good to see you."
+                        answered = 1
+                    }
+                    if cmd == "time" {
+                        say "This machine has been awake for " + (ticks() / 100) + " seconds."
+                        answered = 1
+                    }
+                    if cmd == "memory" {
+                        say "This machine has " + memorysize() + " bytes of memory (" + (memorysize() / 1048576) + " megabytes)."
+                        answered = 1
+                    }
+                    if answered == 0 {
+                        if length(cmd) > 0 {
+                            say "I don't know that word yet. Try hello, time, memory, or clear."
+                        }
+                    }
+                }
+            } else {
+                if k == 14 {
+                    // Backspace: forget the last key.
+                    if klen > 0 {
+                        klen = klen - 1
+                    }
+                    drawtyping(buildline(keys, klen))
+                } else {
+                    let ch = charFor(k)
+                    if length(ch) > 0 {
+                        if klen < 48 {
+                            keys[klen] = k
+                            klen = klen + 1
+                        }
+                        drawtyping(buildline(keys, klen))
+                    }
+                }
+            }
+        }
+    }
     waittick()
 }

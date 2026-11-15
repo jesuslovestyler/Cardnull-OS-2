@@ -72,6 +72,28 @@ figure is the loader map's usable sum, which is always a little less
 than the machine's whole memory; the firmware's reserved stretches are
 not counted, and nothing here manages memory beyond reading the map.
 
+### Stone 2 — Ears
+
+The keyboard is heard. A typing line lives on the screen's last row:
+letters echo as they are typed, Backspace un-types, and Enter offers
+the word to a small command loop that answers in plain words — `hello`
+(a greeting back), `time` (the seconds since the machine woke, from
+the timer tick), `memory` (the memory figure), and `clear` (the screen
+is wiped). Any other word is answered kindly: "I don't know that word
+yet. Try hello, time, memory, or clear." Proven by `prove-stone2.sh`:
+it types "hellx", erases the x, finishes "hello", and reads every
+answer back off the emulated screen, including that the machine still
+answers after a clear.
+
+Honest limits: the machine knows only single lowercase words — no
+capital letters (there is no shift state yet), no digits in words, and
+no commands with parts. Answers appear where the screen's writing
+cursor stands and scroll as they accumulate; after `clear`, the
+greeting is gone until the next boot and later answers appear wherever
+that cursor had reached. The face (Stone 3) gives answers a proper
+home. Keystrokes are gathered in a 48-number buffer; a longer word is
+simply not gathered further.
+
 ## Notes for builders
 
 - The visible screen of this system speaks **plain words only** — no codes
