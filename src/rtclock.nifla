@@ -1,0 +1,327 @@
+// Cardnull OS 2's real-clock library — reading the
+// machine's own clock (the CMOS real-time clock every PC
+// keeps) and reckoning dates from what it says.
+//
+// Like the other libraries, this file joins the system as
+// a prelude when it is built (build.sh names it); a prelude
+// may only make functions, and these keep no state of their
+// own: the reading lands in a block of bytes the main body
+// hands in, and every reckoning takes its numbers as
+// arguments. All state stays in the system's main body
+// (src/cardnull.nifla).
+//
+// The reckoning's standing assumption, said out loud: the
+// machine's clock is taken to hold the world's standard
+// time (UTC) — what QEMU and UTM set by default — and the
+// person's time choice (the disc's offset, Stone 4) is
+// applied on top of it by the main body, exactly as the
+// choice always was. If a machine's clock instead held its
+// local time, the shown hour would stand off by the
+// choice's hours; the assumption is named here and in the
+// README rather than hidden.
+
+// ---- the reading ----
+
+// Reads the machine's clock into the block handed in (the
+// block wants 32 bytes; the last seven of the first sixteen
+// are the first reading's scratch, the agreement check).
+// Seven bytes land at the block's head: second, minute,
+// hour, day of the month, month, the year's count within
+// its century, and the clock's status word B, which says
+// how the other six are spelled (see rtcbaseof below).
+//
+// The reading is taken twice and the two must agree, so a
+// reading is never torn by the clock ticking in the middle
+// of it; the clock's update-in-progress flag is waited out
+// first, with a bound, and a clock that never settles is
+// answered honestly with 0. Gives back 1 when the block
+// holds a true reading, 0 when none could be had.
+make rtcread(block: bytes) -> number {
+    give floor(block) {
+        mov r8d, 8
+    rt_try:
+        mov r9d, 200000
+    rt_uip:
+        mov r10b, 0x0A
+        call rt_getreg
+        test al, 0x80
+        jz rt_seta
+        dec r9d
+        jnz rt_uip
+        jmp rt_fail
+    rt_seta:
+        lea rsi, [rbx + 16]
+        call rt_readset
+        lea rsi, [rbx]
+        call rt_readset
+        mov rcx, 7
+        lea rsi, [rbx]
+        lea rdi, [rbx + 16]
+    rt_cmp:
+        mov al, [rsi]
+        cmp al, [rdi]
+        jne rt_retry
+        inc rsi
+        inc rdi
+        dec rcx
+        jnz rt_cmp
+        mov rax, 1
+        jmp rt_done
+    rt_retry:
+        dec r8d
+        jnz rt_try
+    rt_fail:
+        xor eax, eax
+    rt_done:
+        jmp rt_end
+    rt_getreg:
+        mov dx, 0x70
+        mov al, r10b
+        out dx, al
+        jmp rt_d1
+    rt_d1:
+        jmp rt_d2
+    rt_d2:
+        mov dx, 0x71
+        in al, dx
+        ret
+    rt_readset:
+        mov r10b, 0x00
+        call rt_getreg
+        mov [rsi], al
+        mov r10b, 0x02
+        call rt_getreg
+        mov [rsi + 1], al
+        mov r10b, 0x04
+        call rt_getreg
+        mov [rsi + 2], al
+        mov r10b, 0x07
+        call rt_getreg
+        mov [rsi + 3], al
+        mov r10b, 0x08
+        call rt_getreg
+        mov [rsi + 4], al
+        mov r10b, 0x09
+        call rt_getreg
+        mov [rsi + 5], al
+        mov r10b, 0x0B
+        call rt_getreg
+        mov [rsi + 6], al
+        ret
+    rt_end:
+    }
+}
+
+// ---- the spelling ----
+
+// One bit of a number, asked by the bit's own weight:
+// bitv(13, 4) is 1, because 13 holds the four-bit.
+make bitv(v: number, b: number) -> number {
+    let q = v / b
+    give q - (q / 2) * 2
+}
+
+// A byte spelled in the clock's packed decimal (BCD),
+// turned into a plain count: the high figure is the tens.
+make frombcd(v: number) -> number {
+    let tens = v / 16
+    give tens * 10 + (v - tens * 16)
+}
+
+// ---- the calendar ----
+//
+// The day reckonings are the well-known civil calendar
+// arithmetic (Howard Hinnant's, public domain): a count of
+// days since the first of January 1970, turned into a date
+// and back, exactly, leap years and all.
+
+// The count of days from New Year's Day 1970 to a date.
+make daysfromcivil(y: number, m: number, d: number) -> number {
+    let yy = y
+    if m <= 2 {
+        yy = y - 1
+    }
+    let era = yy / 400
+    let yoe = yy - era * 400
+    let mp = m - 3
+    if m <= 2 {
+        mp = m + 9
+    }
+    let doy = (153 * mp + 2) / 5 + d - 1
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy
+    give era * 146097 + doe - 719468
+}
+
+// The year of the date a day-count falls on.
+make civilyear(z: number) -> number {
+    let zz = z + 719468
+    let era = zz / 146097
+    let doe = zz - era * 146097
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100)
+    let mp = (5 * doy + 2) / 153
+    let m = mp + 3
+    if mp >= 10 {
+        m = mp - 9
+    }
+    let y = yoe + era * 400
+    if m <= 2 {
+        give y + 1
+    }
+    give y
+}
+
+// The month (1-12) of the date a day-count falls on.
+make civilmonth(z: number) -> number {
+    let zz = z + 719468
+    let era = zz / 146097
+    let doe = zz - era * 146097
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100)
+    let mp = (5 * doy + 2) / 153
+    if mp < 10 {
+        give mp + 3
+    }
+    give mp - 9
+}
+
+// The day of the month (1-31) a day-count falls on.
+make civilday(z: number) -> number {
+    let zz = z + 719468
+    let era = zz / 146097
+    let doe = zz - era * 146097
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100)
+    let mp = (5 * doy + 2) / 153
+    give doy - (153 * mp + 2) / 5 + 1
+}
+
+// The day of the week a day-count falls on, 0 for Sunday
+// through 6 for Saturday. (The count's first day, the
+// first of January 1970, was a Thursday.)
+make weekdayof(z: number) -> number {
+    let w = z + 4
+    give w - (w / 7) * 7
+}
+
+// A month's name, in plain words.
+make monthname(m: number) -> text {
+    if m == 1 {
+        give "January"
+    }
+    if m == 2 {
+        give "February"
+    }
+    if m == 3 {
+        give "March"
+    }
+    if m == 4 {
+        give "April"
+    }
+    if m == 5 {
+        give "May"
+    }
+    if m == 6 {
+        give "June"
+    }
+    if m == 7 {
+        give "July"
+    }
+    if m == 8 {
+        give "August"
+    }
+    if m == 9 {
+        give "September"
+    }
+    if m == 10 {
+        give "October"
+    }
+    if m == 11 {
+        give "November"
+    }
+    give "December"
+}
+
+// A weekday's name, in plain words (0 is Sunday).
+make weekdayname(w: number) -> text {
+    if w == 0 {
+        give "Sunday"
+    }
+    if w == 1 {
+        give "Monday"
+    }
+    if w == 2 {
+        give "Tuesday"
+    }
+    if w == 3 {
+        give "Wednesday"
+    }
+    if w == 4 {
+        give "Thursday"
+    }
+    if w == 5 {
+        give "Friday"
+    }
+    give "Saturday"
+}
+
+// A day-count as a date in plain words, the way the bar
+// and the 'time' word speak it: "Sunday, November 15, 2026".
+make datetext(days: number) -> text {
+    give weekdayname(weekdayof(days)) + ", " + monthname(civilmonth(days)) + " " + civilday(days) + ", " + civilyear(days)
+}
+
+// ---- the reckoning ----
+
+// What a reading in the block comes to: the count of
+// seconds from New Year's Day 1970 to the moment the
+// clock described, in the world's standard time (the
+// standing assumption at the head of this file). The
+// clock's own status word says how its numbers are
+// spelled — packed decimal or plain binary, and whether
+// its hours run to 24 or to 12 with a morning/afternoon
+// bit — and the spelling is honored either way. A reading
+// that cannot be a true moment (a month of 13, an hour of
+// 25) is answered with -1, and the main body falls back to
+// its honest count since waking.
+make rtcbaseof(block: bytes) -> number {
+    let statusb = block[6]
+    let binary = bitv(statusb, 4)
+    let mode24 = bitv(statusb, 2)
+    let sec = block[0]
+    let min = block[1]
+    let raw = block[2]
+    let pm = bitv(raw, 128)
+    let hour = raw - pm * 128
+    let day = block[3]
+    let month = block[4]
+    let yy = block[5]
+    if binary == 0 {
+        sec = frombcd(sec)
+        min = frombcd(min)
+        hour = frombcd(hour)
+        day = frombcd(day)
+        month = frombcd(month)
+        yy = frombcd(yy)
+    }
+    if mode24 == 0 {
+        if pm == 1 {
+            if hour != 12 {
+                hour = hour + 12
+            }
+        } else {
+            if hour == 12 {
+                hour = 0
+            }
+        }
+    }
+    if month < 1 { give 0 - 1 }
+    if month > 12 { give 0 - 1 }
+    if day < 1 { give 0 - 1 }
+    if day > 31 { give 0 - 1 }
+    if hour > 23 { give 0 - 1 }
+    if min > 59 { give 0 - 1 }
+    if sec > 60 { give 0 - 1 }
+    let year = 2000 + yy
+    give daysfromcivil(year, month, day) * 86400 + hour * 3600 + min * 60 + sec
+}

@@ -24,6 +24,9 @@
 //   4 — the USB keyboard's standing is reported ('usb';
 //       the road itself is usbkey.nifla, and the report is
 //       the main body's to give, from the road's ledger)
+//   5 — the world's time is told in words ('time'; the
+//       telling is the main body's, from the true clock's
+//       reading it keeps — rtclock.nifla, Stone 7)
 make wordkind(word) {
     if word == "" {
         give 0
@@ -37,20 +40,21 @@ make wordkind(word) {
     if word == "usb" {
         give 4
     }
+    if word == "time" {
+        give 5
+    }
     give 1
 }
 
 // The line that answers a word of kind 1: the greeting, the
 // reports, the time choices' own say-so, and the kind word
-// for a word the machine does not know yet. The 'time' and
-// 'memory' lines are reckoned as they are asked for, from
-// the machine's own tick and memory figure.
+// for a word the machine does not know yet. The 'memory'
+// line is reckoned as it is asked for, from the machine's
+// own memory figure. ('time' is not answered here — it is
+// kind 5, told by the main body from the true clock.)
 make wordline(word) {
     if word == "hello" {
         give "Hello. It is good to see you."
-    }
-    if word == "time" {
-        give "This machine has been awake for " + (ticks() / 100) + " seconds."
     }
     if word == "memory" {
         give "This machine has " + memorysize() + " bytes of memory (" + (memorysize() / 1048576) + " megabytes)."

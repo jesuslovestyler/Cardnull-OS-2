@@ -27,6 +27,9 @@
 //   src/usbkey.nifla     ears on the USB road: a UHCI
 //                        host and a HID boot keyboard,
 //                        its estate in one desk of bytes
+//   src/rtclock.nifla    the real clock: reading the
+//                        machine's own CMOS clock, and
+//                        reckoning dates from it
 //   src/cardnull.nifla   this main body: the boot
 //                        sequence, the first-breath lift,
 //                        the state, the face, the typing
@@ -64,18 +67,26 @@
 //          card (which rides as its own small module), run
 //          to draw its own panel inside the desktop, and
 //          returned from, with the system carrying on.
+// Stone 6: ears on the USB road — a USB keyboard wakes on
+//          the UHCI companion road and feeds the same
+//          typing line as the PS/2 road (usbkey.nifla).
+// Stone 7: a true clock — the machine's own clock is read
+//          at boot (rtclock.nifla), and the bar shows the
+//          real time and the date in plain words, the
+//          disc's time choice applied on top.
 //
 // The arrangement of the screen:
-//   row 0      the bar — "Cardnull" at the left, the clock
-//              at the right, white on blue
+//   row 0      the bar — "Cardnull" at the left, the date
+//              and the clock at the right, white on blue
 //   rows 3-9   the welcome panel, black on light gray
 //   row 11     the invitation: what words the machine knows
 //   rows 13-22 the answers, newest at the bottom
 //   row 24     the typing line
 //
-// The clock counts from the moment the machine woke (there
-// is no reading of the world's clock yet): it shows the
-// hours, minutes, and seconds since boot, plainly.
+// The clock tells the world's time (Stone 7): the reading
+// taken at boot, carried forward by the machine's own
+// tick. If no true reading could be had, it falls back to
+// the honest count since waking, as it did before.
 
 
 // ---- the keyboard's letters (Stone 2) ----
@@ -155,14 +166,35 @@ make drawtyping(text) {
 
 // ---- the face ----
 
+// Draws the bar's right-hand end: the date in plain words
+// and the clock (Stone 7). 'utcnow' is the world's present
+// count of seconds (see the boot sequence), with the
+// person's time choice applied here; when it stands below
+// zero — no true reading could be had at boot — the bar
+// keeps the honest count since waking, as it did before
+// this stone, and no date is shown.
+make drawclock(offset, utcnow) {
+    if utcnow < 0 {
+        writeat(0, 72, clocktext(ticks() / 100, offset), 31)
+    } else {
+        let local = utcnow + offset * 3600
+        let days = local / 86400
+        let daysec = local - days * 86400
+        let dt = datetext(days)
+        writeat(0, 10, "                                                            ", 31)
+        writeat(0, 70 - length(dt), dt, 31)
+        writeat(0, 72, clocktext(daysec, 0), 31)
+    }
+}
+
 // Draws the whole desktop: the bar with its clock, the
 // welcome panel, and the invitation. The answers region is
 // left blank, ready.
-make drawface(offset) {
+make drawface(offset, utcnow) {
     clearscreen()
     paintrow(0, 31)
     writeat(0, 1, "Cardnull", 31)
-    writeat(0, 72, clocktext(ticks() / 100, offset), 31)
+    drawclock(offset, utcnow)
     paintrect(3, 8, 64, 7, 112)
     writeat(4, 10, "Welcome to Cardnull", 112)
     writeat(5, 10, "This computer is public domain: free for everyone, forever.", 112)
@@ -299,7 +331,32 @@ if guestimglen > 0 {
 let usbdesk = makebytes(16384)
 let usbup = usbinit(usbdesk)
 
-drawface(offset)
+// A true clock (Stone 7): the machine's own clock is read
+// once, here, and kept as a count of seconds — the world's
+// present moment, on the standing assumption that the
+// machine's clock holds the world's standard time (see
+// rtclock.nifla) — and 'bootsec' remembers the machine's
+// own tick at the reading, so the loop can carry the
+// moment forward by the tick's advance. When no true
+// reading can be had, rtcok stays 0 and the bar keeps the
+// honest count since waking, as it did before this stone.
+let rtcblock = makebytes(32)
+let rtcok = 0
+let rtcbase = 0
+let bootsec = ticks() / 100
+if rtcread(rtcblock) == 1 {
+    let base = rtcbaseof(rtcblock)
+    if base > 0 {
+        rtcbase = base
+        rtcok = 1
+    }
+}
+let utcstart = 0 - 1
+if rtcok == 1 {
+    utcstart = rtcbase
+}
+
+drawface(offset, utcstart)
 
 let keys = makebytes(48)
 let klen = 0
@@ -312,9 +369,13 @@ if usbup == 1 {
 
 while true {
     let nowsec = ticks() / 100
+    let utcnow = 0 - 1
+    if rtcok == 1 {
+        utcnow = rtcbase + (nowsec - bootsec)
+    }
     if nowsec != lastsec {
         lastsec = nowsec
-        writeat(0, 72, clocktext(nowsec, offset), 31)
+        drawclock(offset, utcnow)
     }
     let k = readkey()
     if k == 0 {
@@ -337,7 +398,7 @@ while true {
                 let kind = wordkind(cmd)
                 if kind == 2 {
                     // 'clear': the face is drawn again, empty.
-                    drawface(offset)
+                    drawface(offset, utcnow)
                     ansrow = 13
                     lastsec = 0 - 1
                 }
@@ -363,6 +424,20 @@ while true {
                     } else {
                         ansrow = printline(ansrow, "No USB keyboard is plugged in.")
                     }
+                }
+                if kind == 5 {
+                    // 'time': the world's time in words —
+                    // the real date and hour (Stone 7), with
+                    // the honest count of the machine's
+                    // waking beneath it. When no true reading
+                    // was had, the waking count alone answers.
+                    if utcnow >= 0 {
+                        let local = utcnow + offset * 3600
+                        let days = local / 86400
+                        let daysec = local - days * 86400
+                        ansrow = printline(ansrow, "The time is " + clocktext(daysec, 0) + " on " + datetext(days) + ".")
+                    }
+                    ansrow = printline(ansrow, "This machine has been awake for " + nowsec + " seconds.")
                 }
                 if kind == 1 {
                     // A line of words answers it. The time

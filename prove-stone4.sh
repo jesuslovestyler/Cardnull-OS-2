@@ -23,6 +23,13 @@
 set -u
 cd "$(dirname "$0")"
 
+# Since Stone 7 the system reads the machine's real clock;
+# this proof's hours are reckoned against a bench clock
+# pinned to midnight at the day's turn (UTC), so the time
+# choice's hours come out as they are expected below.
+RTC_BASE=2026-11-15T00:00:00
+export RTC_BASE
+
 ./build.sh >/dev/null || { echo "FAIL: build.sh failed"; exit 1; }
 
 WORK=$(mktemp -d)

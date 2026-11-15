@@ -268,6 +268,55 @@ done in two calls each; and the driver's signatures carry
 Stone 18 kind marks, so the shapes its floor desks are handed
 are known from the start.
 
+### Stone 7 — A true clock
+
+The bar's clock stops counting from waking and tells the
+world's time. At boot the system reads the machine's own
+clock — the CMOS real-time clock every PC keeps — through
+`src/rtclock.nifla`: the update-in-progress flag waited out,
+the reading taken twice and required to agree, and the
+clock's own status word honored, so its numbers are read
+right whether they are spelled in packed decimal or plain
+binary, and whether its hours run to 24 or to 12. The
+reading becomes a count of seconds; the loop carries it
+forward by the machine's own tick, and the disc's time
+choice (Stone 4) is applied on top, as it always was. The
+bar now shows the date in plain words beside the time —
+"Sunday, November 15, 2026" — and the word `time` answers
+with the real moment in words, the waking count still told
+beneath it. Dates are reckoned with the civil calendar
+arithmetic (days from a date and back, leap years and all),
+so an offset that carries the moment over midnight carries
+the date with it, in either direction.
+
+Proven by `prove-stone7.sh`, three boots with the bench
+clock pinned to known instants, all PASS: 14:32 UTC on
+November 15, 2026 with the Eastern choice shows 09:32 on
+Sunday, November 15 (and `time` tells the same in words);
+02:00 UTC on November 16 with Eastern shows 21:00 on
+Sunday, November 15 — the date carried back over midnight;
+and 23:59:50 UTC with the world's choice rolls forward on
+its own to Monday, November 16 at 00:00. Because the clock
+is now real, the older proofs that reckon hours from the
+time choice pin the bench clock (`RTC_BASE` in
+`tools/launch.sh`; the ISO proof pins its own), and the
+whole earlier proof set passes unchanged against it.
+
+**The standing assumption, said out loud:** the machine's
+clock is taken to hold **the world's standard time (UTC)** —
+what QEMU and UTM set by default — and the time choice is
+applied on top. On a machine whose clock instead held its
+local time, the shown hour would stand off by the choice's
+hours; if Tyler's witness on his own machine shows that,
+the semantics get adjusted then, in the open. Honest
+limits: the year is read as this century (the clock's
+two-figure year, 2000 + it); the reading is taken once at
+boot and carried by the tick, so a machine left running
+for very long could drift from the clock it read; and if
+no true reading can be had at boot, the bar quietly keeps
+the honest count since waking, as it did before this
+stone, and shows no date.
+
 ## The kernel's files
 
 The kernel is built as several files, never one big one — Tyler's
@@ -299,6 +348,11 @@ was split by duty, without changing its behavior:
   host and the HID boot keyboard it wakes, its whole estate in
   one desk of bytes the main body hands it at every asking
   (usbinit, usbpoll, and their helpers).
+- `src/rtclock.nifla` — the real clock (Stone 7): reading the
+  machine's own CMOS clock into a block the main body hands
+  it, and the calendar reckoning that turns a reading into a
+  date in plain words (rtcread, rtcbaseof, datetext, and their
+  helpers).
 
 The libraries join the main body as preludes at build (build.sh
 names them all): files of pure functions — values in as arguments,

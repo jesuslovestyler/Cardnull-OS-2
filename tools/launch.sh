@@ -29,11 +29,21 @@ if [ -n "$MODULES" ]; then
     INITRD="-initrd $MODULES"
 fi
 
+# The bench's clock can be pinned to a known instant by
+# setting RTC_BASE (a date and time, e.g. 2026-11-15T00:00:00)
+# in the environment — since Stone 7 the system reads the
+# machine's real clock, and proofs that reckon hours from
+# the time choice pin the clock they reckon against.
+RTCARGS=""
+if [ -n "${RTC_BASE:-}" ]; then
+    RTCARGS="-rtc base=$RTC_BASE"
+fi
+
 if [ -n "${QEMU:-}" ]; then
     # Ready-made command lines and the drive words are split
     # on purpose.
     # shellcheck disable=SC2086
-    $QEMU -kernel "$ELF" -display none -m "$MEM" -nic none $DRIVE $INITRD \
+    $QEMU -kernel "$ELF" -display none -m "$MEM" -nic none $DRIVE $INITRD $RTCARGS \
         -monitor "unix:$SOCK,server,nowait" &
     echo $!
 elif [ -x "$HOME/qemu10-root/usr/bin/qemu-system-x86_64" ]; then
@@ -41,7 +51,7 @@ elif [ -x "$HOME/qemu10-root/usr/bin/qemu-system-x86_64" ]; then
     "$HOME/qemu10-root/usr/lib64/ld-linux-x86-64.so.2" \
         --library-path "$HOME/qemu10-root/usr/lib/x86_64-linux-gnu:$HOME/qemu10-root/lib/x86_64-linux-gnu" \
         "$HOME/qemu10-root/usr/bin/qemu-system-x86_64" \
-        -kernel "$ELF" -display none -m "$MEM" -nic none $DRIVE $INITRD \
+        -kernel "$ELF" -display none -m "$MEM" -nic none $DRIVE $INITRD $RTCARGS \
         -monitor "unix:$SOCK,server,nowait" \
         -L "$HOME/qemu10-root/usr/share/qemu" \
         -L "$HOME/qemu10-root/usr/share/seabios" \

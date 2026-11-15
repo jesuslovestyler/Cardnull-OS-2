@@ -36,10 +36,14 @@ boot_iso() {
     ISO="$1"
     SCENARIO="$2"
     SOCK="$WORK/monitor-$3.sock"
+    # The bench clock is pinned to midnight UTC (Stone 7:
+    # the system reads the machine's real clock), so the
+    # discs' carried time choices show the expected hours.
     if [ -n "${QEMU:-}" ]; then
         # shellcheck disable=SC2086
         $QEMU -drive "file=$ISO,format=raw,if=ide,index=2,media=cdrom,readonly=on" \
             -boot order=d -display none -m 4096 -nic none \
+            -rtc base=2026-11-15T00:00:00 \
             -monitor "unix:$SOCK,server,nowait" &
         QEMU_PID=$!
     elif [ -x "$HOME/qemu10-root/usr/bin/qemu-system-x86_64" ]; then
@@ -48,6 +52,7 @@ boot_iso() {
             "$HOME/qemu10-root/usr/bin/qemu-system-x86_64" \
             -drive "file=$ISO,format=raw,if=ide,index=2,media=cdrom,readonly=on" \
             -boot order=d -display none -m 4096 -nic none \
+            -rtc base=2026-11-15T00:00:00 \
             -monitor "unix:$SOCK,server,nowait" \
             -L "$HOME/qemu10-root/usr/share/qemu" \
             -L "$HOME/qemu10-root/usr/share/seabios" \

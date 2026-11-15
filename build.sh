@@ -33,7 +33,9 @@ mkdir -p build
 #   guestdoor  the guest door (Stone 5)
 #   commands   deciding what a typed word is answered with
 #   usbkey     ears on the USB road (Stone 6)
-LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/guestdoor.nifla src/commands.nifla src/usbkey.nifla"
+#   rtclock    the real clock: the CMOS reading and the
+#              calendar reckoning (Stone 7)
+LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/guestdoor.nifla src/commands.nifla src/usbkey.nifla src/rtclock.nifla"
 PRELUDE=""
 for lib in $LIBRARIES; do
     # Word splitting is intended: one --prelude pair per file.
