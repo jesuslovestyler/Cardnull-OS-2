@@ -24,6 +24,9 @@
 //                        plain-words refusals
 //   src/commands.nifla   deciding what a typed word is
 //                        answered with
+//   src/usbkey.nifla     ears on the USB road: a UHCI
+//                        host and a HID boot keyboard,
+//                        its estate in one desk of bytes
 //   src/cardnull.nifla   this main body: the boot
 //                        sequence, the first-breath lift,
 //                        the state, the face, the typing
@@ -165,7 +168,7 @@ make drawface(offset) {
     writeat(5, 10, "This computer is public domain: free for everyone, forever.", 112)
     writeat(7, 10, "\"Unless Yahweh builds the house,", 112)
     writeat(8, 10, "they labor in vain who build it.\" - Psalm 127:1", 112)
-    writeat(11, 2, "Type a word and press Enter: hello, time, memory, eastern, utc, guest, clear", 7)
+    writeat(11, 2, "Type a word, then Enter: hello, time, memory, eastern, utc, guest, usb, clear", 7)
 }
 
 // Writes one answer in the answer region at 'row', scrolling
@@ -285,6 +288,17 @@ if guestimglen > 0 {
     }
 }
 
+// Ears on the USB road (Stone 6): the driver's whole
+// estate lives in one desk of bytes, taken here and handed
+// to its library (usbkey.nifla) at every asking — the
+// raising walks the bus, wakes a keyboard if one stands on
+// a port, and arms its report door. When no controller of
+// the kind it speaks stands in the machine, or no keyboard
+// is plugged in, the road is simply quiet and the PS/2
+// road carries the typing alone, as before.
+let usbdesk = makebytes(16384)
+let usbup = usbinit(usbdesk)
+
 drawface(offset)
 
 let keys = makebytes(48)
@@ -292,6 +306,9 @@ let klen = 0
 let ansrow = 13
 let lastsec = 0 - 1
 drawtyping("")
+if usbup == 1 {
+    ansrow = printline(ansrow, "A USB keyboard is ready.")
+}
 
 while true {
     let nowsec = ticks() / 100
@@ -300,6 +317,10 @@ while true {
         writeat(0, 72, clocktext(nowsec, offset), 31)
     }
     let k = readkey()
+    if k == 0 {
+        // The PS/2 road is quiet this pass; ask the USB road.
+        k = usbpoll(usbdesk)
+    }
     if k != 0 {
         if k < 128 {
             if k == 28 {
@@ -332,6 +353,15 @@ while true {
                     }
                     if how == 3 {
                         writeat(21, 2, "The guest visited, and has gone home again.", 7)
+                    }
+                }
+                if kind == 4 {
+                    // 'usb': the USB road reports its own
+                    // standing, from its ledger.
+                    if usbup == 1 {
+                        ansrow = printline(ansrow, "A USB keyboard is ready. It has brought " + usbcount(usbdesk) + " keys so far.")
+                    } else {
+                        ansrow = printline(ansrow, "No USB keyboard is plugged in.")
                     }
                 }
                 if kind == 1 {

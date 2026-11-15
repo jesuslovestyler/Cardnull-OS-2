@@ -216,6 +216,58 @@ carries one plain assumption: a guest image is never as small as
 the 512-byte settings or the 32-byte card, so a module of exactly
 the card's promised length can only be the image.
 
+### Stone 6 — Ears on the USB road
+
+A second road for typing. `src/usbkey.nifla` is a USB host
+driver written in Nifla: it finds the machine's UHCI controller
+on the PCI bus (the USB 1.1 companion road), raises it — the
+reset sequence, a frame list and two queue heads laid in a desk
+of bytes the main body hands it, the port reset in the first
+Cardnull OS's own measures — and wakes what stands on a port in
+plain USB words: its description read, an address given, its
+arrangement read descriptor by descriptor until a boot
+keyboard's interface is found by its declared numbers, the
+arrangement set, the keyboard set to its boot manner, and its
+report door armed. The main loop then polls that door whenever
+the PS/2 road is quiet, reads each report for the presses that
+are new in it, and turns HID usages into the same make codes
+the PS/2 road speaks — so both roads feed the one typing line,
+and neither disables the other. When a keyboard is ready the
+desktop says so at boot ("A USB keyboard is ready."), and the
+new word `usb` reports the road's standing, with its own count
+of the keys it has brought.
+
+Proven by `prove-stone6.sh`, three boots, all PASS: with a
+controller and a USB keyboard, the ready word stands on the
+desktop, `hello` is answered, and the `usb` word's count reads
+10 — the ten presses of the two typed words and their Enters,
+carried by the USB road itself (the count is the road's own;
+the PS/2 road cannot raise it). With a controller but no
+keyboard, and with no controller at all, the desktop comes up
+unbothered, the PS/2 road answers as always, and `usb` answers
+plainly that no USB keyboard is plugged in. The full earlier
+proof set (Stones 3, 4, 5 and the ISO proof) passes unchanged
+on the same build.
+
+**Which USB this covers, plainly:** the proof covers the UHCI
+companion road (USB 1.1) — in UTM, that is the **USB 2.0**
+arrangement, whose keyboards stand on UHCI companions; turn
+USB Support **on** and choose the USB 2.0 form if the machine
+offers the choice. The USB 3.0 arrangement (an xHCI
+controller) is **not** covered by this stone, and neither is a
+standalone EHCI controller; on those, this system would find
+no controller it speaks and the PS/2 road would carry typing
+alone. Honest limits: the USB road's letters arrive unshifted
+(no capitals yet — its table covers the letters, Enter,
+Backspace, and Space, the words the desktop speaks today); one
+keyboard is woken, the first found; and the driver polls its
+door rather than taking interrupts. Two of the language's own
+bounds were met and honored on the way: a call hands at most
+six words' worth of values, so two of the driver's layings are
+done in two calls each; and the driver's signatures carry
+Stone 18 kind marks, so the shapes its floor desks are handed
+are known from the start.
+
 ## The kernel's files
 
 The kernel is built as several files, never one big one — Tyler's
@@ -243,6 +295,10 @@ was split by duty, without changing its behavior:
   with: what kind of answer, the line that answers it, and the
   clock's offset once the word is done (wordkind, wordline,
   wordoffset).
+- `src/usbkey.nifla` — ears on the USB road (Stone 6): the UHCI
+  host and the HID boot keyboard it wakes, its whole estate in
+  one desk of bytes the main body hands it at every asking
+  (usbinit, usbpoll, and their helpers).
 
 The libraries join the main body as preludes at build (build.sh
 names them all): files of pure functions — values in as arguments,

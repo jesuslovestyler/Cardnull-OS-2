@@ -32,7 +32,8 @@ mkdir -p build
 #   bootmods   reading what the loader brought (Stones 4–5)
 #   guestdoor  the guest door (Stone 5)
 #   commands   deciding what a typed word is answered with
-LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/guestdoor.nifla src/commands.nifla"
+#   usbkey     ears on the USB road (Stone 6)
+LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/guestdoor.nifla src/commands.nifla src/usbkey.nifla"
 PRELUDE=""
 for lib in $LIBRARIES; do
     # Word splitting is intended: one --prelude pair per file.

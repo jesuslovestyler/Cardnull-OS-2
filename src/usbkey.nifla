@@ -1,0 +1,969 @@
+// Cardnull OS 2's USB keyboard library — ears on the USB
+// road (Stone 6).
+//
+// Like the other libraries, this file joins the system as
+// a prelude when it is built (build.sh names it), and a
+// prelude may only make functions. But a device driver
+// must keep things between one call and the next — the
+// controller's address, the schedule it walks, the last
+// key report — and this kernel's law is that functions
+// keep no state of their own. So the driver's whole estate
+// lives in one block of bytes the main body takes at boot
+// and hands to every function here: the desk. Its head is
+// a ledger of numbers (each four bytes, at the byte places
+// named below); behind it stand the controller's own
+// fields — the frame list it walks once a millisecond,
+// the queue heads and transfer descriptors, the stage
+// every control conversation moves through, and the
+// keyboard's latest report. The controller is a DMA
+// engine: it is told physical addresses, which on this
+// machine are the very addresses the program sees.
+//
+//   0  the controller's I/O door (0 until found)
+//   4  the standing: 0 untouched, 1 the controller walks,
+//      2 a keyboard is ready, 255 the raising failed
+//   8  the port the keyboard stands on
+//  12  the keyboard is a low-speed device (0 or 1)
+//  16  the address the keyboard was given (1)
+//  20  the keyboard's interrupt door (its endpoint)
+//  24  that door's packet bound
+//  28  the interrupt road's data toggle
+//  32  the frame list's place in the desk
+//  36  the structures' place (queue heads, descriptors)
+//  40  the data stage's place
+//  44  the report's place
+//  48  how many keys the USB road has brought
+//  52  the waiting keys: the oldest one's place
+//  56  the waiting keys: the next one's place
+//  60  the waiting keys themselves (sixteen of them)
+//  76  the last report's six key places
+//  84  a descriptor-laying's particulars (next, packet,
+//      address, door, toggle, length, inward, buffer)
+//     at 84, 88, 92, 96, 100, 104, 108, 112
+//
+// The controller spoken is a UHCI — the Universal Host
+// Controller of the USB 1.1 years, the same kind the first
+// Cardnull OS spoke to for its storage sticks (its M32
+// work is this library's precedent, register for register):
+// the class the PCI bus numbers serial bus (0x0C), USB
+// (0x03), UHCI (0x00). Newer hosts — the EHCI of USB 2.0
+// standing alone, and the xHCI of USB 3 — are not spoken
+// here; where a machine offers a UHCI companion beside its
+// newer host (the common arrangement, and UTM's), the
+// keyboard stands on the companion and is heard. The
+// keyboard itself is spoken to as the HID boot keyboard
+// the standard describes: arranged, set to its boot
+// manner, and asked for its reports on its interrupt door,
+// each report eight bytes whose last six places name the
+// keys held down. Both roads feed the one typing line: the
+// main loop asks the PS/2 road first and this road second,
+// each pass, and a key from either is the same key to
+// everything downstream — this library gives back the very
+// key numbers the PS/2 road gives (the make codes of the
+// first key set), translated from the USB road's own usage
+// numbers by usagekey below.
+
+// ---- the desk's ledger: numbers in and out ----
+
+// Reads one four-byte number out of the desk, at a byte
+// place.
+make get32(desk: bytes, off: number) -> number {
+    give floor(desk, off) {
+        mov rax, [r10]
+        mov eax, dword ptr [rbx + rax]
+    }
+}
+
+// Writes one four-byte number into the desk, at a byte
+// place.
+make put32(desk: bytes, off: number, value: number) {
+    floor(desk, off, value) {
+        mov rax, [r10]
+        mov rcx, [r10 + 8]
+        mov dword ptr [rbx + rax], ecx
+    }
+}
+
+// A number's bits that a mask names: value AND mask, for
+// asking after one bit or a field of them in the plain
+// style (the language's surface has no AND of its own).
+make andmask(value: number, mask: number) -> number {
+    give floor(value, mask) {
+        mov rax, [r10]
+        and rax, [r10 + 8]
+    }
+}
+
+// A small number's low byte and high byte, for laying the
+// setup packets the control road speaks.
+make lobyte(v: number) -> number {
+    give v - (v / 256) * 256
+}
+
+make hibyte(v: number) -> number {
+    let t = v / 256
+    give t - (t / 256) * 256
+}
+
+// Rests for n heartbeats of the machine's tick.
+make usbwait(n: number) {
+    let i = 0
+    while i < n {
+        waittick()
+        i = i + 1
+    }
+}
+
+// ---- the controller's door: its registers ----
+
+// Reads one of the controller's sixteen-bit registers, at
+// a byte offset from the I/O door the ledger keeps.
+make regread(desk: bytes, off: number) -> number {
+    give floor(desk, off) {
+        mov eax, dword ptr [rbx]
+        mov rdx, [r10]
+        add rdx, rax
+        in ax, dx
+        movzx eax, ax
+    }
+}
+
+// Writes one of the controller's sixteen-bit registers.
+make regwrite(desk: bytes, off: number, value: number) {
+    floor(desk, off, value) {
+        mov eax, dword ptr [rbx]
+        mov rdx, [r10]
+        add rdx, rax
+        mov rax, [r10 + 8]
+        out dx, ax
+    }
+}
+
+// Raises the named bits in one of the controller's
+// registers, leaving the rest as they stood.
+make regset(desk: bytes, off: number, mask: number) {
+    floor(desk, off, mask) {
+        mov eax, dword ptr [rbx]
+        mov rdx, [r10]
+        add rdx, rax
+        in ax, dx
+        mov rcx, [r10 + 8]
+        or ax, cx
+        out dx, ax
+    }
+}
+
+// Lowers the named bits in one of the controller's
+// registers, leaving the rest as they stood.
+make regclear(desk: bytes, off: number, mask: number) {
+    floor(desk, off, mask) {
+        mov eax, dword ptr [rbx]
+        mov rdx, [r10]
+        add rdx, rax
+        in ax, dx
+        mov rcx, [r10 + 8]
+        not cx
+        and ax, cx
+        out dx, ax
+    }
+}
+
+// Tells the controller where its frame list stands: the
+// one thirty-two-bit register, at offset 8.
+make usbframebase(desk: bytes) {
+    floor(desk) {
+        mov eax, dword ptr [rbx]
+        mov edx, eax
+        add edx, 8
+        mov eax, dword ptr [rbx + 32]
+        add rax, rbx
+        out dx, eax
+    }
+}
+
+// ---- finding the controller ----
+
+// Walks the PCI bus (bus 0, every device, every function)
+// asking for a UHCI: the class numbers above, and a fourth
+// base register that names an I/O door standing. The first
+// that answers is taken — its door and its bus mastery
+// switched on, and the old firmware's legacy hold on the
+// bus released, exactly as the first Cardnull OS took it.
+// Gives back the I/O door, or 0 when no UHCI answers.
+make pcifinduhci() -> number {
+    give floor() {
+        mov r8, 0
+    pf_dev:
+        cmp r8, 32
+        jae pf_none
+        mov r9, 0
+    pf_fn:
+        cmp r9, 8
+        jae pf_nextdev
+        mov eax, 0x80000000
+        mov rcx, r8
+        shl rcx, 11
+        or rax, rcx
+        mov rcx, r9
+        shl rcx, 8
+        or rax, rcx
+        mov r11, rax
+        mov dx, 0xCF8
+        out dx, eax
+        mov dx, 0xCFC
+        in eax, dx
+        and eax, 0xFFFF
+        cmp eax, 0xFFFF
+        je pf_nextfn
+        mov rax, r11
+        or rax, 8
+        mov dx, 0xCF8
+        out dx, eax
+        mov dx, 0xCFC
+        in eax, dx
+        mov ecx, eax
+        shr ecx, 24
+        cmp ecx, 0x0C
+        jne pf_nextfn
+        mov ecx, eax
+        shr ecx, 16
+        and ecx, 0xFF
+        cmp ecx, 0x03
+        jne pf_nextfn
+        mov ecx, eax
+        shr ecx, 8
+        and ecx, 0xFF
+        cmp ecx, 0x00
+        jne pf_nextfn
+        mov rax, r11
+        or rax, 0x20
+        mov dx, 0xCF8
+        out dx, eax
+        mov dx, 0xCFC
+        in eax, dx
+        test eax, 1
+        jz pf_nextfn
+        and eax, 0xFFFFFFFC
+        test eax, eax
+        jz pf_nextfn
+        mov r15, rax
+        mov rax, r11
+        or rax, 4
+        mov dx, 0xCF8
+        out dx, eax
+        mov dx, 0xCFC
+        in eax, dx
+        or eax, 5
+        mov rcx, rax
+        mov rax, r11
+        or rax, 4
+        mov dx, 0xCF8
+        out dx, eax
+        mov eax, ecx
+        mov dx, 0xCFC
+        out dx, eax
+        mov rax, r11
+        or rax, 0xC0
+        mov dx, 0xCF8
+        out dx, eax
+        mov dx, 0xCFC
+        in eax, dx
+        and eax, 0xFFFF0000
+        or eax, 0x8F00
+        mov rcx, rax
+        mov rax, r11
+        or rax, 0xC0
+        mov dx, 0xCF8
+        out dx, eax
+        mov eax, ecx
+        mov dx, 0xCFC
+        out dx, eax
+        mov rax, r15
+        jmp pf_done
+    pf_nextfn:
+        inc r9
+        jmp pf_fn
+    pf_nextdev:
+        inc r8
+        jmp pf_dev
+    pf_none:
+        xor eax, eax
+    pf_done:
+    }
+}
+
+// ---- the schedule: frame list, queues, descriptors ----
+
+// Lays the driver's fields inside the desk and builds the
+// schedule the controller will walk: the frame list (a
+// thousand entries, each naming the interrupt queue head),
+// the interrupt queue (its head naming the control queue,
+// its element the keyboard's descriptor, dormant until
+// armed), and the control queue at rest. The frame list
+// must stand on a 4096-byte boundary for the controller;
+// the desk is large enough that the boundary is found
+// inside it, and the places found are written into the
+// ledger for every later hand.
+make usbbuild(desk: bytes) {
+    floor(desk) {
+        mov rax, rbx
+        and rax, 4095
+        mov rcx, 4096
+        sub rcx, rax
+        and rcx, 4095
+        add rcx, 128
+        mov dword ptr [rbx + 32], ecx
+        lea r8, [rcx + 4096]
+        mov dword ptr [rbx + 36], r8d
+        lea r9, [r8 + 512]
+        mov dword ptr [rbx + 40], r9d
+        lea rax, [r9 + 4096]
+        mov dword ptr [rbx + 44], eax
+        lea rdi, [rbx + rcx]
+        lea rax, [rbx + r8]
+        or rax, 2
+        mov rcx, 1024
+    ub_fl:
+        mov dword ptr [rdi], eax
+        add rdi, 4
+        dec rcx
+        jnz ub_fl
+        lea rax, [rbx + r8 + 32]
+        or rax, 2
+        mov dword ptr [rbx + r8], eax
+        lea rax, [rbx + r8 + 288]
+        mov dword ptr [rbx + r8 + 4], eax
+        mov dword ptr [rbx + r8 + 32], 1
+        mov dword ptr [rbx + r8 + 36], 1
+        mov dword ptr [rbx + r8 + 288], 1
+        mov dword ptr [rbx + r8 + 292], 0
+        mov dword ptr [rbx + r8 + 296], 0
+        mov dword ptr [rbx + r8 + 300], 0
+    }
+}
+
+// Lays one transfer descriptor in the pool — the
+// particulars stand in the ledger at 84 (see the head of
+// this file): its link (the next descriptor depth-first,
+// or the terminating word when next is below zero), its
+// fresh standing (working, three errors allowed, the slow
+// mark for a low-speed device, the short-packet pardon for
+// an inward road), the token (the packet's name, the
+// address, the door, the toggle, and the length as the
+// standard reckons it — one less than the count, the empty
+// packet spelled in all ones), and the buffer it moves
+// bytes through: the data stage's head, or its setup room
+// when the particulars say so.
+make usblaytd(desk: bytes, slot: number) {
+    floor(desk, slot) {
+        mov rax, [r10]
+        shl rax, 5
+        mov ecx, dword ptr [rbx + 36]
+        add rcx, 64
+        add rcx, rax
+        lea rdi, [rbx + rcx]
+        mov eax, dword ptr [rbx + 84]
+        test eax, eax
+        js ul_term
+        shl rax, 5
+        mov ecx, dword ptr [rbx + 36]
+        add rcx, 64
+        add rcx, rax
+        lea rax, [rbx + rcx]
+        or rax, 4
+        mov dword ptr [rdi], eax
+        jmp ul_status
+    ul_term:
+        mov dword ptr [rdi], 1
+    ul_status:
+        mov eax, 0x18800000
+        cmp dword ptr [rbx + 12], 0
+        je ul_fast
+        or eax, 0x04000000
+    ul_fast:
+        cmp dword ptr [rbx + 108], 0
+        je ul_token
+        or eax, 0x20000000
+    ul_token:
+        mov dword ptr [rdi + 4], eax
+        mov eax, dword ptr [rbx + 88]
+        mov ecx, dword ptr [rbx + 92]
+        shl ecx, 8
+        or eax, ecx
+        mov ecx, dword ptr [rbx + 96]
+        shl ecx, 15
+        or eax, ecx
+        mov ecx, dword ptr [rbx + 100]
+        shl ecx, 19
+        or eax, ecx
+        mov ecx, dword ptr [rbx + 104]
+        test ecx, ecx
+        jnz ul_len
+        mov ecx, 0x7FF
+        jmp ul_tok
+    ul_len:
+        dec ecx
+    ul_tok:
+        shl ecx, 21
+        or eax, ecx
+        mov dword ptr [rdi + 8], eax
+        mov eax, dword ptr [rbx + 40]
+        cmp dword ptr [rbx + 112], 0
+        je ul_buf
+        add eax, 3072
+    ul_buf:
+        add rax, rbx
+        mov dword ptr [rdi + 12], eax
+    }
+}
+
+// Points the control queue's element at the first
+// descriptor: a chain laid in the pool begins to run.
+make usbgo(desk: bytes) {
+    floor(desk) {
+        mov ecx, dword ptr [rbx + 36]
+        lea rax, [rbx + rcx + 64]
+        mov dword ptr [rbx + rcx + 36], eax
+    }
+}
+
+// Stills the control queue: its element terminated.
+make usbstill(desk: bytes) -> number {
+    floor(desk) {
+        mov ecx, dword ptr [rbx + 36]
+        mov dword ptr [rbx + rcx + 36], 1
+    }
+}
+
+// One descriptor's standing word, read back: its working
+// bit, its errors, and its true count are all asked from
+// this word (see usbtdactual).
+make usbtdstatus(desk: bytes, slot: number) -> number {
+    give floor(desk, slot) {
+        mov rax, [r10]
+        shl rax, 5
+        mov ecx, dword ptr [rbx + 36]
+        add rcx, 64
+        add rcx, rax
+        mov eax, dword ptr [rbx + rcx + 4]
+    }
+}
+
+// A descriptor's true count: the bytes it actually moved,
+// read out of its standing — the field less one as the
+// standard spells it, the all-ones spelling meaning the
+// empty packet.
+make usbtdactual(desk: bytes, slot: number) -> number {
+    let field = andmask(usbtdstatus(desk, slot), 2047)
+    if field == 2047 {
+        give 0
+    }
+    give field + 1
+}
+
+// Arms the keyboard's descriptor (the pool's seventh): an
+// inward interrupt road to the report's place, its token
+// composed from the ledger — the address, the door, the
+// toggle, the packet bound — and the interrupt queue's
+// element pointed at it afresh.
+make usbarm(desk: bytes) {
+    floor(desk) {
+        mov ecx, dword ptr [rbx + 36]
+        lea rdi, [rbx + rcx + 288]
+        mov dword ptr [rdi], 1
+        mov eax, 0x18800000
+        or eax, 0x20000000
+        cmp dword ptr [rbx + 12], 0
+        je ua_fast
+        or eax, 0x04000000
+    ua_fast:
+        mov dword ptr [rdi + 4], eax
+        mov eax, 105
+        mov ecx, dword ptr [rbx + 16]
+        shl ecx, 8
+        or eax, ecx
+        mov ecx, dword ptr [rbx + 20]
+        shl ecx, 15
+        or eax, ecx
+        mov ecx, dword ptr [rbx + 28]
+        shl ecx, 19
+        or eax, ecx
+        mov ecx, dword ptr [rbx + 24]
+        dec ecx
+        shl ecx, 21
+        or eax, ecx
+        mov dword ptr [rdi + 8], eax
+        mov eax, dword ptr [rbx + 44]
+        add rax, rbx
+        mov dword ptr [rdi + 12], eax
+        mov ecx, dword ptr [rbx + 36]
+        lea rax, [rbx + rcx + 288]
+        mov dword ptr [rbx + rcx + 4], eax
+    }
+}
+
+// ---- the control road ----
+
+// Writes the particulars for one descriptor-laying into
+// the ledger, in the order the head of this file names —
+// in two calls, because a call can hand the machine only
+// six words' worth of values (the language's own bound,
+// met here and honored rather than argued with).
+make laylink(desk: bytes, next: number, pid: number, addr: number, ep: number) {
+    put32(desk, 84, next)
+    put32(desk, 88, pid)
+    put32(desk, 92, addr)
+    put32(desk, 96, ep)
+}
+
+make layrest(desk: bytes, toggle: number, len: number, inward: number, bufkind: number) {
+    put32(desk, 100, toggle)
+    put32(desk, 104, len)
+    put32(desk, 108, inward)
+    put32(desk, 112, bufkind)
+}
+
+// Stages a control conversation's opening packet in its
+// own room of the data stage: the eight bytes every setup
+// carries — the asking's kind and direction, the request's
+// number, and the words of value, index, and length. Two
+// calls lay them, for the same six-words bound as above.
+make stagesetup1(desk: bytes, rt: number, req: number, value: number) {
+    let o = get32(desk, 40) + 3072
+    desk[o] = rt
+    desk[o + 1] = req
+    desk[o + 2] = lobyte(value)
+    desk[o + 3] = hibyte(value)
+}
+
+make stagesetup2(desk: bytes, index: number, length: number) {
+    let o = get32(desk, 40) + 3072
+    desk[o + 4] = lobyte(index)
+    desk[o + 5] = hibyte(index)
+    desk[o + 6] = lobyte(length)
+    desk[o + 7] = hibyte(length)
+}
+
+// One control conversation, whole: the setup, the data
+// stage when there is one (a single descriptor — every
+// asking this driver makes fits in the stage), and the
+// status stage that closes it, its direction the opposite
+// of the data's and its packet empty. The data toggle
+// opens at the standing the standard prescribes for each
+// stage. The driver rests heartbeat by heartbeat while the
+// chain runs — never spinning — until every descriptor
+// stands done, or one names the error it met, or three
+// seconds pass. Comes home with the data stage's true
+// count, or -1 when the chain did not complete. (The
+// first Cardnull OS's control road, spoken in Nifla.)
+make usbcontrol(desk: bytes, address: number, hasdata: number, inward: number, datalen: number) -> number {
+    laylink(desk, 1, 45, address, 0)
+    layrest(desk, 0, 8, 0, 1)
+    usblaytd(desk, 0)
+    let count = 2
+    if hasdata == 1 {
+        let datapid = 225
+        let statpid = 105
+        if inward == 1 {
+            datapid = 105
+            statpid = 225
+        }
+        laylink(desk, 2, datapid, address, 0)
+        layrest(desk, 1, datalen, inward, 0)
+        usblaytd(desk, 1)
+        laylink(desk, 0 - 1, statpid, address, 0)
+        layrest(desk, 1, 0, 1 - inward, 0)
+        usblaytd(desk, 2)
+        count = 3
+    } else {
+        laylink(desk, 0 - 1, 105, address, 0)
+        layrest(desk, 1, 0, 1, 0)
+        usblaytd(desk, 1)
+    }
+    usbgo(desk)
+    let deadline = ticks() + 300
+    let ok = 1
+    let settled = 0
+    while settled == 0 {
+        let active = 0
+        let i = 0
+        while i < count {
+            if andmask(usbtdstatus(desk, i), 7733248) != 0 {
+                ok = 0
+            }
+            if andmask(usbtdstatus(desk, i), 8388608) != 0 {
+                active = 1
+            }
+            i = i + 1
+        }
+        if ok == 0 {
+            settled = 1
+        }
+        if active == 0 {
+            settled = 1
+        }
+        if ticks() > deadline {
+            ok = 0
+            settled = 1
+        }
+        if settled == 0 {
+            waittick()
+        }
+    }
+    usbstill(desk)
+    if ok == 0 {
+        give 0 - 1
+    }
+    if hasdata == 1 {
+        give usbtdactual(desk, 1)
+    }
+    give 0
+}
+
+// Asks for a description — the device's own account of
+// itself or of its arrangement — at an address: the
+// standard asking (number 6), with the kind in the
+// value's high byte. The bytes land at the stage's head;
+// the true count comes home.
+make usbgetdesc(desk: bytes, address: number, kind: number, len: number) -> number {
+    stagesetup1(desk, 128, 6, kind * 256)
+    stagesetup2(desk, 0, len)
+    give usbcontrol(desk, address, 1, 1, len)
+}
+
+// ---- waking a keyboard ----
+
+// A port's reset, and the settling after, in the first
+// Cardnull OS's own measures: the reset bit held five
+// hundredths of a second, let go, a hundredth's recovery,
+// the port's enable raised by the driver's own hand, one
+// more hundredth, and the port's verdict read in its
+// enabled bit. The ledger learns whether the device is a
+// low-speed one.
+make usbresetport(desk: bytes, port: number) -> number {
+    let off = 16 + port * 2
+    regset(desk, off, 512)
+    usbwait(5)
+    regclear(desk, off, 512)
+    usbwait(1)
+    regset(desk, off, 4)
+    usbwait(1)
+    let after = regread(desk, off)
+    put32(desk, 12, 0)
+    if andmask(after, 256) != 0 {
+        put32(desk, 12, 1)
+    }
+    if andmask(after, 1) != 0 {
+        if andmask(after, 4) != 0 {
+            give 1
+        }
+    }
+    give 0
+}
+
+// Wakes the device standing on the ledger's port and
+// arranges it: its description's head at the address it
+// was born with, an address of its own, its whole
+// arrangement read descriptor by descriptor — a boot
+// keyboard's interface found by its declared numbers
+// (the HID class 3, the boot subclass 1, the keyboard
+// protocol 1) and its inward interrupt door taken with
+// its packet bound — the arrangement set, the keyboard
+// set to its boot manner, and its descriptor armed.
+// Comes home with the verdict: 2 — it did not answer its
+// waking; 3 — it answered, and declared another kind;
+// 4 — a keyboard, ready.
+make usbwake(desk: bytes) -> number {
+    let d = get32(desk, 40)
+    if usbgetdesc(desk, 0, 1, 8) < 8 {
+        give 2
+    }
+    stagesetup1(desk, 0, 5, 1)
+    stagesetup2(desk, 0, 0)
+    if usbcontrol(desk, 0, 0, 1, 0) < 0 {
+        give 2
+    }
+    usbwait(1)
+    if usbgetdesc(desk, 1, 1, 18) < 18 {
+        give 2
+    }
+    if usbgetdesc(desk, 1, 2, 9) < 9 {
+        give 2
+    }
+    let total = desk[d + 2] + desk[d + 3] * 256
+    if total < 9 {
+        give 2
+    }
+    if total > 2048 {
+        give 2
+    }
+    if usbgetdesc(desk, 1, 2, total) < total {
+        give 2
+    }
+    let cfgval = desk[d + 5]
+    let off = 0
+    let inhid = 0
+    let ifnum = 0
+    let ep = 0
+    let epmax = 0
+    while off + 2 <= total {
+        let len = desk[d + off]
+        let kind = desk[d + off + 1]
+        if len < 2 {
+            off = total + 1
+        } else {
+            if kind == 4 {
+                if len >= 9 {
+                    let match = 0
+                    if desk[d + off + 5] == 3 {
+                        if desk[d + off + 6] == 1 {
+                            if desk[d + off + 7] == 1 {
+                                match = 1
+                            }
+                        }
+                    }
+                    inhid = match
+                    if match == 1 {
+                        ifnum = desk[d + off + 2]
+                    }
+                }
+            }
+            if kind == 5 {
+                if inhid == 1 {
+                    if len >= 7 {
+                        let attr = desk[d + off + 3]
+                        if attr - (attr / 4) * 4 == 3 {
+                            let door = desk[d + off + 2]
+                            if door >= 128 {
+                                ep = door - (door / 16) * 16
+                                epmax = desk[d + off + 4] + desk[d + off + 5] * 256
+                            }
+                        }
+                    }
+                }
+            }
+            off = off + len
+        }
+    }
+    if ep == 0 {
+        give 3
+    }
+    stagesetup1(desk, 0, 9, cfgval)
+    stagesetup2(desk, 0, 0)
+    if usbcontrol(desk, 1, 0, 1, 0) < 0 {
+        give 2
+    }
+    usbwait(1)
+    stagesetup1(desk, 33, 11, 0)
+    stagesetup2(desk, ifnum, 0)
+    if usbcontrol(desk, 1, 0, 1, 0) < 0 {
+        give 2
+    }
+    stagesetup1(desk, 33, 10, 0)
+    stagesetup2(desk, ifnum, 0)
+    if usbcontrol(desk, 1, 0, 1, 0) < 0 {
+        give 2
+    }
+    put32(desk, 16, 1)
+    put32(desk, 20, ep)
+    put32(desk, 24, epmax)
+    put32(desk, 28, 0)
+    put32(desk, 4, 2)
+    usbarm(desk)
+    give 4
+}
+
+// Raises the whole road, once: the controller found and
+// reset and set walking with the schedule this library
+// built (the first Cardnull OS's order — both resets, the
+// frame list's address, run with the configure flag and
+// the 64-byte packet bound), then each root port asked in
+// turn whether anything stands on it, and anything
+// standing woken. Comes home 1 when a keyboard stands
+// ready, 0 when the road is not there to be walked.
+make usbinit(desk: bytes) -> number {
+    let st = get32(desk, 4)
+    if st == 2 {
+        give 1
+    }
+    if st != 0 {
+        give 0
+    }
+    let io = pcifinduhci()
+    if io == 0 {
+        put32(desk, 4, 255)
+        give 0
+    }
+    put32(desk, 0, io)
+    usbbuild(desk)
+    regwrite(desk, 0, 0)
+    regwrite(desk, 0, 4)
+    usbwait(2)
+    regwrite(desk, 0, 0)
+    regwrite(desk, 0, 2)
+    let waited = 0
+    let clearing = 1
+    while clearing == 1 {
+        if andmask(regread(desk, 0), 2) == 0 {
+            clearing = 0
+        }
+        if waited > 100 {
+            clearing = 0
+            put32(desk, 4, 255)
+            give 0
+        }
+        if clearing == 1 {
+            usbwait(1)
+            waited = waited + 1
+        }
+    }
+    regwrite(desk, 4, 0)
+    regwrite(desk, 2, 63)
+    regwrite(desk, 6, 0)
+    usbframebase(desk)
+    regwrite(desk, 0, 321)
+    put32(desk, 4, 1)
+    let ready = 0
+    let p = 0
+    while p < 2 {
+        if ready == 0 {
+            if andmask(regread(desk, 16 + p * 2), 1) != 0 {
+                put32(desk, 8, p)
+                if usbresetport(desk, p) == 1 {
+                    if usbwake(desk) == 4 {
+                        ready = 1
+                    }
+                }
+            }
+        }
+        p = p + 1
+    }
+    give ready
+}
+
+// ---- the keys themselves ----
+
+// The USB road's usage numbers, translated into the key
+// numbers the rest of the system speaks — the make codes
+// of the first key set, the same table charFor answers,
+// kept here in the USB road's own numbering: the letters
+// in their HID order, then Enter, Backspace, and Space.
+// A usage with no letter here gives back 0: the modifier
+// keys among them, which this system does not speak yet.
+make usagekey(u: number) -> number {
+    if u == 4 { give 30 }
+    if u == 5 { give 48 }
+    if u == 6 { give 46 }
+    if u == 7 { give 32 }
+    if u == 8 { give 18 }
+    if u == 9 { give 33 }
+    if u == 10 { give 34 }
+    if u == 11 { give 35 }
+    if u == 12 { give 23 }
+    if u == 13 { give 36 }
+    if u == 14 { give 37 }
+    if u == 15 { give 38 }
+    if u == 16 { give 50 }
+    if u == 17 { give 49 }
+    if u == 18 { give 24 }
+    if u == 19 { give 25 }
+    if u == 20 { give 16 }
+    if u == 21 { give 19 }
+    if u == 22 { give 31 }
+    if u == 23 { give 20 }
+    if u == 24 { give 22 }
+    if u == 25 { give 47 }
+    if u == 26 { give 17 }
+    if u == 27 { give 45 }
+    if u == 28 { give 21 }
+    if u == 29 { give 44 }
+    if u == 40 { give 28 }
+    if u == 42 { give 14 }
+    if u == 44 { give 57 }
+    give 0
+}
+
+// Reads one completed report: the usages standing in it
+// that were not standing in the last one are new presses —
+// each is translated, counted in the ledger, and laid in
+// the waiting queue — and the report becomes the last one.
+// (A report names every key held down, so a key still held
+// is not a new press; the release reports between presses
+// are what let a letter come twice.)
+make usbnewkeys(desk: bytes) {
+    let r = get32(desk, 44)
+    let i = 2
+    while i < 8 {
+        let u = desk[r + i]
+        if u >= 4 {
+            let seen = 0
+            let j = 0
+            while j < 6 {
+                if desk[76 + j] == u {
+                    seen = 1
+                }
+                j = j + 1
+            }
+            if seen == 0 {
+                let code = usagekey(u)
+                if code != 0 {
+                    let tail = get32(desk, 56)
+                    let slot = tail - (tail / 16) * 16
+                    desk[60 + slot] = code
+                    put32(desk, 56, tail + 1)
+                    put32(desk, 48, get32(desk, 48) + 1)
+                }
+            }
+        }
+        i = i + 1
+    }
+    let j2 = 0
+    while j2 < 6 {
+        desk[76 + j2] = desk[r + 2 + j2]
+        j2 = j2 + 1
+    }
+}
+
+// The main loop's asking, once a pass: if the keyboard's
+// descriptor has completed — a report arrived — the report
+// is read and the descriptor armed again with its toggle
+// turned; then one waiting key is handed out, in the order
+// the keys were pressed. Gives back a key number in the
+// system's own numbering, or 0 when the USB road has
+// nothing this pass.
+make usbpoll(desk: bytes) -> number {
+    if get32(desk, 4) != 2 {
+        give 0
+    }
+    if andmask(usbtdstatus(desk, 7), 8388608) == 0 {
+        if andmask(usbtdstatus(desk, 7), 7733248) == 0 {
+            if usbtdactual(desk, 7) >= 8 {
+                usbnewkeys(desk)
+            }
+        }
+        put32(desk, 28, 1 - get32(desk, 28))
+        usbarm(desk)
+    }
+    let head = get32(desk, 52)
+    let tail = get32(desk, 56)
+    if head == tail {
+        give 0
+    }
+    let slot = head - (head / 16) * 16
+    let code = desk[60 + slot]
+    put32(desk, 52, head + 1)
+    give code
+}
+
+// Whether a USB keyboard stands ready on this machine.
+make usbready(desk: bytes) -> number {
+    if get32(desk, 4) == 2 {
+        give 1
+    }
+    give 0
+}
+
+// How many keys the USB road has brought since boot.
+make usbcount(desk: bytes) -> number {
+    give get32(desk, 48)
+}

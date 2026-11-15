@@ -21,6 +21,9 @@
 //   2 — the face is cleared and drawn again ('clear')
 //   3 — a guest is to be received through the guest door
 //       ('guest'; the door itself is guestdoor.nifla)
+//   4 — the USB keyboard's standing is reported ('usb';
+//       the road itself is usbkey.nifla, and the report is
+//       the main body's to give, from the road's ledger)
 make wordkind(word) {
     if word == "" {
         give 0
@@ -30,6 +33,9 @@ make wordkind(word) {
     }
     if word == "guest" {
         give 3
+    }
+    if word == "usb" {
+        give 4
     }
     give 1
 }
@@ -55,7 +61,7 @@ make wordline(word) {
     if word == "utc" {
         give "The clock now shows the world's standard time until turned off."
     }
-    give "I don't know that word yet. Try hello, time, memory, guest, or clear."
+    give "I don't know that word yet. Try hello, time, memory, guest, usb, or clear."
 }
 
 // The clock's hour offset once a word is done: 'eastern'
