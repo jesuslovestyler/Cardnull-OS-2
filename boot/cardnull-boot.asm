@@ -32,12 +32,24 @@
 #      the information's address in EBX, interrupts off.
 #
 # It borrows nothing at the door: no GRUB stands here any
-# more. (The disc's EFI door still opens through GRUB —
-# its own replacement is a future stone, and the README
-# says so plainly.) If anything it needs is not found —
-# the disc services, a file, the system's shape — it says
-# so on the screen in plain words and stops, rather than
-# handing over a machine half-laid.
+# more — and since Stone 16 none stands at the EFI door
+# either; both doors are Cardnull's own. If anything it
+# needs is not found — the disc services, a file, the
+# system's shape — it says so on the screen in plain
+# words and stops, rather than handing over a machine
+# half-laid.
+#
+# Stone 17 taught this doorman the second road it now
+# walks: the stick. The stick image is this same disc's
+# bytes with a master boot record at its head (boot/
+# cardnull-mbr.asm) that loads this loader from the
+# sectors after it; the firmware hands over a hard
+# disc's drive number, and this loader's reads — told
+# in the CD's 2048-byte sectors everywhere above — are
+# translated at the packet by the device's own sector
+# measure, asked once at the door (int 13h AH=48). The
+# ISO filesystem is walked exactly as on the CD; only
+# the reckoning of its sectors changes.
 #
 # Memory, while the doorman works (all low, all its own):
 #   0x1000  one disc sector, read and re-read
@@ -81,6 +93,30 @@ _start:
     jc fail_services
     cmp bx, 0xAA55
     jne fail_services
+
+    # The device's own sector measure (Stone 17). The
+    # ISO's reckoning in this loader is the CD's: one
+    # sector is 2048 bytes, and the volume descriptor
+    # stands at sector 16. A hard disc's sectors — and a
+    # USB stick's, booted as one — are 512 bytes, so the
+    # same descriptor stands at device sector 64 there.
+    # AH=48 tells the measure; read_dap translates every
+    # read by it (four device sectors to an ISO sector,
+    # the address multiplied by four). If the question
+    # fails, or the answer is anything but 512, the CD
+    # measure stands — the road this loader has always
+    # walked, byte for byte as before.
+    mov word ptr [drvparams], 30
+    mov si, offset drvparams
+    mov ah, 0x48
+    mov dl, [bootdrive]
+    int 0x13
+    jc sec_known
+    cmp word ptr [drvparams + 24], 512
+    jne sec_known
+    mov word ptr [sec_mult], 4
+    mov byte ptr [sec_shift], 2
+sec_known:
 
     # A20: the fast gate at port 0x92.
     in al, 0x92
@@ -316,7 +352,19 @@ info_done:
 # ----------------------------------------------------------------
 # read_dap: one read through the packet at 'dap'.
 # Carries the BIOS's own verdict in the carry flag.
+# The callers always fill dap_lba (in the ISO's 2048-byte
+# reckoning) and dap_count (= 1) afresh before calling;
+# the translation into the device's own sector measure
+# (Stone 17: four 512-byte sectors on a hard disc or a
+# stick, one 2048-byte sector on a CD) happens here, in
+# the packet itself, and no caller reads the packet back.
 read_dap:
+    mov eax, [dap_lba]
+    mov cl, byte ptr [sec_shift]
+    shl eax, cl
+    mov [dap_lba], eax
+    mov ax, [sec_mult]
+    mov [dap_count], ax
     mov si, offset dap
     mov ah, 0x42
     mov dl, [bootdrive]
@@ -663,6 +711,17 @@ dap_lba:
 # The doorman's own keeping.
 bootdrive:
     .byte 0
+# The device's sector measure (Stone 17): how many
+# device sectors make one ISO sector (1 on a CD, 4 on
+# a hard disc or a stick), and the shift that reckons
+# an ISO sector address into a device address.
+sec_mult:
+    .word 1
+sec_shift:
+    .byte 0
+    .align 4
+drvparams:
+    .fill 64, 1, 0
     .align 4
 dir_lba:
     .long 0

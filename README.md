@@ -53,6 +53,7 @@ To build the bootable witness disc (see "The witness disc" below):
 ```
 ./build-iso.sh        # makes dist/cardnull-os-2.iso
 ./prove-iso.sh        # boots the ISO itself, three ways, and reads the screens
+./build-stick.sh      # makes dist/cardnull-stick.img (Stone 17)
 ```
 
 ## The stones
@@ -927,6 +928,93 @@ loader is as small as its work — it knows the one
 disc shape it was written for, the system and its
 three modules under \boot, and no other.
 
+### Stone 17 — The stick
+
+Cardnull now also travels on a stick. `./build-stick.sh`
+lays `dist/cardnull-stick.img`: the disc's own bytes —
+the very ISO of the witness below — with the ISO's
+unused system area (its first sixteen sectors) given
+to booting as a hard disc. Sector 0 is a master boot
+record of Cardnull's own (`boot/cardnull-mbr.asm`): a
+small stub that copies itself out of the way, reads
+the BIOS bootloader from the sectors after it to the
+doorstep at 0x7C00, and jumps to it, the firmware's
+drive number carried through untouched. The partition
+table names one bootable partition spanning the whole
+image, as a courtesy to tools that ask; nothing in the
+boot path consults it. Past the system area the image
+is the disc, byte for byte — the system, the modules,
+and the EFI system partition all ride along as files
+in the ISO, exactly as on the disc. No GRUB, no Linux,
+no emulator stands on the stick: the firmware boots
+the record, the record loads Cardnull's loader, and
+the loader brings up Cardnull natively, as a USB hard
+disc.
+
+One honest correction belongs to this stone, in the
+open as corrections are kept here: the first sketch of
+the stick supposed the bootloader would run unchanged
+once staged — and it does not, for a reason of
+measure. The loader's reckoning is the CD's: a sector
+is 2048 bytes, and the volume descriptor stands at
+sector 16. A hard disc's sectors — and a stick's,
+booted as one — are 512 bytes, so the descriptor
+stands at device sector 64 there, and every read must
+be four device sectors with its address multiplied by
+four. So the bootloader learned to ask the device its
+measure once at the door (the BIOS's own question,
+int 13h AH=48): on a 512-byte answer its packet
+translates every read; on any other answer, or if the
+question fails, the CD measure stands — and the whole
+regression below proves the CD road byte-for-byte the
+road it always was. The ISO filesystem is then walked
+exactly as on the CD; only the reckoning of its
+sectors changes. (The same visit also corrected a
+stale line in the bootloader's own header, which still
+said the EFI door opened through GRUB; Stone 16 had
+already replaced it.)
+
+Proven by `prove-stone17.sh`, all PASS: the image's
+shape (the disc's own length; the boot signature; the
+one bootable partition spanning the whole image; the
+bootloader byte for byte in the sectors after the
+record; the volume descriptor untouched at byte
+32768; the image past the system area identical to
+the disc) — and a boot: QEMU presents the image as a
+USB storage device, SeaBIOS boots it as a hard disc,
+and the drawn desktop rises with the clock's hand
+moving and the feather's visit in its green (Stone 9's
+drawn-desktop scenario). The full earlier proof set
+passes unchanged after the bootloader's new question.
+
+**Writing a stick, for the day there is one.** Writing
+the image erases the stick whole — everything on it
+goes. On a Mac or a Linux machine: build the image
+(`./build-stick.sh`), find the stick's device name
+(on a Mac, `diskutil list`; on Linux, `lsblk`), unmount
+it (Mac: `diskutil unmountDisk /dev/diskN`), and write
+the image over the whole device, not a partition of
+it: `sudo dd if=dist/cardnull-stick.img of=/dev/diskN
+bs=1m` — then eject it (Mac: `diskutil eject
+/dev/diskN`). On Windows, a writing tool (Rufus or
+balenaEtcher) set to write the image raw — Rufus calls
+it DD mode — does the same. Then put the stick in the
+machine to boot, open its boot menu, and choose the
+stick (it will be named as a USB hard disc); Cardnull
+rises as it does from the disc's BIOS door.
+
+Honest limits: the stick boots by the BIOS road — a
+machine that offers only UEFI, with no legacy door,
+will not boot it this way (the disc's EFI door is the
+road for such a machine); the proof above is the
+bench's USB emulation, and **the physical witness is
+not covered**: no real stick in a real machine has
+booted this image yet, and this section does not
+pretend otherwise. The keeping disk is a separate
+device as always — a stick made from this image is
+the system, not the keeping disk, and notes and the
+settings card live on the keeping disk as before.
+
 ## The kernel's files
 
 The kernel is built as several files, never one big one — Tyler's
@@ -1010,17 +1098,25 @@ same proofs run against the single file before it was split.
 
 Cardnull OS 2 ships as **one disc and nothing else** — Tyler's word
 on the founding morning (November 15, 2026): "we should've built the
-iso from day one like the first OS." `./build-iso.sh` lays it:
+iso from day one like the first OS." `./build-iso.sh` lays it, and
+since Stone 17 the same disc's bytes also travel as a stick image
+beside it (the stick is the disc, not a second system):
 
-- `dist/cardnull-os-2.iso` — 8,941,568 bytes, as built November 15,
-  2026 (the disc after the feather rename: the framebuffer kernel
-  with its two windows and its notes that stay, and Cardnull's
-  own loaders at both doors — the BIOS bootloader and the EFI
-  loader; no GRUB anywhere on it).
-  sha256: `47dc0e2633aff23d23bb5f4afb09af1ae23e8b41a1a74caf3745d537f29ff39b`
+- `dist/cardnull-os-2.iso` — 8,943,616 bytes, as built November 15,
+  2026 (the disc after Stone 17: the framebuffer kernel with its
+  two windows and its notes that stay, and Cardnull's own loaders
+  at both doors — the BIOS bootloader and the EFI loader; no GRUB
+  anywhere on it).
+  sha256: `901978134928afb5ccaffd13454c7eb347a957378da3249358aa5712dfdce6ba`
   (The ISO file itself is a build product and is not kept in this
   repository; the hash records the disc the proof below was run
   against, and `./build-iso.sh` rebuilds it.)
+- `dist/cardnull-stick.img` — 8,943,616 bytes, as built November
+  15, 2026 by `./build-stick.sh` from the same tree: the disc
+  above with Cardnull's master boot record at its head and the
+  BIOS bootloader in the sectors after it (Stone 17).
+  sha256: `828e113d1c78bf0b2cbce593670fa63560919f6da62b24f09cf86496464f4a50`
+  (Likewise a build product, not kept in this repository.)
 
 On the disc: the system (`/boot/cardnull.elf`), the settings module,
 the feather's card, and the feather itself — everything Stones 4 and 5
