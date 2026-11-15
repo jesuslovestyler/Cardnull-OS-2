@@ -755,6 +755,59 @@ it has been since Stone 9: an answer printed afterward
 may cross the window's lower rows, and the window
 paints whole again whenever its standing changes.
 
+### Stone 15 — Notes that stay
+
+The typing line's longer lines (Stone 12) gain their
+keeping. The word `note` keeps the rest of its line —
+`note` and then the words — as a note on a page of
+eight, and the word `notes` shows the page: a heading
+that says where the notes live, then each note in its
+turn, on either face. A note is kept as bytes in the
+main body's page — its length and its letters — and is
+shown from its bytes, letter by letter.
+
+When a keeping disk stands ready (Stone 8's disk, given
+over at the gate), the page is written through to it
+and read back at boot, so the notes stay: the page
+lives on the disk beyond the settings card and beyond
+the setup clearing's reach — a small header on sector
+64 and one sector to a note, sectors 65 onward
+(`notesload` and `notesave` in `src/diskkeep.nifla`).
+Notes kept during a session before the disk is given
+over are written to it at the gate's yes, as the card
+is. With no keeping disk, the page lives for the
+session only, and every answer says so in plain words:
+"Your note is kept until the machine is turned off."
+The setup gate stands exactly as Stone 8 left it — the
+asking writes nothing, the exact word `yes` alone lets
+the keeping begin, and a gate answered otherwise
+leaves the disk byte for byte as it was, notes or no
+notes.
+
+Proven by `prove-stone15.sh`: one disk through two
+lives on the text face (the gate's yes, two notes
+answered as kept on the disk and shown; the disk
+booted again reading them back at boot, a third note
+joining them), the disk image's own bytes checked
+afterward (the header on sector 64 and the three notes
+in their sectors, word for word as typed); two boots
+with no disk (a session note kept and said to be
+session-only, and the next boot's page empty again);
+the shipped disc on the face of light with the keeping
+disk attached, the notes drawn in light; and a second
+disk never given over — a session note typed, the gate
+answered no, and its bytes afterward exactly as they
+were. The whole earlier proof set passes unchanged.
+
+Honest limits: the page holds eight notes, and says so
+plainly when it is full; a note is one typed line at
+most — the typing line's own measure, 48 keys, less the
+word `note` and its space — and there is no erasing or
+editing of a kept note yet; the words `note` and
+`notes` are not named on the desktop's invitation line,
+which has no room left on the face of light's narrower
+grid — they answer to their names all the same.
+
 ## The kernel's files
 
 The kernel is built as several files, never one big one — Tyler's
@@ -796,7 +849,9 @@ was split by duty, without changing its behavior:
 - `src/diskkeep.nifla` — what the system remembers on a hard
   disk (Stone 8): waking the drive, the settings card and its
   reading, the write-back, and the setup clearing
-  (diskhere, savedoffset, remember, disksetup).
+  (diskhere, savedoffset, remember, disksetup). The notes
+  page's carrying is here too (Stone 15: notesload, notesave)
+  — a header on sector 64 and one sector to a note.
 - `src/font.nifla` — the letters of the face of light
   (Stone 9): the hand-drawn 8×8 bitmap font for the letters
   a person can type, drawn in this file's own comments and
@@ -838,11 +893,11 @@ Cardnull OS 2 ships as **one disc and nothing else** — Tyler's word
 on the founding morning (November 15, 2026): "we should've built the
 iso from day one like the first OS." `./build-iso.sh` lays it:
 
-- `dist/cardnull-os-2.iso` — 8,935,424 bytes, as built November 15,
-  2026 (the disc of Stone 14: the framebuffer kernel with its two
-  windows, Cardnull's own bootloader at the BIOS door, GRUB still
-  at the EFI door).
-  sha256: `00f9f2b5455082581bc07f0246fd3ea8b4a552e90357b76eaeab3036c615fd92`
+- `dist/cardnull-os-2.iso` — 8,943,616 bytes, as built November 15,
+  2026 (the disc of Stone 15: the framebuffer kernel with its two
+  windows and its notes that stay, Cardnull's own bootloader at
+  the BIOS door, GRUB still at the EFI door).
+  sha256: `2a62850afbd233e9d961590bebd96e7392b7285fe4bc5ffa06a08566692a2f84`
   (The ISO file itself is a build product and is not kept in this
   repository; the hash records the disc the proof below was run
   against, and `./build-iso.sh` rebuilds it.)

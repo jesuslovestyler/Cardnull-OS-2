@@ -520,6 +520,38 @@ make pixprintline(desk: bytes, row: number, text: text) -> number {
     give r
 }
 
+// Draws one kept note in the answers region at 'row'
+// (Stone 15): the note stands in the block handed in, at
+// 'off' — its length at that byte, its letters after —
+// and is drawn letter by letter in the answers' colors
+// (light gray on black), at the answers' own left edge.
+// A note is kept as bytes, not as a text, so it is drawn
+// from its bytes; the row reckoning is pixprintline's —
+// the region scrolls when it is full — and the next free
+// row is given back.
+make pixnoteline(desk: bytes, block: bytes, row: number, off: number) -> number {
+    let r = row
+    let bot = pget(desk, 132)
+    if r > bot {
+        pixscroll(desk)
+        r = bot
+    }
+    let n = cellbyte(block, off)
+    pixpaper(desk, 0)
+    let i = 0
+    while i < n {
+        let code = cellbyte(block, off + 1 + i)
+        pset(desk, 56, pget(desk, 60))
+        pixfill(desk, (2 + i) * 16, r * 16, 16, 16)
+        if code != 32 {
+            pset(desk, 56, pget(desk, 64 + 7 * 4))
+            pixglyph(desk, (2 + i) * 16, r * 16, code)
+        }
+        i = i + 1
+    }
+    give r + 1
+}
+
 // ---- the guest's cells, read back for the drawing ----
 //
 // In the pixel face the guest paints a block of cells the

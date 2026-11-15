@@ -122,6 +122,15 @@
 //          (see pixface.nifla's ledger), and the painting
 //          is paintwindows below. The text face keeps
 //          its one panel, as it always has.
+// Stone 15: notes that stay — the word 'note' keeps the
+//          rest of its line as a note on a page of eight,
+//          and 'notes' shows the page. When a keeping
+//          disk stands ready the page is written to it
+//          (sectors 64 onward, beyond the settings card
+//          and the setup clearing — diskkeep.nifla) and
+//          read back at boot, so the notes stay; with no
+//          keeping disk they live for the session only,
+//          and the answers say so in plain words.
 //
 // The arrangement of the screen:
 //   row 0      the bar — "Cardnull" at the left, the date
@@ -362,6 +371,52 @@ make printline(row, text, pix, pixdesk) {
         r = 22
     }
     writeat(r, 2, text, 7)
+    give r + 1
+}
+
+// Writes one kept note in the answer region at 'row',
+// scrolling the region when it is full, and gives back
+// the next row — printline's shape, for a note, which is
+// kept as bytes in its slot of the notes block (the
+// length at the slot's first byte, the letters after)
+// and so is written from its bytes on both faces: drawn
+// letter by letter on the face of light (pixnoteline),
+// and laid into the text screen's own memory here. The
+// slot and the face's standing travel packed in one word
+// ('slotpix': the slot times two, plus 1 on the face of
+// light), as pixline packs its cell — a call can carry
+// only six words, and the block and the desk take four.
+make printnote(row, block, slotpix, pixdesk) {
+    let slot = slotpix / 2
+    if slotpix - slot * 2 == 1 {
+        give pixnoteline(pixdesk, block, row, slot * 64)
+    }
+    let r = row
+    if r > 22 {
+        scrollanswers()
+        r = 22
+    }
+    floor(block, slot, r) {
+        mov rax, [r10]
+        shl rax, 6
+        lea rsi, [rbx + rax]
+        movzx ecx, byte ptr [rsi]
+        mov rdx, 0xB8000
+        mov rax, [r10 + 8]
+        imul rax, 160
+        add rdx, rax
+        add rdx, 4
+        xor r8, r8
+    pn_loop:
+        cmp r8, rcx
+        jae pn_done
+        mov al, [rsi + r8 + 1]
+        mov [rdx + r8 * 2], al
+        mov byte ptr [rdx + r8 * 2 + 1], 0x07
+        inc r8
+        jmp pn_loop
+    pn_done:
+    }
     give r + 1
 }
 
@@ -642,6 +697,16 @@ if guestimglen > 0 {
 // system's is remembered here too, so the desktop can
 // offer it plainly; a machine with no disk simply carries
 // on, and the disc's choice rules as it always has.
+//
+// The notes page (Stone 15): eight kept lines of words,
+// each in its own sixty-four bytes of one block — the
+// length at the slot's first byte, the letters after —
+// and how many stand kept. The page is this body's to
+// keep; diskkeep.nifla only carries it to the disk and
+// back.
+let notesblock = makebytes(512)
+let notecount = 0
+
 let diskup = diskhere()
 let diskset = 0
 if diskup == 1 {
@@ -650,6 +715,11 @@ if diskup == 1 {
         offset = stored - 64
         diskset = 1
     }
+}
+if diskset == 1 {
+    // A keeping disk's notes are read back at boot, so
+    // they stay (Stone 15).
+    notecount = notesload(notesblock)
 }
 
 // The pixel face (Stone 9): when the loader granted a
@@ -946,6 +1016,14 @@ while true {
                     if line == "yes" {
                         if disksetup(offset) == 1 {
                             diskset = 1
+                            if notecount > 0 {
+                                // Notes kept for the session
+                                // are written to the disk now
+                                // that it keeps things (Stone
+                                // 15) — after the gate's yes,
+                                // as the card was.
+                                let keptnotes = notesave(notesblock, notecount)
+                            }
                             ansrow = printline(ansrow, "The disk will remember your choices now.", pix, pixdesk)
                         } else {
                             ansrow = printline(ansrow, "The disk could not be written, so nothing was changed.", pix, pixdesk)
@@ -1045,6 +1123,59 @@ while true {
                         paintwindows(pixdesk, cellblock)
                     } else {
                         ansrow = printline(ansrow, "This face has no windows to open.", pix, pixdesk)
+                    }
+                }
+                if kind == 9 {
+                    // 'note': the rest of the line, kept
+                    // whole since Stone 12, is kept as a
+                    // note (Stone 15) — on the page here,
+                    // and written through to the keeping
+                    // disk when one stands ready, so the
+                    // note stays; otherwise it lives for
+                    // the session, and the answer says so.
+                    if linerest == "" {
+                        ansrow = printline(ansrow, "Type note, then the words to keep.", pix, pixdesk)
+                    } else {
+                        if notecount >= 8 {
+                            ansrow = printline(ansrow, "The notes page is full. Eight notes are kept there.", pix, pixdesk)
+                        } else {
+                            let n = length(linerest)
+                            notesblock[notecount * 64] = n
+                            let ni = 0
+                            while ni < n {
+                                notesblock[notecount * 64 + 1 + ni] = textbyte(linerest, ni)
+                                ni = ni + 1
+                            }
+                            notecount = notecount + 1
+                            if diskset == 1 {
+                                if notesave(notesblock, notecount) == 1 {
+                                    ansrow = printline(ansrow, "Your note is kept on the disk.", pix, pixdesk)
+                                } else {
+                                    ansrow = printline(ansrow, "The disk would not take the note, so it is kept only for now.", pix, pixdesk)
+                                }
+                            } else {
+                                ansrow = printline(ansrow, "Your note is kept until the machine is turned off.", pix, pixdesk)
+                            }
+                        }
+                    }
+                }
+                if kind == 10 {
+                    // 'notes': the kept page is shown —
+                    // a heading that says where the notes
+                    // live, then each note in its turn.
+                    if notecount == 0 {
+                        ansrow = printline(ansrow, "No notes are kept yet. Type note, then the words to keep.", pix, pixdesk)
+                    } else {
+                        if diskset == 1 {
+                            ansrow = printline(ansrow, "Your notes, kept on the disk:", pix, pixdesk)
+                        } else {
+                            ansrow = printline(ansrow, "Your notes, kept until the machine is turned off:", pix, pixdesk)
+                        }
+                        let ni = 0
+                        while ni < notecount {
+                            ansrow = printnote(ansrow, notesblock, ni * 2 + pix, pixdesk)
+                            ni = ni + 1
+                        }
                     }
                 }
                 if kind == 1 {

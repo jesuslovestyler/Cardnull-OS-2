@@ -17,6 +17,21 @@
 // stored byte of 0 can only mean nothing was ever saved).
 // The card's shape is the one the first disk keeping was
 // proven with, earlier on the founding day.
+//
+// The notes page (Stone 15) is kept further out, beyond
+// the card and beyond the setup clearing's reach: a
+// header on sector 64 — the letters C, N, N and one byte
+// holding how many notes stand kept — and one sector to
+// a note, sectors 65 onward, eight notes at most. A
+// note's sector holds the note as the main body keeps it
+// in its block: the length at the first byte, the letters
+// after it, in a sixty-four-byte slot at the sector's
+// start. The setup clearing (sectors 0 to 63) never
+// touches the page, and the gate's discipline is
+// unchanged: nothing here is written before the gate's
+// yes, and a disk not yet given over is never written at
+// all — the main body asks for a saving only when the
+// disk already stands as the system's own.
 
 // Selects the disk drive (the master on the first
 // channel), so the drive is awake and answering before the
@@ -74,6 +89,73 @@ make remember(offset: number) -> number {
         block[1] = 78
         block[2] = offset + 64
         let w = diskwrite(8, block)
+        give 1
+    }
+    give 0
+}
+
+// Reads the kept notes into the main body's notes block
+// (eight sixty-four-byte slots, as notesave lays them):
+// the header's count, then that many note sectors, each
+// laid into its slot. Gives back how many notes stand
+// kept — 0 when there is no disk, or the disk carries no
+// notes page yet.
+make notesload(block: bytes) -> number {
+    selectdrive()
+    if disksectors() > 0 {
+        let head = makebytes(512)
+        let n = diskread(64, head)
+        if head[0] == 67 {
+            if head[1] == 78 {
+                if head[2] == 78 {
+                    let count = head[3]
+                    if count > 8 {
+                        count = 8
+                    }
+                    let sector = makebytes(512)
+                    let i = 0
+                    while i < count {
+                        let m = diskread(65 + i, sector)
+                        let j = 0
+                        while j < 64 {
+                            block[i * 64 + j] = sector[j]
+                            j = j + 1
+                        }
+                        i = i + 1
+                    }
+                    give count
+                }
+            }
+        }
+    }
+    give 0
+}
+
+// Writes the notes block's kept notes to the disk: the
+// header first, then one sector to a note, each holding
+// its slot's sixty-four bytes at its start. Gives back 1
+// when the page was written, 0 when there is no disk to
+// keep it on.
+make notesave(block: bytes, count: number) -> number {
+    selectdrive()
+    if disksectors() > 0 {
+        let head = makebytes(512)
+        head[0] = 67
+        head[1] = 78
+        head[2] = 78
+        head[3] = count
+        let w = diskwrite(64, head)
+        let i = 0
+        while i < count {
+            let sector = makebytes(512)
+            let j = 0
+            while j < 64 {
+                sector[j] = block[i * 64 + j]
+                j = j + 1
+            }
+            let w2 = diskwrite(65 + i, sector)
+            i = i + 1
+        }
         give 1
     }
     give 0
