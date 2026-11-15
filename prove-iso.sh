@@ -18,9 +18,9 @@
 #     appearing, the desktop unharmed.
 #
 # Since Stone 9 the shipped kernel asks the loader for a
-# picture screen, and on this bench GRUB grants it — so the
-# shipped disc's face is light, and its words cannot be
-# read back from the text screen's memory. The three discs
+# picture screen, and on this bench the disc's own loaders
+# grant it — so the shipped disc's face is light, and its
+# words cannot be read back from the text screen's memory. The three discs
 # below are therefore laid down with the same kernel built
 # WITHOUT the asking (build/cardnull-text.elf): the same
 # sources, the same disc layout, the same modules — the

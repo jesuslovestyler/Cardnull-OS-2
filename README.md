@@ -808,6 +808,90 @@ editing of a kept note yet; the words `note` and
 which has no room left on the face of light's narrower
 grid — they answer to their names all the same.
 
+### Stone 16 — Our own EFI doorman
+
+The disc's second door is Cardnull's own now too.
+Where GRUB stood at the EFI door since Stone 9, there
+stands a loader of this repository's own writing:
+`boot/cardnull-efi.c`, a freestanding C program, and
+its handover, `boot/cardnull-efi-hand.S`. It does at
+its door what the BIOS doorman does at his, and
+nothing more: it reads the system and its three
+modules from the EFI system partition it stands on
+(the partition's own copies under \boot), asks the
+firmware's graphics for the very picture the system's
+own header asks for and keeps the grant, lays the
+system's ELF segments where they belong, and lays the
+multiboot information down in the BIOS doorman's own
+shape — the information at 0x4000, the module table at
+0x4400, the memory map at 0x4800, the modules in a row
+at 0x300000. The map is the firmware's own, turned
+into the multiboot reckoning: the free memory, and the
+loader and boot-services kinds that become free when
+the services are left, count as available; the ACPI
+tables' ground keeps its own kind; the rest is marked
+not to be used. Then it leaves the boot services —
+taking the map again at the door when its key has gone
+stale, as the firmware's own road prescribes — and
+walks the machine down out of the firmware's 64-bit
+world into 32-bit protected mode with paging off,
+handing over with the multiboot mark in EAX and the
+information's address in EBX, interrupts off: the very
+handover the BIOS door makes. If anything it needs is
+not found — a file, the system's shape, the picture it
+asks for, the low pages the handover stands on — it
+says so on the firmware's own screen in plain words
+and stops, rather than hand over a machine half-laid.
+
+The building of it, told honestly: the bench's clang
+compiles the loader for the Windows x64 calling way
+the UEFI world speaks (`--target=x86_64-pc-windows-gnu`,
+freestanding), the system linker lays it as a PE file
+of the i386pep kind, and a two-byte patch in
+`build-iso.sh` sets the PE subsystem field to the EFI
+application kind, which the linker will not name. The
+road was spiked before it was trusted: a first small
+application that only spoke a line and filled the
+graphics screen red was built the very same way and
+booted under the bench's firmware, and filled the
+screen red, before the loader itself was written. The
+protocol shapes in the loader's source are the UEFI
+specification's own, written out by hand; no library
+stands between the loader and the firmware.
+
+And GRUB is gone from the disc whole: the EFI
+partition holds Cardnull's own BOOTX64.EFI and the
+system and its modules, and the `/boot/grub/grub.cfg`
+directions file the old door read no longer stands on
+the disc at all.
+
+Proven by `prove-stone16.sh`: an audit of the built
+disc — its file list read back and its EFI partition's
+list read, nothing named for GRUB anywhere on either,
+and the BOOTX64.EFI known as Cardnull's own by its
+plain-words failure line standing inside it — then the
+shipped disc booted under OVMF through the new door
+with Stone 9's own scenario (the desktop drawn in
+light, the clock's hand moving, the guest's visit in
+its green), and the same disc booted through the BIOS
+door with the same scenario, unregressed. The whole
+earlier proof set passes unchanged — Stone 9's fourth
+boot, which always went through GRUB's EFI door
+before, goes through Cardnull's own now.
+
+Honest limits: the loader walks the UEFI world's
+common road — a 64-bit firmware whose graphics offer
+the asked-for shape, and its applications laid in the
+low memory the handover's 32-bit reach can touch, as
+the bench's firmware (OVMF) lays them; a firmware
+offering no picture of the asked shape is told so in
+plain words and the loader stops, rather than hand
+over a dark machine; the memory map handed over is
+the firmware's as it stood at the leaving; and the
+loader is as small as its work — it knows the one
+disc shape it was written for, the system and its
+three modules under \boot, and no other.
+
 ## The kernel's files
 
 The kernel is built as several files, never one big one — Tyler's
@@ -893,11 +977,12 @@ Cardnull OS 2 ships as **one disc and nothing else** — Tyler's word
 on the founding morning (November 15, 2026): "we should've built the
 iso from day one like the first OS." `./build-iso.sh` lays it:
 
-- `dist/cardnull-os-2.iso` — 8,943,616 bytes, as built November 15,
-  2026 (the disc of Stone 15: the framebuffer kernel with its two
-  windows and its notes that stay, Cardnull's own bootloader at
-  the BIOS door, GRUB still at the EFI door).
-  sha256: `2a62850afbd233e9d961590bebd96e7392b7285fe4bc5ffa06a08566692a2f84`
+- `dist/cardnull-os-2.iso` — 8,941,568 bytes, as built November 15,
+  2026 (the disc of Stone 16: the framebuffer kernel with its two
+  windows and its notes that stay, and Cardnull's own loaders at
+  both doors — the BIOS bootloader and the EFI loader; no GRUB
+  anywhere on it).
+  sha256: `9ecb199c0a2e90732321f29b66e67eef67f16b4c973b394e13c536ebabe251ac`
   (The ISO file itself is a build product and is not kept in this
   repository; the hash records the disc the proof below was run
   against, and `./build-iso.sh` rebuilds it.)
@@ -906,15 +991,15 @@ On the disc: the system (`/boot/cardnull.elf`), the settings module,
 the guest's card, and the guest itself — everything Stones 4 and 5
 need rides as multiboot modules the loader brings with the system —
 plus `/boot/boot.img`, Cardnull's own bootloader (the El Torito
-catalog's BIOS image), the EFI system partition at `/boot/efi.img`
-carrying the EFI door's GRUB and its own copies, and one small text
-file, `/boot/grub/grub.cfg`: the directions the EFI door's GRUB
-reads from the disc, as Stone 11's section records.
+catalog's BIOS image), and the EFI system partition at
+`/boot/efi.img` carrying the EFI door's own loader
+(`\EFI\BOOT\BOOTX64.EFI`) and its own copies of the system and the
+modules.
 
-The doors, named honestly: **the BIOS door is Cardnull's own
-bootloader since Stone 11**; the EFI door still opens through
-GRUB, a means to boot the multiboot kernel, not part of Cardnull —
-its own Cardnull loader is future work.
+The doors, named honestly: **both doors are Cardnull's own** —
+the BIOS door its own bootloader since Stone 11, the EFI door its
+own EFI loader since Stone 16. No GRUB stands anywhere on the
+disc.
 
 **To witness it in UTM:** make a new x86_64 machine, give it
 **4096 MB** of memory, attach `cardnull-os-2.iso` as the machine's

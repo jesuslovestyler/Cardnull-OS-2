@@ -6,10 +6,11 @@
 # UTC:
 #
 #   Boot 1: the shipped disc (dist/cardnull-os-2.iso, built
-#     fresh by build-iso.sh) — GRUB grants the asked-for
-#     picture screen, and the desktop, the answers, the
-#     clock's advance, and the guest's visit are all DRAWN,
-#     verified by pixel sampling (proofs/stone9-boot1.py).
+#     fresh by build-iso.sh) — the BIOS door's own loader
+#     grants the asked-for picture screen, and the desktop,
+#     the answers, the clock's advance, and the guest's
+#     visit are all DRAWN, verified by pixel sampling
+#     (proofs/stone9-boot1.py).
 #   Boot 2: a variant disc with one byte of the guest
 #     flipped — the refusal drawn in light, no green
 #     anywhere (proofs/stone9-boot2.py).
