@@ -161,11 +161,12 @@ echo "--- boot 2 (a tampered feather, refused in light) ---"
 python3 - "$WORK" <<'PYEOF'
 import sys
 work = sys.argv[1]
-feather = bytearray(open("build/feather.bin", "rb").read())
-feather[100] ^= 0xFF
-open(work + "/feather-tampered.bin", "wb").write(feather)
+feather = bytearray(open("build/welcome.feather", "rb").read())
+start = feather.index(b"\n\n") + 2
+feather[start + 100] ^= 0xFF
+open(work + "/feather-tampered.feather", "wb").write(feather)
 PYEOF
-ISO_OUT="$WORK/cardnull-tampered.iso" FEATHER_FILE="$WORK/feather-tampered.bin" ./build-iso.sh >/dev/null || { echo "FAIL: variant build failed"; exit 1; }
+ISO_OUT="$WORK/cardnull-tampered.iso" FEATHER_FILE="$WORK/feather-tampered.feather" ./build-iso.sh >/dev/null || { echo "FAIL: variant build failed"; exit 1; }
 boot_iso_pixels "$WORK/cardnull-tampered.iso" proofs/stone9-boot2.py 2 || exit 1
 
 echo "--- boot 3 (no picture granted: the text face, in plain words) ---"

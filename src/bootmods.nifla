@@ -27,7 +27,7 @@
 // a module begins, where it ends, the name it was given,
 // and a spare word.
 //
-// Three modules ride the Cardnull disc:
+// Two modules ride the Cardnull disc:
 //   the settings (512 bytes): the letters C and N, then one
 //     byte holding the clock's hour offset with 64 added
 //     (so -5 is kept as 59 and 0 as 64; a byte of 0 means
@@ -37,11 +37,14 @@
 //     the world's standard hour as if it were local is
 //     simply wrong, so this system starts from its people's
 //     time and says so).
-//   the feather's card (32 bytes): the letters C, N, C, G,
-//     then the feather image's length and its FNV-1a checksum,
-//     each as an eight-byte number.
-//   the feather image itself: the welcome feather, built for
-//     the doorstep (Stone 5).
+//   the feather itself: the welcome feather, built for the
+//     doorstep (Stone 5) — since the adoption of Nifla's
+//     Stone 20 (November 15, 2026) it rides as one module
+//     with its plain-text card at its own head, laid there
+//     by the compiler's feather mode. (It once rode as two
+//     modules — the image, and a separate 32-byte binary
+//     card beside it; the card moved onto the feather, and
+//     the door reads it there now.)
 //
 // One discipline governs all of it: the loader leaves its
 // table and the modules in low memory that this system's

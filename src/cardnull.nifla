@@ -623,13 +623,11 @@ let fbbpos = mbbyteat(116)
 
 // What the lift gathers: the clock's offset (Eastern, -5,
 // unless the disc's settings carry a choice), and the
-// feather — its card's word (how long the image is, and the
-// checksum it must match) and the image itself, once found.
+// feather itself — the whole module as it rode the disc,
+// its card at its head and its program after, once found.
 let offset = 0 - 5
 let featherimg = makebytes(0)
 let feathergot = 0
-let featherimglen = 0
-let featherwant = 0
 
 let mi = 0
 while mi < nmods {
@@ -650,46 +648,37 @@ while mi < nmods {
             }
         }
     }
-    if l == 32 {
-        let blk = makebytes(32)
-        let c = modcopyfrom(s, l, blk)
-        if blk[0] == 67 {
-            if blk[1] == 78 {
-                if blk[2] == 67 {
-                    if blk[3] == 71 {
-                        featherimglen = cardnum(blk, 8)
-                        featherwant = cardnum(blk, 16)
-                    }
-                }
-            }
-        }
-    }
     mi = mi + 1
 }
 
-// The feather image itself, found by the length its card
-// promises. (The layout's one assumption, stated plainly:
-// a feather image is never as small as the 512-byte settings
-// or the 32-byte card, so a module of exactly the promised
-// length can only be the image.)
-if featherimglen > 0 {
-    if featherimglen <= 524288 {
-        let mi2 = 0
-        while mi2 < nmods {
-            let s = 0
-            let l = 0
-            if mi2 == 0 { s = s0  l = l0 }
-            if mi2 == 1 { s = s1  l = l1 }
-            if mi2 == 2 { s = s2  l = l2 }
-            if mi2 == 3 { s = s3  l = l3 }
-            if l == featherimglen {
-                let blk = makebytes(l)
-                feathergot = modcopyfrom(s, l, blk)
+// The feather itself, found by the card at its own head: a
+// module whose first bytes spell the card's first line is
+// the feather, card and program together (Nifla Stone 20:
+// feathers come from the compiler with their cards on
+// them). The whole module is lifted; the door reads the
+// card from its head when the feather is asked for. (A
+// module longer than the doorstep plus a card's room
+// cannot be a feather for this door, and is stepped over:
+// a feather's card is a few hundred bytes of plain text.)
+let mi2 = 0
+while mi2 < nmods {
+    let s = 0
+    let l = 0
+    if mi2 == 0 { s = s0  l = l0 }
+    if mi2 == 1 { s = s1  l = l1 }
+    if mi2 == 2 { s = s2  l = l2 }
+    if mi2 == 3 { s = s3  l = l3 }
+    if l > 19 {
+        if l <= 525312 {
+            let blk = makebytes(l)
+            let c = modcopyfrom(s, l, blk)
+            if feathermark(blk, c) {
                 featherimg = blk
+                feathergot = c
             }
-            mi2 = mi2 + 1
         }
     }
+    mi2 = mi2 + 1
 }
 
 // Remembers for real (Stone 8): if a hard disk is fitted,
@@ -1476,7 +1465,7 @@ while true {
         if pix == 1 {
             paintbase = blockaddr(cellblock)
         }
-        let how = runfeather(featherimg, feathergot, featherimglen, featherwant, paintbase)
+        let how = runfeather(featherimg, feathergot, paintbase)
         if how == 3 {
             if pix == 1 {
                 // The visit stands in the feather's window

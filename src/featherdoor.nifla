@@ -4,58 +4,230 @@
 // Like the screen library, this file joins the system as a
 // prelude when it is built (build.sh names it); a prelude
 // may only make functions, and these keep no state of their
-// own: the feather's image, its card's word, and the counts
-// come in as arguments, and the reckoning or the visit's
-// outcome goes back as the result. What was lifted at boot
-// is kept by the main body (src/cardnull.nifla), which calls
-// runfeather when the word 'feather' is typed. The note below,
-// carried whole from the seed kernel, tells the door's
+// own: the feather as lifted comes in as an argument, and
+// the reckoning or the visit's outcome goes back as the
+// result. What was lifted at boot is kept by the main body
+// (src/cardnull.nifla), which calls runfeather when the
+// word 'feather' is typed. The note below tells the door's
 // rules and its honesty.
 
-// ---- the feather door (Stone 5) ----
+// ---- the feather door (Stone 5; the card moved onto the
+// feather itself with the adoption of Nifla's Stone 20,
+// November 15, 2026) ----
 //
 // A feather is a second program, written in Nifla like this
 // one and built for the doorstep — the half megabyte at
-// 2097152 (2 MiB) that feathers are linked for. It rides the
-// disc as a module, with its card riding as a module of its
-// own (see the section above); at boot the system lifts
-// both into its own keeping. When the word 'feather' is
-// typed, the system reckons the lifted image's checksum
-// with its own hand, and only if it matches the card does
-// it lay the image at the doorstep and call it — handing
-// it the number 7 across the desk. The feather draws its
-// panel, returns, and the system carries on.
+// 2097152 (2 MiB) that feathers are linked for. It rides
+// the disc as ONE module: the compiled program together
+// with its card, the card standing at the feather's own
+// head in plain text (the compiler's feather mode lays it
+// there: niflac --bare --guest --feather). At boot the
+// system lifts the whole module into its own keeping,
+// finding it by the card's first line. When the word
+// 'feather' is typed, the system reads the card from the
+// feather's head, reckons the program bytes' checksum with
+// its own hand, and only if the reckoning matches the
+// card's promise does it lay the program at the doorstep
+// and call it — handing it the number 7 across the desk.
+// The feather draws its panel, returns, and the system
+// carries on.
 //
-// A feather whose bytes do not match its card is refused, in
-// plain words, and never run. A disc whose modules hold no
-// card, or a card whose image never arrived whole, holds
-// no feather to visit. And the honesty of the door, unchanged
-// from the language's Stone 17: there is no isolation yet —
-// host and feather share one privilege level and one memory,
-// the checksum proves the bytes match the card and nothing
-// more (it is not a signature), and a faulting feather stops
-// the whole machine.
+// A feather whose bytes do not match its card — or whose
+// card is damaged — is refused, in plain words, and never
+// run. A disc whose modules hold no carded feather holds
+// no feather to visit. And the honesty of the door,
+// unchanged from the language's Stone 17: there is no
+// isolation yet — host and feather share one privilege
+// level and one memory, the checksum proves the bytes
+// match the card and nothing more (it is not a signature),
+// and a faulting feather stops the whole machine.
 
-// Reads one eight-byte number out of a block, at a byte
-// offset — the card's fields are numbers laid side by side.
-make cardnum(card, offset) {
-    give floor(card, offset) {
-        mov rax, [r10]
-        mov rax, [rbx + rax]
-    }
+// Whether the first bytes of a lifted module spell the
+// card's first line — "CARDNULL FEATHER 1" and a newline,
+// nineteen bytes — which is how a feather is known among
+// the disc's modules, and how the door knows the module it
+// was handed is a feather at all. (The letters' numbers:
+// C is 67, A is 65, R is 82, D is 68, N is 78, U is 85,
+// L is 76, a space is 32, F is 70, E is 69, T is 84, H is
+// 72, the figure 1 is 49, and a newline is 10.)
+make feathermark(img, got) {
+    if got < 19 { give false }
+    if img[0] != 67 { give false }
+    if img[1] != 65 { give false }
+    if img[2] != 82 { give false }
+    if img[3] != 68 { give false }
+    if img[4] != 78 { give false }
+    if img[5] != 85 { give false }
+    if img[6] != 76 { give false }
+    if img[7] != 76 { give false }
+    if img[8] != 32 { give false }
+    if img[9] != 70 { give false }
+    if img[10] != 69 { give false }
+    if img[11] != 65 { give false }
+    if img[12] != 84 { give false }
+    if img[13] != 72 { give false }
+    if img[14] != 69 { give false }
+    if img[15] != 82 { give false }
+    if img[16] != 32 { give false }
+    if img[17] != 49 { give false }
+    if img[18] != 10 { give false }
+    give true
 }
 
-// The FNV-1a checksum (the 64-bit form) of the first
-// 'count' bytes of a block: begin at the offset basis,
-// then for each byte — xor the byte in, multiply by the
-// FNV prime.
-make fnv1a(block, count) {
-    give floor(block, count) {
+// The index just past the line that starts at 'p' — the
+// line's newline, plus one — or -1 when the line never
+// ends within the 'got' bytes lifted.
+make cardlineend(img, p, got) {
+    let i = p
+    while i < got {
+        if img[i] == 10 {
+            give i + 1
+        }
+        i = i + 1
+    }
+    give -1
+}
+
+// Which of the card's known lines starts at 'p': 1 for
+// 'name:', 2 for 'needs:', 3 for 'bytes:', 4 for
+// 'checksum:', 0 for any other. Told by the line's first
+// two letters folded into one number ('n' is 110 and 'a'
+// is 97, so 'na' folds to 28257): two letters tell the
+// four apart, and the readers check the rest of the word
+// before trusting the line.
+make cardkey(img, p) {
+    let k = img[p] * 256 + img[p + 1]
+    if k == 28257 { give 1 }
+    if k == 28261 { give 2 }
+    if k == 25209 { give 3 }
+    if k == 25448 { give 4 }
+    give 0
+}
+
+// The decimal number written in a line's tail, from index
+// 'p' up to (not including) 'e': the number, or -1 when
+// the tail is empty or holds anything but figures.
+make carddec(img, p, e) {
+    if p >= e { give -1 }
+    let v = 0
+    let i = p
+    while i < e {
+        let b = img[i]
+        if b < 48 { give -1 }
+        if b > 57 { give -1 }
+        v = v * 10 + (b - 48)
+        i = i + 1
+    }
+    give v
+}
+
+// Whether a line's tail, from 'p' up to (not including)
+// 'e', is exactly sixteen letters of hex (0-9, a-f, A-F) —
+// the shape a checksum is written in.
+make cardhexok(img, p, e) {
+    if e - p != 16 { give false }
+    let i = p
+    while i < e {
+        let b = img[i]
+        let ok = false
+        if b >= 48 { if b <= 57 { ok = true } }
+        if b >= 97 { if b <= 102 { ok = true } }
+        if b >= 65 { if b <= 70 { ok = true } }
+        if ok == false { give false }
+        i = i + 1
+    }
+    give true
+}
+
+// The number a tail of sixteen hex letters names, read as
+// the machine's whole word: on bare metal a number IS the
+// sixty-four-bit word, so a checksum's full sixty-four
+// bits stand in it, the same word the reckoning below
+// gives back. (Called only where cardhexok has passed.)
+make cardhex(img, p, e) {
+    let v = 0
+    let i = p
+    while i < e {
+        let b = img[i]
+        let d = 0
+        if b >= 48 { if b <= 57 { d = b - 48 } }
+        if b >= 97 { if b <= 102 { d = b - 87 } }
+        if b >= 65 { if b <= 70 { d = b - 55 } }
+        v = v * 16 + d
+        i = i + 1
+    }
+    give v
+}
+
+// Walks the card at the head of 'img' (the 'got' bytes
+// lifted) and gives back one of its three numbers, by
+// 'which': 1 — where the program begins (the first byte
+// after the card's blank line); 2 — how many bytes the
+// card says the program is; 3 — the checksum the card
+// promises. Any of them comes back -1 when the card is
+// damaged: a line that never ends, a 'bytes:' or
+// 'checksum:' line whose tail isn't the number it should
+// be, or the blank line — or a needed line — never coming.
+// The 'name:' and 'needs:' lines are for people; the walk
+// steps over them, and over any line it doesn't know, as
+// the format allows.
+make cardparse(img, got, which) {
+    let p = 19
+    let start = -1
+    let bytes = -1
+    let sum = -1
+    let sumok = false
+    while p < got {
+        if img[p] == 10 {
+            start = p + 1
+            p = got
+        } else {
+            let e = cardlineend(img, p, got)
+            if e < 0 { give -1 }
+            let key = cardkey(img, p)
+            if key == 3 {
+                // 'bytes:' — the whole word, and its space,
+                // before the figures are trusted.
+                if e - 1 - p < 8 { give -1 }
+                if img[p + 5] != 58 { give -1 }
+                if img[p + 6] != 32 { give -1 }
+                bytes = carddec(img, p + 7, e - 1)
+                if bytes < 0 { give -1 }
+            }
+            if key == 4 {
+                // 'checksum:' — the whole word, its space,
+                // and sixteen hex letters, no more.
+                if e - 1 - p < 26 { give -1 }
+                if img[p + 8] != 58 { give -1 }
+                if img[p + 9] != 32 { give -1 }
+                if cardhexok(img, p + 10, e - 1) == false { give -1 }
+                sum = cardhex(img, p + 10, e - 1)
+                sumok = true
+            }
+            p = e
+        }
+    }
+    if start < 0 { give -1 }
+    if bytes < 0 { give -1 }
+    if sumok == false { give -1 }
+    if which == 1 { give start }
+    if which == 2 { give bytes }
+    give sum
+}
+
+// The FNV-1a checksum (the 64-bit form) of 'count' bytes
+// of a block, starting at byte 'start': begin at the
+// offset basis, then for each byte — xor the byte in,
+// multiply by the FNV prime.
+make fnv1afrom(block, start, count) {
+    give floor(block, start, count) {
         mov rax, 0xcbf29ce484222325
         mov r8, [r10]
-        mov rcx, 0
+        mov r9, [r10 + 8]
+        add r9, r8
+        mov rcx, r8
     fnv_loop:
-        cmp rcx, r8
+        cmp rcx, r9
         jae fnv_done
         movzx rdx, byte ptr [rbx + rcx]
         xor rax, rdx
@@ -67,53 +239,64 @@ make fnv1a(block, count) {
     }
 }
 
-// Lays the feather at the doorstep: the region is wiped
-// clean first (a feather's scratch memory must start at
-// zero, as a booted program's does), then the image is
-// copied to its first bytes. Last, the screen the feather is
-// to paint is named in a word at the very top of the
-// doorstep (0x27FFF8): the text screen's own address, or —
-// on a machine showing the face of light, where the text
-// screen's memory is not a screen at all — the address of
-// a block of cells the host will show as light (Stone 9).
-make placefeather(img, count, paintbase) {
-    floor(img, count, paintbase) {
+// Lays the feather's program at the doorstep: the region
+// is wiped clean first (a feather's scratch memory must
+// start at zero, as a booted program's does), then the
+// program — 'count' bytes of the feather starting at
+// 'start', the card left behind — is copied to its first
+// bytes. Last, the screen the feather is to paint is named
+// in a word at the very top of the doorstep (0x27FFF8):
+// the text screen's own address, or — on a machine showing
+// the face of light, where the text screen's memory is not
+// a screen at all — the address of a block of cells the
+// host will show as light (Stone 9).
+make placefeather(img, start, count, paintbase) {
+    floor(img, start, count, paintbase) {
         mov rdi, 0x200000
         mov rcx, 0x80000
         xor eax, eax
         rep stosb
         mov rsi, rbx
+        add rsi, [r10]
         mov rdi, 0x200000
-        mov rcx, [r10]
+        mov rcx, [r10 + 8]
         rep movsb
-        mov rax, [r10 + 8]
+        mov rax, [r10 + 16]
         mov qword ptr [0x27FFF8], rax
     }
 }
 
 // Tries to receive the feather, from what was lifted at
-// boot: the image block, how many bytes of it were truly
-// lifted ('got'), how long its card says it is ('imglen'),
-// the checksum its card promises ('want'), and the screen
-// it is to paint ('paintbase', laid at the doorstep by
-// placefeather). Gives back
-// a number saying how it went: 1 — there is no feather on
-// this disc; 2 — the feather on this disc is not whole, and
-// was refused; 3 — the feather visited and went home again.
-make runfeather(img, got, imglen, want, paintbase) {
-    if imglen <= 0 {
+// boot: the feather as one module — its card at its head,
+// its program after — and how many bytes of it were truly
+// lifted ('got'), and the screen it is to paint
+// ('paintbase', laid at the doorstep by placefeather).
+// Gives back a number saying how it went: 1 — there is no
+// feather on this disc; 2 — the feather on this disc is
+// not whole, and was refused; 3 — the feather visited and
+// went home again.
+make runfeather(img, got, paintbase) {
+    if feathermark(img, got) == false {
         give 1
     }
-    if imglen > 524288 {
-        give 1
-    }
-    if got != imglen {
+    let start = cardparse(img, got, 1)
+    if start < 0 {
         give 2
     }
-    if fnv1a(img, imglen) != want {
+    let want = cardparse(img, got, 2)
+    if want <= 0 {
         give 2
     }
-    placefeather(img, imglen, paintbase)
+    if want > 524288 {
+        give 2
+    }
+    if start + want != got {
+        give 2
+    }
+    if fnv1afrom(img, start, want) != cardparse(img, got, 3) {
+        give 2
+    }
+    placefeather(img, start, want, paintbase)
     let back = callguest(2097152, 7)
     give 3
 }

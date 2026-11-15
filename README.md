@@ -31,9 +31,10 @@ one. By default the build looks for it at `~/workspace/nifla-repo`; set
 `NIFLA_REPO` to point somewhere else.
 
 ```
-./build.sh            # makes build/cardnull.elf, build/feather.bin, and the
-                      # disc's two small modules (build/settings.bin,
-                      # build/card.bin)
+./build.sh            # makes build/cardnull.elf, build/welcome.feather
+                      # (the feather with its card, by the compiler's
+                      # feather mode), and the disc's one small module
+                      # (build/settings.bin)
 ```
 
 The result is a bare-metal program: it boots on its own, with no operating
@@ -1087,6 +1088,70 @@ things; it has no words, and the desktop's law of
 plain words is unchanged — the sounds accompany the
 words, they never replace them.
 
+### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
+
+This is not one of this system's own stones; it is the
+language's Stone 20, taken into the system the day it
+stood. Until now the welcome feather rode the disc as two
+modules — its image, and a separate 32-byte binary card
+beside it (the image's length and FNV-1a checksum as
+eight-byte numbers), laid by this repo's own
+`tools/make-modules.py` and read by the door from the
+card module. The compiler now lays a plain-text card at
+the feather's head itself (`niflac --bare --guest
+--feather`), so the feather rides as ONE module —
+`build/welcome.feather`, on the disc as `feather.fea` —
+and the door reads the card from the feather it is
+handed:
+
+- `build.sh` builds the welcome feather with `--feather`;
+  `tools/make-modules.py` shrank to the one thing still
+  honestly its own — the settings module — and says so in
+  its header. The card half is retired.
+- The boot lift finds the feather by the card's first
+  line ("CARDNULL FEATHER 1") instead of by a promised
+  length; the settings are read as before.
+- The door (`src/featherdoor.nifla`) parses the card's
+  lines in plain Nifla — `name:` and `needs:` are for
+  people and are stepped over; `bytes:` and `checksum:`
+  are read and checked — reckons the FNV-1a checksum over
+  the program bytes after the card's blank line, and lets
+  the feather in only when the card is whole, the program
+  is exactly as long as lifted, and the reckoning matches
+  the promise. The refusals are the same plain words as
+  before: no carded feather on the disc, or "The feather
+  on this disc is not whole, so it was not let in."
+- Both doormen (the BIOS bootloader and the EFI loader)
+  stage and hand over two modules now, and the disc
+  carries `feather.fea` in both its trees.
+- The adoption also surfaced a latent fault in the BIOS
+  doorman's staging, found by the proof regression and
+  fixed in the open: the modules staged at 0x60000 and
+  0x62000, inside the system file's own 192 KiB staging
+  claim at 0x40000, on the old reckoning that the system's
+  text ended well below them. The door's growth carried
+  the text's tail — and its GDT — across the settings
+  stage's line (the GDT at file offset 0x201F0, the
+  settings splash at 0x20000–0x20200), and the staged
+  settings overwrote the GDT's code descriptor: the
+  adopted system died at its first far jump through its
+  own doorman, while QEMU's loader (which does not stage
+  there) booted it fine. The module stages now stand at
+  0x70000 and 0x72000, above the whole claim, and the
+  doorman's header says why, so no stage ever sits inside
+  another's claim again.
+
+The door's honesty is unchanged: the checksum proves the
+bytes match the card and nothing more (it is not a
+signature), there is no isolation yet, and a faulting
+feather still stops the whole machine. The full proof
+regression passes on the adopted build — the fifteen
+live proofs (stones 3–9 and 12–18, and prove-iso) —
+including the Stone 5 door proof in its new shape: the
+feather as laid visits and goes home, and a copy with
+one byte flipped in its program is refused in plain
+words and never appears.
+
 ## The kernel's files
 
 The kernel is built as several files, never one big one — Tyler's
@@ -1109,9 +1174,10 @@ was split by duty, without changing its behavior:
 - `src/bootmods.nifla` — the hands that read what the loader
   brought: the module table and the modules that ride the disc
   (modcount, modstart, modend, modcopyfrom).
-- `src/featherdoor.nifla` — the feather door: the card's FNV-1a check,
-  the doorstep, the call, and the plain-words refusals (cardnum,
-  fnv1a, placefeather, runfeather).
+- `src/featherdoor.nifla` — the feather door: reading the card at
+  the feather's own head, its FNV-1a check, the doorstep, the call,
+  and the plain-words refusals (feathermark, cardparse, fnv1afrom,
+  placefeather, runfeather).
 - `src/commands.nifla` — deciding what a typed word is answered
   with: what kind of answer, the line that answers it, and the
   clock's offset once the word is done (wordkind, wordline,
@@ -1179,25 +1245,27 @@ iso from day one like the first OS." `./build-iso.sh` lays it, and
 since Stone 17 the same disc's bytes also travel as a stick image
 beside it (the stick is the disc, not a second system):
 
-- `dist/cardnull-os-2.iso` — 8,947,712 bytes, as built November 15,
-  2026 (the disc after Stone 18, the ladder's last: the
+- `dist/cardnull-os-2.iso` — 8,949,760 bytes, as built November 15,
+  2026 (the disc after the adoption of Nifla's Stone 20: the
   framebuffer kernel with its two windows, its notes that stay,
-  and its voice, and Cardnull's own loaders at both doors — the
+  and its voice, the welcome feather riding as one file with its
+  card at its head, and Cardnull's own loaders at both doors — the
   BIOS bootloader and the EFI loader; no GRUB anywhere on it).
-  sha256: `49712641c52060c1d974c1fcb12644c1120cf906d27537bce43b5f95dabd9614`
+  sha256: `76e5effc47da98e34c2718b8619f80537a0243ef7c96e9b1bdf49ca51d75820f`
   (The ISO file itself is a build product and is not kept in this
   repository; the hash records the disc the proof below was run
   against, and `./build-iso.sh` rebuilds it.)
-- `dist/cardnull-stick.img` — 8,947,712 bytes, as built November
+- `dist/cardnull-stick.img` — 8,949,760 bytes, as built November
   15, 2026 by `./build-stick.sh` from the same tree: the disc
   above with Cardnull's master boot record at its head and the
   BIOS bootloader in the sectors after it (Stone 17).
-  sha256: `756915912f0662a291efed6dd8e4f52447b1cdaeaadddbaf21409b0b8667959d`
+  sha256: `0ac4adebfeabbe1117058e0b854ad8e5c8b84d603dcb8a3f974792dadb7c30b9`
   (Likewise a build product, not kept in this repository.)
 
 On the disc: the system (`/boot/cardnull.elf`), the settings module,
-the feather's card, and the feather itself — everything Stones 4 and 5
-need rides as multiboot modules the loader brings with the system —
+and the feather itself (`/boot/feather.fea`), its card at its head —
+everything Stones 4 and 5 need rides as multiboot modules the loader
+brings with the system —
 plus `/boot/boot.img`, Cardnull's own bootloader (the El Torito
 catalog's BIOS image), and the EFI system partition at
 `/boot/efi.img` carrying the EFI door's own loader

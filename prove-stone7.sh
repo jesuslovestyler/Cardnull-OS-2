@@ -34,11 +34,11 @@ cleanup() {
 trap cleanup EXIT
 
 # A settings module carrying the world's standard time.
-python3 tools/make-modules.py build/feather.bin "$WORK/settings-utc.bin" "$WORK/card.bin" 64 >/dev/null
+python3 tools/make-modules.py "$WORK/settings-utc.bin" 64 >/dev/null
 
 echo "--- boot 1 (Nov 15, 14:32 UTC; the disc carries Eastern) ---"
 SOCK="$WORK/monitor.sock"
-QEMU_PID=$(RTC_BASE=2026-11-15T14:32:00 tools/launch.sh build/cardnull.elf "$SOCK" 96 "" "build/settings.bin,build/card.bin,build/feather.bin")
+QEMU_PID=$(RTC_BASE=2026-11-15T14:32:00 tools/launch.sh build/cardnull.elf "$SOCK" 96 "" "build/settings.bin,build/welcome.feather")
 python3 tools/screen.py proofs/stone7-boot1.py "$SOCK" || exit 1
 [ -n "$QEMU_PID" ] && kill "$QEMU_PID" 2>/dev/null
 QEMU_PID=""
@@ -46,7 +46,7 @@ sleep 1
 
 echo "--- boot 2 (Nov 16, 02:00 UTC; Eastern carries the date back) ---"
 SOCK="$WORK/monitor2.sock"
-QEMU_PID=$(RTC_BASE=2026-11-16T02:00:00 tools/launch.sh build/cardnull.elf "$SOCK" 96 "" "build/settings.bin,build/card.bin,build/feather.bin")
+QEMU_PID=$(RTC_BASE=2026-11-16T02:00:00 tools/launch.sh build/cardnull.elf "$SOCK" 96 "" "build/settings.bin,build/welcome.feather")
 python3 tools/screen.py proofs/stone7-boot2.py "$SOCK" || exit 1
 [ -n "$QEMU_PID" ] && kill "$QEMU_PID" 2>/dev/null
 QEMU_PID=""
@@ -54,5 +54,5 @@ sleep 1
 
 echo "--- boot 3 (Nov 15, 23:59:50 UTC; the date rolls forward) ---"
 SOCK="$WORK/monitor3.sock"
-QEMU_PID=$(RTC_BASE=2026-11-15T23:59:50 tools/launch.sh build/cardnull.elf "$SOCK" 96 "" "$WORK/settings-utc.bin,build/card.bin,build/feather.bin")
+QEMU_PID=$(RTC_BASE=2026-11-15T23:59:50 tools/launch.sh build/cardnull.elf "$SOCK" 96 "" "$WORK/settings-utc.bin,build/welcome.feather")
 python3 tools/screen.py proofs/stone7-boot3.py "$SOCK"

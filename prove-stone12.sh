@@ -34,7 +34,7 @@ trap cleanup EXIT
 
 echo "--- boot 1 (the PS/2 road: shift, caps, and many words) ---"
 SOCK="$WORK/monitor-1.sock"
-QEMU_PID=$(tools/launch.sh build/cardnull.elf "$SOCK" 96 "" "build/settings.bin,build/card.bin,build/feather.bin")
+QEMU_PID=$(tools/launch.sh build/cardnull.elf "$SOCK" 96 "" "build/settings.bin,build/welcome.feather")
 python3 tools/screen.py proofs/stone12-boot1.py "$SOCK" || exit 1
 [ -n "$QEMU_PID" ] && kill "$QEMU_PID" 2>/dev/null
 QEMU_PID=""
@@ -45,7 +45,7 @@ echo "--- boot 2 (the USB road: the same grammar) ---"
     --library-path "$HOME/qemu10-root/usr/lib/x86_64-linux-gnu:$HOME/qemu10-root/lib/x86_64-linux-gnu" \
     "$HOME/qemu10-root/usr/bin/qemu-system-x86_64" \
     -kernel build/cardnull.elf -display none -m 128 -nic none \
-    -initrd build/settings.bin,build/card.bin,build/feather.bin \
+    -initrd build/settings.bin,build/welcome.feather \
     -monitor "unix:$WORK/monitor-2.sock,server,nowait" \
     -L "$HOME/qemu10-root/usr/share/qemu" \
     -L "$HOME/qemu10-root/usr/share/seabios" \

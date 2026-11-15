@@ -41,11 +41,11 @@ cleanup() {
 trap cleanup EXIT
 
 # A settings module carrying the world's standard time.
-python3 tools/make-modules.py build/feather.bin "$WORK/settings-utc.bin" "$WORK/card.bin" 64 >/dev/null
+python3 tools/make-modules.py "$WORK/settings-utc.bin" 64 >/dev/null
 
 echo "--- boot 1 (the disc carries the world's time) ---"
 SOCK="$WORK/monitor.sock"
-QEMU_PID=$(tools/launch.sh build/cardnull.elf "$SOCK" 96 "" "$WORK/settings-utc.bin,build/card.bin,build/feather.bin")
+QEMU_PID=$(tools/launch.sh build/cardnull.elf "$SOCK" 96 "" "$WORK/settings-utc.bin,build/welcome.feather")
 python3 tools/screen.py proofs/stone4-boot1.py "$SOCK" || exit 1
 [ -n "$QEMU_PID" ] && kill "$QEMU_PID" 2>/dev/null
 QEMU_PID=""
@@ -53,7 +53,7 @@ sleep 1
 
 echo "--- boot 2 (the disc carries Eastern time) ---"
 SOCK="$WORK/monitor2.sock"
-QEMU_PID=$(tools/launch.sh build/cardnull.elf "$SOCK" 96 "" "build/settings.bin,build/card.bin,build/feather.bin")
+QEMU_PID=$(tools/launch.sh build/cardnull.elf "$SOCK" 96 "" "build/settings.bin,build/welcome.feather")
 python3 tools/screen.py proofs/stone4-boot2.py "$SOCK" || exit 1
 [ -n "$QEMU_PID" ] && kill "$QEMU_PID" 2>/dev/null
 QEMU_PID=""

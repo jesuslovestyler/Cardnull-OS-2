@@ -3,8 +3,11 @@
 #
 #   build/cardnull.elf — the system itself: a bare-metal Nifla
 #                        program that boots on its own.
-#   build/feather.bin    — the welcome feather (built only when its
-#                        source is present, from Stone 5 on).
+#   build/welcome.feather — the welcome feather (built only when
+#                        its source is present, from Stone 5 on),
+#                        compiled WITH its card by the compiler's
+#                        feather mode (Nifla Stone 20, adopted
+#                        here November 15, 2026).
 #
 # The compiler is Nifla's own `niflac`; it stays in the Nifla
 # repository and is never copied into this one. NIFLA_REPO names
@@ -69,11 +72,13 @@ if [ -f src/welcome-feather.nifla ]; then
     # the library's parameterized floor tools are refused in a
     # feather build even when uncalled. The feather carries its
     # own drawing code. (See src/welcome-feather.nifla.)
-    "$NIFLA_REPO/niflac" --bare --guest src/welcome-feather.nifla -o build/feather.bin
-    echo "Built build/feather.bin (the welcome feather)"
-    # The two small modules that ride beside it on the disc:
-    # the settings and the feather's card (Stones 4 and 5).
-    python3 tools/make-modules.py build/feather.bin build/settings.bin build/card.bin
+    "$NIFLA_REPO/niflac" --bare --guest --feather src/welcome-feather.nifla -o build/welcome.feather
+    echo "Built build/welcome.feather (the welcome feather, with its card)"
+    # The one small module that still rides beside it on the
+    # disc: the settings (Stone 4). The feather's card is no
+    # longer a module of its own — it stands at the feather's
+    # head, laid there by the compiler (Nifla Stone 20).
+    python3 tools/make-modules.py build/settings.bin
 fi
 
 echo "Built build/cardnull.elf (Cardnull OS 2)"
