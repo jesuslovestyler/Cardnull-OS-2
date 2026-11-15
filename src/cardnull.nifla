@@ -1,19 +1,29 @@
 // Cardnull OS 2 — the seed kernel.
 //
 // Stone 1: first boot — the greeting and the memory figure.
-// Stone 2: ears — the keyboard is heard. A typing line lives
-// on the screen's last row; a word typed there, ended with
-// Enter, is answered in plain words. The machine knows four
-// words so far: hello, time, memory, and clear.
+// Stone 2: ears — the keyboard is heard; a typing line and
+//          plain-words commands.
+// Stone 3: a face — the desktop. A top bar carries the name
+//          and a live clock; a welcome panel sits in the
+//          middle; answers have their own region of the
+//          screen and scroll there; the typing line still
+//          works at the bottom. The face is drawn with the
+//          system's own screen library (screenlib.nifla,
+//          joined to this program as a prelude at build).
 //
-// How the typing works: every keystroke's number (its
-// scancode) is kept in a block of bytes, in order. The line
-// the person sees is rebuilt from those numbers whenever it
-// changes — which is also how Backspace un-types: it simply
-// forgets the last number, and the line is rebuilt shorter.
-// Letters are turned from scancodes by charFor below; the
-// keyboard's release numbers (128 and up) are ignored, as is
-// any key this table does not know.
+// The arrangement of the screen:
+//   row 0      the bar — "Cardnull" at the left, the clock
+//              at the right, white on blue
+//   rows 3-9   the welcome panel, black on light gray
+//   row 11     the invitation: what words the machine knows
+//   rows 13-22 the answers, newest at the bottom
+//   row 24     the typing line
+//
+// The clock counts from the moment the machine woke (there
+// is no reading of the world's clock yet): it shows the
+// hours, minutes, and seconds since boot, plainly.
+
+// ---- the keyboard's letters (Stone 2) ----
 
 make charFor(code) {
     if code == 16 { give "q" }
@@ -47,7 +57,7 @@ make charFor(code) {
 }
 
 // The typed line, rebuilt from the first 'count' scancodes
-// in 'buf'.
+// in 'buf' (Stone 2).
 make buildline(buf, count) {
     let s = ""
     let i = 0
@@ -58,9 +68,7 @@ make buildline(buf, count) {
     give s
 }
 
-// Draws the typing line on the screen's last row: a prompt
-// and the line so far, with whatever stood there before
-// blanked away behind it.
+// Draws the typing line on the screen's last row.
 make drawtyping(text) {
     floor(text) {
         mov rdx, 0xB8000
@@ -90,26 +98,76 @@ make drawtyping(text) {
     }
 }
 
-// Wipes the whole screen to blank — the 'clear' word.
-make clearstage() {
-    floor() {
-        mov rdi, 0xB8000
-        mov rcx, 2000
-        mov ax, 0x0720
-        rep stosw
+// ---- the clock ----
+
+// A number written with a leading zero when it is small:
+// 7 becomes "07", so the clock's face keeps its shape.
+make pad2(n) {
+    if n < 10 {
+        give "0" + n
     }
+    give "" + n
 }
 
-say "Cardnull"
-say "Welcome. This computer is yours, and everything on it is given freely."
-say "This machine has " + memorysize() + " bytes of memory (" + (memorysize() / 1048576) + " megabytes)."
-say "Type a word, then press Enter. Try: hello, time, memory, clear"
+// The clock's face for a count of seconds: hours, minutes,
+// and seconds, each two digits, the hours within the day.
+make clocktext(total) {
+    let hours = total / 3600
+    let rest = total - hours * 3600
+    let minutes = rest / 60
+    let seconds = rest - minutes * 60
+    while hours >= 24 {
+        hours = hours - 24
+    }
+    give pad2(hours) + ":" + pad2(minutes) + ":" + pad2(seconds)
+}
+
+// ---- the face ----
+
+// Draws the whole desktop: the bar with its clock, the
+// welcome panel, and the invitation. The answers region is
+// left blank, ready.
+make drawface() {
+    clearscreen()
+    paintrow(0, 31)
+    writeat(0, 1, "Cardnull", 31)
+    writeat(0, 72, clocktext(ticks() / 100), 31)
+    paintrect(3, 8, 64, 7, 112)
+    writeat(4, 10, "Welcome to Cardnull", 112)
+    writeat(5, 10, "This computer is public domain: free for everyone, forever.", 112)
+    writeat(7, 10, "\"Unless Yahweh builds the house,", 112)
+    writeat(8, 10, "they labor in vain who build it.\" - Psalm 127:1", 112)
+    writeat(11, 2, "Type a word, then press Enter. Try: hello, time, memory, clear", 7)
+}
+
+// Writes one answer in the answer region at 'row', scrolling
+// the region when it is full, and gives back the next row.
+make printline(row, text) {
+    let r = row
+    if r > 22 {
+        scrollanswers()
+        r = 22
+    }
+    writeat(r, 2, text, 7)
+    give r + 1
+}
+
+// ---- the machine ----
+
+drawface()
 
 let keys = makebytes(48)
 let klen = 0
+let ansrow = 13
+let lastsec = 0 - 1
 drawtyping("")
 
 while true {
+    let nowsec = ticks() / 100
+    if nowsec != lastsec {
+        lastsec = nowsec
+        writeat(0, 72, clocktext(nowsec), 31)
+    }
     let k = readkey()
     if k != 0 {
         if k < 128 {
@@ -117,27 +175,28 @@ while true {
                 // Enter: the word is finished; answer it.
                 let cmd = buildline(keys, klen)
                 klen = 0
+                drawtyping("")
                 if cmd == "clear" {
-                    clearstage()
-                    drawtyping("")
+                    drawface()
+                    ansrow = 13
+                    lastsec = 0 - 1
                 } else {
-                    drawtyping("")
                     let answered = 0
                     if cmd == "hello" {
-                        say "Hello. It is good to see you."
+                        ansrow = printline(ansrow, "Hello. It is good to see you.")
                         answered = 1
                     }
                     if cmd == "time" {
-                        say "This machine has been awake for " + (ticks() / 100) + " seconds."
+                        ansrow = printline(ansrow, "This machine has been awake for " + (ticks() / 100) + " seconds.")
                         answered = 1
                     }
                     if cmd == "memory" {
-                        say "This machine has " + memorysize() + " bytes of memory (" + (memorysize() / 1048576) + " megabytes)."
+                        ansrow = printline(ansrow, "This machine has " + memorysize() + " bytes of memory (" + (memorysize() / 1048576) + " megabytes).")
                         answered = 1
                     }
                     if answered == 0 {
                         if length(cmd) > 0 {
-                            say "I don't know that word yet. Try hello, time, memory, or clear."
+                            ansrow = printline(ansrow, "I don't know that word yet. Try hello, time, memory, or clear.")
                         }
                     }
                 }

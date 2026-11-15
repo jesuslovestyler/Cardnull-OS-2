@@ -92,7 +92,33 @@ cursor stands and scroll as they accumulate; after `clear`, the
 greeting is gone until the next boot and later answers appear wherever
 that cursor had reached. The face (Stone 3) gives answers a proper
 home. Keystrokes are gathered in a 48-number buffer; a longer word is
-simply not gathered further.
+simply not gathered further. (`prove-stone2.sh` describes this
+pre-face screen; from Stone 3 on, its command checks live on in the
+later proofs, against the faced screen.)
+
+### Stone 3 — A face
+
+The desktop. The system's own screen library (`src/screenlib.nifla`,
+joined as a prelude) paints a top bar — "Cardnull" at the left and a
+live clock at the right, white on blue — and a welcome panel in the
+middle, black on light gray, saying what this is, that it is public
+domain and free for everyone, and carrying the founding verse
+(Psalm 127:1). Answers now have their own region of the screen and
+scroll within it; the typing line still works at the bottom with the
+same four words, and `clear` now restores the whole face and empties
+the answers. Proven by `prove-stone3.sh`: full-screen readback
+verified the bar and panel text, their color bytes (31 and 112), and
+the clock advancing between two readings (00:00:00 → 00:00:02), and
+the commands answering in their region.
+
+Honest limits: the clock counts from the moment the machine woke —
+it is an honest count of uptime, not the world's time; nothing reads
+a real-time clock yet, and Stone 4's remembered offset shifts the
+shown hour without changing that. The face is drawn in the text
+screen's sixteen colors, one panel, no windows, no mouse. The panel
+and bar are repainted only when drawn; a guest or a stray writer
+could paint over them, and nothing yet defends the arrangement
+except the system's own manners.
 
 ## Notes for builders
 
