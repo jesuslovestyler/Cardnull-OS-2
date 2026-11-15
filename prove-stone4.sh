@@ -1,20 +1,24 @@
 #!/bin/sh
-# Stone 4 proof: remembers. The script makes one scratch
-# disk (8 MiB, all blank) and boots Cardnull OS 2 on it
-# twice, reading the bar's clock back both times:
+# Stone 4 proof: the clock's time choice rides the disc.
+# The system is booted three times with the modules a
+# bootloader would bring from the disc (QEMU's -initrd is
+# the bench form of the same multiboot handoff), and the
+# bar's clock is read back each time:
 #
-#   Boot 1: nothing saved — the clock must start on Eastern
-#     time (hour 19 against a count near zero). The word
-#     'utc' must move the hour to 00, and the machine must
-#     say it will remember.
-#   Boot 2: the same disk, untouched by hand — the clock
-#     must come up at hour 00 on its own, and 'eastern'
-#     must move it back to 19.
+#   Boot 1: the settings module carries the world's
+#     standard time — the clock must come up at hour 00 on
+#     its own; the word 'eastern' must move it to 19, with
+#     an answer that says the choice lasts until the
+#     machine is turned off.
+#   Boot 2: the settings module carries Eastern time (the
+#     settings the build lays) — the clock must come up at
+#     hour 19; the word 'utc' must move it to 00.
+#   Boot 3: no modules at all — the clock must start on
+#     the honest default, Eastern time, and 'guest' must
+#     be answered plainly: this disc holds no guest.
 #
-# SAFETY: the only disk ever attached is the scratch image
-# this script creates in its own scratch folder.
-#
-# Prints PASS or FAIL.
+# No disk is attached in any boot: the system ships as one
+# disc and nothing else. Prints PASS or FAIL.
 
 set -u
 cd "$(dirname "$0")"
@@ -29,22 +33,26 @@ cleanup() {
 }
 trap cleanup EXIT
 
-IMG="$WORK/scratch-disk.img"
-python3 - "$IMG" <<'PYEOF'
-import sys
-open(sys.argv[1], "wb").write(bytes(8 * 1024 * 1024))
-print("Made the scratch disk: 8 MiB, blank.")
-PYEOF
+# A settings module carrying the world's standard time.
+python3 tools/make-modules.py build/guest.bin "$WORK/settings-utc.bin" "$WORK/card.bin" 64 >/dev/null
 
-echo "--- boot 1 (fresh disk) ---"
+echo "--- boot 1 (the disc carries the world's time) ---"
 SOCK="$WORK/monitor.sock"
-QEMU_PID=$(tools/launch.sh build/cardnull.elf "$SOCK" 96 "$IMG")
+QEMU_PID=$(tools/launch.sh build/cardnull.elf "$SOCK" 96 "" "$WORK/settings-utc.bin,build/card.bin,build/guest.bin")
 python3 tools/screen.py proofs/stone4-boot1.py "$SOCK" || exit 1
 [ -n "$QEMU_PID" ] && kill "$QEMU_PID" 2>/dev/null
 QEMU_PID=""
 sleep 1
 
-echo "--- boot 2 (same disk) ---"
+echo "--- boot 2 (the disc carries Eastern time) ---"
 SOCK="$WORK/monitor2.sock"
-QEMU_PID=$(tools/launch.sh build/cardnull.elf "$SOCK" 96 "$IMG")
-python3 tools/screen.py proofs/stone4-boot2.py "$SOCK"
+QEMU_PID=$(tools/launch.sh build/cardnull.elf "$SOCK" 96 "" "build/settings.bin,build/card.bin,build/guest.bin")
+python3 tools/screen.py proofs/stone4-boot2.py "$SOCK" || exit 1
+[ -n "$QEMU_PID" ] && kill "$QEMU_PID" 2>/dev/null
+QEMU_PID=""
+sleep 1
+
+echo "--- boot 3 (no modules at all) ---"
+SOCK="$WORK/monitor3.sock"
+QEMU_PID=$(tools/launch.sh build/cardnull.elf "$SOCK" 96)
+python3 tools/screen.py proofs/stone4-boot3.py "$SOCK"

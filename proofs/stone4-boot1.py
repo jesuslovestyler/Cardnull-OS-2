@@ -1,10 +1,11 @@
-# Stone 4 proof, boot 1: a fresh, blank disk.
-# Nothing has ever been saved, so the bar's clock must start
-# on Eastern time: the count since boot is near zero, so the
-# shown hour must be 19 (midnight less five hours). Then the
-# word 'utc' moves the choice to the world's standard time —
-# the hour must become 00 — and the machine must say it will
-# remember.
+# Stone 4 proof, boot 1: a disc whose settings carry the
+# world's standard time (offset byte 64, laid by the proof).
+# The bar's clock must come up on that choice without being
+# told — the count since boot is near zero, so the shown
+# hour must be 00. Then the word 'eastern' changes the
+# choice for the session: the hour must become 19, and the
+# answer must say plainly that it lasts until the machine
+# is turned off (a read-only disc remembers nothing more).
 import re
 
 
@@ -20,16 +21,16 @@ def region_has(rows_, needle):
 found = waitfor(lambda r: hour_of(r) is not None, 25)
 expect(found is not None, "the clock is on the bar")
 if found:
-    expect(hour_of(found) == "19",
-           f"a fresh disk starts on Eastern time (hour {hour_of(found)}, want 19)")
+    expect(hour_of(found) == "00",
+           f"the disc's carried choice was read at boot (hour {hour_of(found)}, want 00)")
 
-typewrite("utc")
+typewrite("eastern")
 enter()
-found = waitfor(lambda r: region_has(r, "standard time"), 15)
-expect(found is not None, "'utc' was answered in plain words")
-found = waitfor(lambda r: hour_of(r) == "00", 15)
-expect(found is not None, "the clock's hour moved to 00 after 'utc'")
-found = waitfor(lambda r: region_has(r, "will remember it"), 15)
-expect(found is not None, "the machine said it will remember the choice")
+found = waitfor(lambda r: region_has(r, "Eastern time"), 15)
+expect(found is not None, "'eastern' was answered in plain words")
+found = waitfor(lambda r: region_has(r, "until the machine is turned off"), 15)
+expect(found is not None, "the answer says honestly how long the choice lasts")
+found = waitfor(lambda r: hour_of(r) == "19", 15)
+expect(found is not None, "the clock's hour moved to 19 after 'eastern'")
 
 done()

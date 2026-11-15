@@ -31,7 +31,9 @@ one. By default the build looks for it at `~/workspace/nifla-repo`; set
 `NIFLA_REPO` to point somewhere else.
 
 ```
-./build.sh            # makes build/cardnull.elf (and build/guest.bin, later)
+./build.sh            # makes build/cardnull.elf, build/guest.bin, and the
+                      # disc's two small modules (build/settings.bin,
+                      # build/card.bin)
 ```
 
 The result is a bare-metal program: it boots on its own, with no operating
@@ -113,42 +115,99 @@ the commands answering in their region.
 
 Honest limits: the clock counts from the moment the machine woke —
 it is an honest count of uptime, not the world's time; nothing reads
-a real-time clock yet, and Stone 4's remembered offset shifts the
+a real-time clock yet, and Stone 4's time choice shifts the
 shown hour without changing that. The face is drawn in the text
 screen's sixteen colors, one panel, no windows, no mouse. The panel
 and bar are repainted only when drawn; a guest or a stray writer
 could paint over them, and nothing yet defends the arrangement
 except the system's own manners.
 
-### Stone 4 — Remembers
+### Stone 4 — The clock's time choice
 
-The system keeps one setting on the disk: the clock's hour offset.
-Two new words set it in plain language — `eastern` (the system's
-home time, five hours behind the world's standard) and `utc` (the
-world's standard time itself) — and the choice is written to a small
-card of the system's own on sector 8 of the disk. At every boot the
-card is read back and the bar's clock applies it, without being told
-again. When no card has ever been saved, the clock starts on Eastern
-time: the first Cardnull OS taught this lesson on real hardware,
-where its clock quietly showed the world's standard hour as if it
-were local, and this system was designed so as never to repeat it.
-Proven by `prove-stone4.sh`: two boots of one scratch disk — a fresh
-disk starts at hour 19, the word `utc` moves it to 00 and the machine
-says it will remember, and the second boot comes up at 00 on its own
-before `eastern` moves it back to 19.
+The clock's hour offset is a choice made in plain words: `eastern`
+(the system's home time, five hours behind the world's standard) and
+`utc` (the world's standard time itself). What the choice starts
+from is carried by the system disc itself: a small settings module
+rides beside the system (the letters C and N, then one byte holding
+the offset with 64 added), the bootloader brings it with the system
+at boot, and the bar's clock applies it. The disc as built carries
+Eastern; a disc carrying no choice also starts on Eastern — the
+first Cardnull OS taught this lesson on real hardware, where its
+clock quietly showed the world's standard hour as if it were local,
+and this system was designed so as never to repeat it. The words
+`eastern` and `utc` change the choice for the session, and the
+machine says exactly how long that lasts: until the machine is
+turned off.
+
+Proven by `prove-stone4.sh`, three boots with the modules a
+bootloader brings (QEMU's `-initrd` is the bench form of the same
+handoff): a disc carrying the world's time comes up at hour 00 on
+its own and `eastern` moves it to 19; a disc carrying Eastern comes
+up at 19 and `utc` moves it to 00; and with no modules at all, the
+clock starts on Eastern and `guest` is answered plainly.
+
+How this stone came to its present shape, recorded honestly: it was
+first built and proven earlier the same day (November 15, 2026)
+with the choice kept on an attached disk, read back at every boot —
+that build stands in this repository's history (commit `b20761e`).
+Tyler then corrected the shape the same morning: the system ships
+as **one disc and nothing else** — "we should've built the iso from
+day one like the first OS" — and a read-only disc cannot remember
+across reboots. So the disk arrangement was retired before it ever
+shipped, and the choice was re-pointed to the disc itself, as
+above. What the correction cost, stated plainly: **the choice is
+no longer remembered across reboots.** To start on a different
+time, the disc itself must be laid with that choice in its
+settings; within a session, the words still change it.
 
 Honest limits, stated exactly: there is still no reading of the
 world's clock — the count is the time since the machine woke, and
 the offset shifts only the hour the face shows, the way setting a
 clock does; nothing here knows the date or the world's present hour.
-The choice is kept on the first disk only, in the system's own small
-card (the letters C and N and one byte), not in any standard format
-another system would read. When there is no disk at all, the words
-still work for the session, and the machine says plainly that there
-is no disk to remember the choice on. Before asking the drive who it
-is, the system selects it with a small piece of floor work — see the
-builder note below; without that, the language's own way of asking
-would report no disk even when one is fitted.
+The settings are in the system's own small form (the letters C and
+N and one byte), not in any standard format another system would
+read. And because the loader leaves its module table in low memory
+that the system's heap also grows into, the system lifts everything
+it needs out of the modules in its first breath, before anything
+else is allocated — see the builder note below.
+
+### Stone 5 — First guest
+
+A guest comes to visit. The welcome guest (`src/welcome-guest.nifla`)
+is a second program, written in Nifla and built for the guest
+doorstep at 2 MiB; it rides the disc as a module, and its card —
+its length and its FNV-1a checksum — rides as a small module of its
+own. At boot the system lifts both into its own keeping. The new
+word `guest` then receives it: the system reckons the lifted
+image's checksum with its own hand, and only if it matches the
+card does it lay the image at the doorstep and call it. The guest
+paints its own panel inside the desktop — rows 15–19, in its own
+color, white on green — with its name and two plain lines, returns
+the number it was handed, doubled, and goes home; the system notes
+the visit in its own line below the panel and carries on. A guest
+whose bytes do not match its card is refused in plain words ("The
+guest on this disc is not whole, so it was not let in") and never
+runs. Proven by `prove-stone5.sh`: one boot shows, in order down
+the screen, the desktop, the guest's panel in its color, and the
+system's continuation line; a second boot, with one byte of the
+guest flipped, shows the refusal, no trace of the guest or its
+color anywhere, and the desktop unharmed. (The door was first
+proven earlier the same day with the guest staged from a scratch
+disk; Tyler's one-disc correction re-pointed it to the disc before
+this stone was committed, and it was re-proven in its shipped
+shape, as above.)
+
+Honest limits: the guest door's honesty is the language's Stone 17
+honesty, unchanged — there is no isolation yet: host and guest
+share one privilege level and one memory, the checksum proves the
+bytes match the card and nothing more (it is not a signature), and
+a guest that faults stops the whole machine. The guest's panel is
+a visit, not a fixture: later answers may write over the rows it
+painted. The guest writes its lines letter by letter with the
+floor, for the reason in the builder note below. And the layout
+carries one plain assumption: a guest image is never as small as
+the 512-byte settings or the 32-byte card, so a module of exactly
+the card's promised length can only be the image.
 
 ## Notes for builders
 
@@ -167,11 +226,30 @@ would report no disk even when one is fitted.
   selecting the drive, and an unselected drive's status reads as
   nothing there — so on a freshly booted machine it answers 0 even
   with a disk fitted, until some transfer has selected the drive.
-  Measured both ways on the bench. This system therefore selects the
-  drive first, with a three-instruction floor block (`selectdrive()`),
-  after which `disksectors()` answers truthfully with and without a
-  disk. A `diskread` or `diskwrite` with no disk fitted still stops
-  the machine, exactly as the language's Stone 16 notes say, so the
-  system never attempts a transfer until the selection and the
-  question have both said a drive is there. (Also a finding, reported
-  rather than repaired from here.)
+  Measured both ways on the bench. The disk-era build of Stone 4 met
+  this by selecting the drive first with a three-instruction floor
+  block; the shipped system attaches no disk at all (see Stone 4) and
+  no longer uses the disk tools, but the finding stands about the
+  language. A `diskread` or `diskwrite` with no disk fitted still
+  stops the machine, exactly as the language's Stone 16 notes say.
+  (Also a finding, reported rather than repaired from here.)
+- A floor block in a **guest** program that is handed a piece of text
+  or a block of bytes is given a desk whose length reads as zero:
+  measured on the bench both ways (a host's floor blocks, handed the
+  same things, work), and confirmed in the compiler's own generated
+  assembly — the guest build never stores the handed values into the
+  floor-inputs table the block reads, where the host build does. A
+  guest's floor blocks that are handed nothing work, and `say` works,
+  so the welcome guest paints with a nothing-handed floor block and
+  writes its letters as immediate values, each quoted in its source.
+  (A finding about the language as it stands at Stone 18.)
+- The bootloader's module table and the modules themselves are left
+  in low memory that the language's heap also claims from above:
+  measured on the bench, the table was found overwritten by the
+  program's own early text allocations when it was read after them,
+  while the module bytes themselves, left higher, survived. This
+  system therefore reads the table's addresses into plain numbers
+  before allocating anything, and lifts the modules' bytes into its
+  own blocks immediately after — the table is never read again.
+  (Bench discipline for building on this language's bare target,
+  recorded so the next builder does not rediscover it the hard way.)

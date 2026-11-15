@@ -1,0 +1,255 @@
+// The welcome guest — Cardnull OS 2's first guest
+// (Stone 5). This program is never booted: it is built with
+// `niflac --bare --guest` into a flat image, laid on a disk,
+// and loaded, checked, and called by the system through the
+// guest door. It is linked for the doorstep at 2 MiB; the
+// host copies its image there only after the image's bytes
+// have matched the card that describes them.
+//
+// A guest does not own the machine: the timer, the keyboard,
+// the memory map, and the disk stay with the host, and asking
+// for them here is refused before the program is even built.
+// What a guest is handed is a desk: the screen to draw on,
+// one number in, and the way back — when this program ends
+// it does not stop the machine, it returns to the host,
+// leaving a parting number with guestgive().
+//
+// The drawing below is this guest's own, in one floor block
+// that is handed nothing. It would have been natural to
+// share the system's screen library, or to hand this block
+// the guest's lines as text — but as the language stands,
+// neither works inside a guest: the library's tools hand
+// their arguments onward to their floor blocks, which a
+// guest build refuses; and a floor block in a guest that IS
+// handed a piece of text or a block of bytes is given a
+// desk whose length reads as zero, so nothing can be copied
+// from it (measured on the bench both ways; the system's
+// own floor blocks, handed the same things, work). So the
+// guest writes its letters one by one, each value below
+// being a letter wearing this guest's color — 0x2F, white
+// on green, in the high byte, the letter's own code in the
+// low — with each line quoted above the run that writes it.
+// The panel stands at rows 15-19, columns 14-65 (it begins
+// at screen address 0xB897C); the lines begin at column 16
+// of rows 16, 17, and 18.
+
+let gift = guestvalue()
+
+floor() {
+    mov rdi, 0xB897C
+    mov r8, 5
+wg_rows:
+    mov rcx, 52
+    mov ax, 0x2F20
+    rep stosw
+    add rdi, 56
+    dec r8
+    jnz wg_rows
+    mov rdi, 0xB8A20
+    // "A guest is visiting"
+    mov ax, 0x2F41
+    stosw
+    mov ax, 0x2F20
+    stosw
+    mov ax, 0x2F67
+    stosw
+    mov ax, 0x2F75
+    stosw
+    mov ax, 0x2F65
+    stosw
+    mov ax, 0x2F73
+    stosw
+    mov ax, 0x2F74
+    stosw
+    mov ax, 0x2F20
+    stosw
+    mov ax, 0x2F69
+    stosw
+    mov ax, 0x2F73
+    stosw
+    mov ax, 0x2F20
+    stosw
+    mov ax, 0x2F76
+    stosw
+    mov ax, 0x2F69
+    stosw
+    mov ax, 0x2F73
+    stosw
+    mov ax, 0x2F69
+    stosw
+    mov ax, 0x2F74
+    stosw
+    mov ax, 0x2F69
+    stosw
+    mov ax, 0x2F6E
+    stosw
+    mov ax, 0x2F67
+    stosw
+    add rdi, 122
+    // "Hello. I am a small program, here as a guest."
+    mov ax, 0x2F48
+    stosw
+    mov ax, 0x2F65
+    stosw
+    mov ax, 0x2F6C
+    stosw
+    mov ax, 0x2F6C
+    stosw
+    mov ax, 0x2F6F
+    stosw
+    mov ax, 0x2F2E
+    stosw
+    mov ax, 0x2F20
+    stosw
+    mov ax, 0x2F49
+    stosw
+    mov ax, 0x2F20
+    stosw
+    mov ax, 0x2F61
+    stosw
+    mov ax, 0x2F6D
+    stosw
+    mov ax, 0x2F20
+    stosw
+    mov ax, 0x2F61
+    stosw
+    mov ax, 0x2F20
+    stosw
+    mov ax, 0x2F73
+    stosw
+    mov ax, 0x2F6D
+    stosw
+    mov ax, 0x2F61
+    stosw
+    mov ax, 0x2F6C
+    stosw
+    mov ax, 0x2F6C
+    stosw
+    mov ax, 0x2F20
+    stosw
+    mov ax, 0x2F70
+    stosw
+    mov ax, 0x2F72
+    stosw
+    mov ax, 0x2F6F
+    stosw
+    mov ax, 0x2F67
+    stosw
+    mov ax, 0x2F72
+    stosw
+    mov ax, 0x2F61
+    stosw
+    mov ax, 0x2F6D
+    stosw
+    mov ax, 0x2F2C
+    stosw
+    mov ax, 0x2F20
+    stosw
+    mov ax, 0x2F68
+    stosw
+    mov ax, 0x2F65
+    stosw
+    mov ax, 0x2F72
+    stosw
+    mov ax, 0x2F65
+    stosw
+    mov ax, 0x2F20
+    stosw
+    mov ax, 0x2F61
+    stosw
+    mov ax, 0x2F73
+    stosw
+    mov ax, 0x2F20
+    stosw
+    mov ax, 0x2F61
+    stosw
+    mov ax, 0x2F20
+    stosw
+    mov ax, 0x2F67
+    stosw
+    mov ax, 0x2F75
+    stosw
+    mov ax, 0x2F65
+    stosw
+    mov ax, 0x2F73
+    stosw
+    mov ax, 0x2F74
+    stosw
+    mov ax, 0x2F2E
+    stosw
+    add rdi, 70
+    // "I was checked first, and I am whole."
+    mov ax, 0x2F49
+    stosw
+    mov ax, 0x2F20
+    stosw
+    mov ax, 0x2F77
+    stosw
+    mov ax, 0x2F61
+    stosw
+    mov ax, 0x2F73
+    stosw
+    mov ax, 0x2F20
+    stosw
+    mov ax, 0x2F63
+    stosw
+    mov ax, 0x2F68
+    stosw
+    mov ax, 0x2F65
+    stosw
+    mov ax, 0x2F63
+    stosw
+    mov ax, 0x2F6B
+    stosw
+    mov ax, 0x2F65
+    stosw
+    mov ax, 0x2F64
+    stosw
+    mov ax, 0x2F20
+    stosw
+    mov ax, 0x2F66
+    stosw
+    mov ax, 0x2F69
+    stosw
+    mov ax, 0x2F72
+    stosw
+    mov ax, 0x2F73
+    stosw
+    mov ax, 0x2F74
+    stosw
+    mov ax, 0x2F2C
+    stosw
+    mov ax, 0x2F20
+    stosw
+    mov ax, 0x2F61
+    stosw
+    mov ax, 0x2F6E
+    stosw
+    mov ax, 0x2F64
+    stosw
+    mov ax, 0x2F20
+    stosw
+    mov ax, 0x2F49
+    stosw
+    mov ax, 0x2F20
+    stosw
+    mov ax, 0x2F61
+    stosw
+    mov ax, 0x2F6D
+    stosw
+    mov ax, 0x2F20
+    stosw
+    mov ax, 0x2F77
+    stosw
+    mov ax, 0x2F68
+    stosw
+    mov ax, 0x2F6F
+    stosw
+    mov ax, 0x2F6C
+    stosw
+    mov ax, 0x2F65
+    stosw
+    mov ax, 0x2F2E
+    stosw
+}
+guestgive(gift + gift)

@@ -32,9 +32,17 @@ fi
 "$NIFLA_REPO/niflac" --bare src/cardnull.nifla $PRELUDE -o build/cardnull.elf
 
 if [ -f src/welcome-guest.nifla ]; then
-    # shellcheck disable=SC2086
-    "$NIFLA_REPO/niflac" --bare --guest src/welcome-guest.nifla $PRELUDE -o build/guest.bin
+    # The guest is built WITHOUT the screen-library prelude:
+    # as the language stands, a guest's floor blocks must be
+    # handed plainly-shaped values where they are handed, and
+    # the library's parameterized floor tools are refused in a
+    # guest build even when uncalled. The guest carries its
+    # own drawing code. (See src/welcome-guest.nifla.)
+    "$NIFLA_REPO/niflac" --bare --guest src/welcome-guest.nifla -o build/guest.bin
     echo "Built build/guest.bin (the welcome guest)"
+    # The two small modules that ride beside it on the disc:
+    # the settings and the guest's card (Stones 4 and 5).
+    python3 tools/make-modules.py build/guest.bin build/settings.bin build/card.bin
 fi
 
 echo "Built build/cardnull.elf (Cardnull OS 2)"
