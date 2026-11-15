@@ -1,0 +1,754 @@
+# Cardnull's own doorman — the BIOS boot loader of
+# Cardnull OS 2 (Stone 11). Public domain, like everything
+# in Cardnull.
+#
+# This is the disc's BIOS door: an El Torito no-emulation
+# boot image. The firmware loads the whole image at
+# 0x7C00 (the catalog's load size spans it), and this code
+# does the rest, in the open:
+#
+#   1. It reads the disc itself, through the BIOS's own
+#      disc services (int 13h, the extended read), walking
+#      the ISO9660 filesystem from the primary volume
+#      descriptor: root directory, then BOOT, then the
+#      four files — CARDNULL.ELF, SETTINGS.BIN, CARD.BIN,
+#      GUEST.BIN — each staged in low memory.
+#   2. It asks the machine its memory map (int 15h, E820)
+#      and lays the multiboot information down: the map,
+#      the memory figures, and a module table for the
+#      three modules that ride with the system.
+#   3. When the system's own header asks for a picture
+#      screen (the multiboot video request, Stone 9), it
+#      sets the matching VESA mode with its linear
+#      framebuffer and writes the grant into the
+#      information — address, pitch, size, and the color
+#      fields' places — exactly as the loader before it
+#      did. When the header does not ask, the machine
+#      stays in its text mode and no grant is written.
+#   4. It opens the A20 line, steps into 32-bit protected
+#      mode with paging off, lays the system's ELF
+#      segments where they belong and the modules above
+#      them, and hands over: the multiboot mark in EAX,
+#      the information's address in EBX, interrupts off.
+#
+# It borrows nothing at the door: no GRUB stands here any
+# more. (The disc's EFI door still opens through GRUB —
+# its own replacement is a future stone, and the README
+# says so plainly.) If anything it needs is not found —
+# the disc services, a file, the system's shape — it says
+# so on the screen in plain words and stops, rather than
+# handing over a machine half-laid.
+#
+# Memory, while the doorman works (all low, all its own):
+#   0x1000  one disc sector, read and re-read
+#   0x2000  the VESA information blocks
+#   0x4000  the multiboot information
+#   0x4400  the module table (three entries)
+#   0x4800  the memory map, as the BIOS gave it
+#   0x7C00  this loader (its stack grows down from here)
+#   0x40000 the system file, staged (up to 192 KiB)
+#   0x60000 the settings module, staged
+#   0x61000 the guest's card, staged
+#   0x62000 the guest, staged (up to 56 KiB)
+# (The stages stand ABOVE the system's stage: the system
+# is some 123 KiB, so its stage reaches past 0x5E000 —
+# the modules' stages must not sit inside it, or their
+# sector reads would splash over the system's own tail.)
+# and on the far side of the step into protected mode:
+#   0x300000 the three modules, laid in a row
+#
+# Assembled flat and linked at 0x7C00 by build-iso.sh.
+
+    .intel_syntax noprefix
+    .code16
+    .text
+    .globl _start
+_start:
+    cli
+    xor ax, ax
+    mov ds, ax
+    mov es, ax
+    mov ss, ax
+    mov sp, 0x7C00
+    sti
+    mov [bootdrive], dl
+
+    # The extended disc services are the road in.
+    mov ah, 0x41
+    mov bx, 0x55AA
+    mov dl, [bootdrive]
+    int 0x13
+    jc fail_services
+    cmp bx, 0xAA55
+    jne fail_services
+
+    # A20: the fast gate at port 0x92.
+    in al, 0x92
+    or al, 2
+    and al, 0xFE
+    out 0x92, al
+
+    # ---- the volume descriptor: LBA 16 ----
+    mov word ptr [dap_count], 1
+    mov word ptr [dap_buf_off], 0x1000
+    mov word ptr [dap_buf_seg], 0
+    mov dword ptr [dap_lba], 16
+    mov dword ptr [dap_lba + 4], 0
+    call read_dap
+    jc fail_disc
+    cmp byte ptr [0x1000], 1
+    jne fail_disc
+    # (the "CD001" mark, checked byte by byte)
+    cmp byte ptr [0x1001], 0x43   # 'C'
+    jne fail_disc
+    cmp byte ptr [0x1002], 0x44   # 'D'
+    jne fail_disc
+    cmp byte ptr [0x1003], 0x30   # '0'
+    jne fail_disc
+    cmp byte ptr [0x1004], 0x30   # '0'
+    jne fail_disc
+    cmp byte ptr [0x1005], 0x31   # '1'
+    jne fail_disc
+
+    # The root directory's record stands at 0x1000 + 156:
+    # its extent (LBA) at +2, its length at +10.
+    mov eax, dword ptr [0x1000 + 156 + 2]
+    mov [dir_lba], eax
+    mov eax, dword ptr [0x1000 + 156 + 10]
+    mov [dir_len], eax
+
+    # Find BOOT in the root.
+    mov si, offset name_boot
+    call find_in_dir
+    jc fail_files
+    mov [dir_lba], eax
+    mov eax, [found_len]
+    mov [dir_len], eax
+
+    # The four files, each staged.
+    mov si, offset name_kernel
+    call find_in_dir
+    jc fail_files
+    mov edi, 0x40000
+    call stage_file
+    jc fail_disc
+    mov eax, [found_len]
+    mov [kernel_len], eax
+
+    mov si, offset name_settings
+    call find_in_dir
+    jc fail_files
+    mov edi, 0x60000
+    call stage_file
+    jc fail_disc
+    mov eax, [found_len]
+    mov [settings_len], eax
+
+    mov si, offset name_card
+    call find_in_dir
+    jc fail_files
+    mov edi, 0x61000
+    call stage_file
+    jc fail_disc
+    mov eax, [found_len]
+    mov [card_len], eax
+
+    mov si, offset name_guest
+    call find_in_dir
+    jc fail_files
+    mov edi, 0x62000
+    call stage_file
+    jc fail_disc
+    mov eax, [found_len]
+    mov [guest_len], eax
+
+    # ---- the memory map (int 15h, E820) ----
+    # Each entry is laid in the multiboot shape: a size
+    # word (20) first, then the BIOS's own twenty bytes.
+    mov di, 0x4800
+    xor ebx, ebx
+    mov dword ptr [mmap_count], 0
+mmap_loop:
+    mov dword ptr [di], 20
+    add di, 4
+    mov eax, 0xE820
+    mov ecx, 20
+    mov edx, 0x534D4150
+    int 0x15
+    jc mmap_drop
+    cmp eax, 0x534D4150
+    jne mmap_drop
+    add di, 20
+    inc dword ptr [mmap_count]
+    test ebx, ebx
+    jnz mmap_loop
+    jmp mmap_done
+mmap_drop:
+    sub di, 4
+mmap_done:
+    # mem_lower: KiB below 1 MiB, from the BIOS's own word.
+    mov ah, 0x88
+    int 0x15
+    jc mmap_fig_default
+    mov [mem_upper_kb], ax
+    jmp mmap_fig_done
+mmap_fig_default:
+    mov word ptr [mem_upper_kb], 0
+mmap_fig_done:
+
+    # ---- does the system ask for a picture? ----
+    # Its multiboot header stands in the staged file's
+    # first 8192 bytes (the file begins with its ELF
+    # header; the multiboot header rides in its first
+    # segment): the mark 0x1BADB002, then its flags; the
+    # third flag (4) is the video request, and the asked
+    # shape stands at +32/+36/+40 from the mark.
+    mov dword ptr [want_video], 0
+    mov ax, 0x4000
+    mov es, ax
+    xor di, di
+    mov ecx, 8192
+mark_scan:
+    cmp dword ptr es:[di], 0x1BADB002
+    je mark_found
+    add di, 4
+    sub ecx, 4
+    jnz mark_scan
+    jmp video_decided
+mark_found:
+    mov [mb_off], di
+    mov eax, dword ptr es:[di + 4]
+    test eax, 4
+    jz video_decided
+    mov dword ptr [want_video], 1
+video_decided:
+    xor ax, ax
+    mov es, ax
+
+    cmp dword ptr [want_video], 0
+    je info_lay
+    call try_video
+    # try_video sets video_ok when a mode was set and its
+    # grant recorded into the fb_* words below.
+
+info_lay:
+    # ---- the multiboot information, at 0x4000 ----
+    xor ax, ax
+    mov es, ax
+    mov di, 0x4000
+    mov cx, 64
+    xor ax, ax
+    rep stosw
+    # flags: memory (1) + modules (8) + map (64); the
+    # picture grant adds 4096 when a mode was set.
+    mov eax, 73
+    cmp dword ptr [video_ok], 0
+    je info_flags_done
+    or eax, 4096
+info_flags_done:
+    mov dword ptr [0x4000], eax
+    mov dword ptr [0x4004], 640
+    mov eax, 0
+    mov ax, [mem_upper_kb]
+    mov dword ptr [0x4008], eax
+    mov dword ptr [0x4014], 3          # mods_count (+20)
+    mov dword ptr [0x4018], 0x4400     # mods_addr (+24)
+    mov eax, [mmap_count]
+    imul eax, 24
+    mov dword ptr [0x402C], eax        # mmap_length (+44)
+    mov dword ptr [0x4030], 0x4800     # mmap_addr (+48)
+    # The module table: three entries of start, end, and
+    # two quiet words. The modules are laid at 0x300000
+    # on the far side; their lengths are known now.
+    mov eax, 0x300000
+    mov dword ptr [0x4400], eax
+    add eax, [settings_len]
+    mov dword ptr [0x4404], eax
+    mov dword ptr [0x4408], 0
+    mov dword ptr [0x440C], 0
+    mov dword ptr [0x4410], eax
+    add eax, [card_len]
+    mov dword ptr [0x4414], eax
+    mov dword ptr [0x4418], 0
+    mov dword ptr [0x441C], 0
+    mov dword ptr [0x4420], eax
+    add eax, [guest_len]
+    mov dword ptr [0x4424], eax
+    mov dword ptr [0x4428], 0
+    mov dword ptr [0x442C], 0
+    # The picture grant's fields, when there is one.
+    cmp dword ptr [video_ok], 0
+    je info_done
+    mov eax, [fb_addr]
+    mov dword ptr [0x4058], eax
+    mov dword ptr [0x405C], 0
+    mov eax, [fb_pitch]
+    mov dword ptr [0x4060], eax
+    mov eax, [fb_width]
+    mov dword ptr [0x4064], eax
+    mov eax, [fb_height]
+    mov dword ptr [0x4068], eax
+    mov al, [fb_bpp]
+    mov byte ptr [0x406C], al
+    mov byte ptr [0x406D], 1           # type: direct color
+    mov al, [fb_rpos]
+    mov byte ptr [0x4070], al
+    mov al, [fb_rsize]
+    mov byte ptr [0x4071], al
+    mov al, [fb_gpos]
+    mov byte ptr [0x4072], al
+    mov al, [fb_gsize]
+    mov byte ptr [0x4073], al
+    mov al, [fb_bpos]
+    mov byte ptr [0x4074], al
+    mov al, [fb_bsize]
+    mov byte ptr [0x4075], al
+info_done:
+
+    # ---- the step into 32-bit protected mode ----
+    cli
+    lgdt [gdtr]
+    mov eax, cr0
+    or eax, 1
+    mov cr0, eax
+    jmp 0x08:pm_entry
+
+# ----------------------------------------------------------------
+# read_dap: one read through the packet at 'dap'.
+# Carries the BIOS's own verdict in the carry flag.
+read_dap:
+    mov si, offset dap
+    mov ah, 0x42
+    mov dl, [bootdrive]
+    int 0x13
+    ret
+
+# ----------------------------------------------------------------
+# find_in_dir: SI names the file (a counted, NUL-ended name
+# in this loader's data, compared against each record's
+# name up to any ';' — the disc's version mark). The
+# directory is [dir_lba]/[dir_len]. On success: carry
+# clear, EAX = the file's extent LBA, [found_len] its
+# length. On failure: carry set.
+find_in_dir:
+    mov [want_name], si
+    mov eax, [dir_lba]
+    mov [scan_lba], eax
+    mov eax, [dir_len]
+    mov [scan_left], eax
+scan_sector:
+    cmp dword ptr [scan_left], 0
+    jle scan_fail
+    mov word ptr [dap_count], 1
+    mov word ptr [dap_buf_off], 0x1000
+    mov word ptr [dap_buf_seg], 0
+    mov eax, [scan_lba]
+    mov dword ptr [dap_lba], eax
+    mov dword ptr [dap_lba + 4], 0
+    call read_dap
+    jc scan_fail
+    mov bx, 0x1000
+scan_record:
+    mov al, byte ptr [bx]
+    test al, al
+    jz scan_sector_next
+    # Compare the record's name (at +33, counted at +32)
+    # with the wanted name, up to ';' or the count's end.
+    mov si, [want_name]
+    lea di, [bx + 33]
+    movzx cx, byte ptr [bx + 32]
+scan_cmp:
+    test cx, cx
+    jz scan_cmp_end
+    mov al, byte ptr [di]
+    cmp al, 0x3B          # ';'
+    je scan_cmp_end
+    cmp al, byte ptr [si]
+    jne scan_next
+    inc si
+    inc di
+    dec cx
+    jmp scan_cmp
+scan_cmp_end:
+    cmp byte ptr [si], 0
+    jne scan_next
+    # A match: extent at +2, length at +10.
+    mov eax, dword ptr [bx + 2]
+    mov edx, dword ptr [bx + 10]
+    mov [found_len], edx
+    clc
+    ret
+scan_next:
+    movzx ax, byte ptr [bx]
+    add bx, ax
+    cmp bx, 0x1800
+    jb scan_record
+scan_sector_next:
+    inc dword ptr [scan_lba]
+    sub dword ptr [scan_left], 2048
+    jmp scan_sector
+scan_fail:
+    stc
+    ret
+
+# ----------------------------------------------------------------
+# stage_file: EAX = the file's extent LBA, [found_len] its
+# length, EDI = the flat staging address (a multiple of
+# 64 KiB in segment terms: 0x40000, 0x60000, ...). Reads
+# the file a sector at a time into its stage.
+stage_file:
+    mov [stage_lba], eax
+    mov eax, edi
+    shr eax, 4
+    mov [stage_seg], ax
+    mov word ptr [stage_off], 0
+    mov eax, [found_len]
+    add eax, 2047
+    shr eax, 11
+    mov [stage_left], eax
+stage_loop:
+    cmp dword ptr [stage_left], 0
+    je stage_done
+    mov word ptr [dap_count], 1
+    mov ax, [stage_off]
+    mov word ptr [dap_buf_off], ax
+    mov ax, [stage_seg]
+    mov word ptr [dap_buf_seg], ax
+    mov eax, [stage_lba]
+    mov dword ptr [dap_lba], eax
+    mov dword ptr [dap_lba + 4], 0
+    call read_dap
+    jc stage_fail
+    inc dword ptr [stage_lba]
+    add word ptr [stage_off], 2048
+    jnz stage_no_wrap
+    add word ptr [stage_seg], 0x1000
+stage_no_wrap:
+    dec dword ptr [stage_left]
+    jmp stage_loop
+stage_done:
+    clc
+    ret
+stage_fail:
+    stc
+    ret
+
+# ----------------------------------------------------------------
+# try_video: find and set the VESA mode the system's
+# header asks for (its width/height/depth at the staged
+# file's +36/+40/+44), with the linear framebuffer. On
+# success [video_ok] = 1 and the fb_* words hold the
+# grant; on any failure the machine simply stays as it
+# is, in text mode, and [video_ok] stays 0 — the system
+# will draw its text face, as it honestly does when no
+# picture is granted.
+try_video:
+    mov dword ptr [video_ok], 0
+    # The controller's word (int 10h, AX=4F00).
+    mov ax, 0x4F00
+    mov di, 0x2000
+    int 0x10
+    cmp ax, 0x004F
+    jne video_out
+    cmp dword ptr [0x2000], 0x41534556   # "VESA"
+    jne video_out
+    # The mode list: a far pointer at +14.
+    mov ax, [0x2000 + 16]
+    mov [mode_ptr_seg], ax
+    mov ax, [0x2000 + 14]
+    mov [mode_ptr_off], ax
+video_mode_loop:
+    mov es, [mode_ptr_seg]
+    mov bx, [mode_ptr_off]
+    mov ax, word ptr es:[bx]
+    cmp ax, 0xFFFF
+    je video_out
+    add word ptr [mode_ptr_off], 2
+    mov [mode_try], ax
+    # The mode's own word (AX=4F01) — its block is written
+    # to ES:DI, so ES goes back to this loader's own page
+    # first.
+    mov cx, ax
+    xor ax, ax
+    mov es, ax
+    mov ax, 0x4F01
+    mov di, 0x2200
+    int 0x10
+    cmp ax, 0x004F
+    jne video_mode_loop
+    # Its shape against the asking (the staged system's
+    # header, read through its own segment, at the offset
+    # the mark was found):
+    push es
+    mov ax, 0x4000
+    mov es, ax
+    mov di, [mb_off]
+    mov dx, word ptr es:[di + 36]
+    mov [ask_width], dx
+    mov dx, word ptr es:[di + 40]
+    mov [ask_height], dx
+    pop es
+    mov ax, [0x2200 + 18]
+    cmp ax, [ask_width]
+    jne video_mode_loop
+    mov ax, [0x2200 + 20]
+    cmp ax, [ask_height]
+    jne video_mode_loop
+    cmp byte ptr [0x2200 + 25], 32
+    jne video_mode_loop
+    # Attributes: supported (1) and a linear framebuffer
+    # offered (128); memory model 6 (direct color).
+    mov ax, [0x2200]
+    test ax, 1
+    jz video_mode_loop
+    test ax, 128
+    jz video_mode_loop
+    cmp byte ptr [0x2200 + 27], 6
+    jne video_mode_loop
+    # This is the mode. Set it, with its framebuffer.
+    mov bx, [mode_try]
+    or bx, 0x4000
+    mov ax, 0x4F02
+    int 0x10
+    cmp ax, 0x004F
+    jne video_out
+    # Record the grant.
+    mov eax, dword ptr [0x2200 + 40]
+    mov [fb_addr], eax
+    movzx eax, word ptr [0x2200 + 16]
+    mov [fb_pitch], eax
+    movzx eax, word ptr [0x2200 + 18]
+    mov [fb_width], eax
+    movzx eax, word ptr [0x2200 + 20]
+    mov [fb_height], eax
+    mov byte ptr [fb_bpp], 32
+    mov al, [0x2200 + 32]
+    mov [fb_rpos], al
+    mov al, [0x2200 + 31]
+    mov [fb_rsize], al
+    mov al, [0x2200 + 34]
+    mov [fb_gpos], al
+    mov al, [0x2200 + 33]
+    mov [fb_gsize], al
+    mov al, [0x2200 + 36]
+    mov [fb_bpos], al
+    mov al, [0x2200 + 35]
+    mov [fb_bsize], al
+    mov dword ptr [video_ok], 1
+video_out:
+    xor ax, ax
+    mov es, ax
+    ret
+
+# ----------------------------------------------------------------
+# The failure words: plain, on the text screen, and stop.
+fail_services:
+    mov si, offset msg_services
+    jmp fail_say
+fail_disc:
+    mov si, offset msg_disc
+    jmp fail_say
+fail_files:
+    mov si, offset msg_files
+    jmp fail_say
+fail_say:
+    mov ax, 0xB800
+    mov es, ax
+    xor di, di
+    mov ah, 0x07
+fail_char:
+    lodsb
+    test al, al
+    jz fail_stop
+    stosw
+    jmp fail_char
+fail_stop:
+    cli
+    hlt
+    jmp fail_stop
+
+# ----------------------------------------------------------------
+# 32-bit protected mode: lay the system, lay the modules,
+# hand over.
+    .code32
+pm_entry:
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+    mov esp, 0x8F000
+
+    # The system's segments, from its ELF header at its
+    # stage (0x40000): program headers at e_phoff (+28),
+    # of e_phentsize (+42) bytes, e_phnum (+44) of them.
+    # Each PT_LOAD (type 1): copy p_filesz (+16) bytes
+    # from stage + p_offset (+4) to p_paddr (+12), and
+    # wipe the rest of p_memsz (+20).
+    mov esi, 0x40000
+    movzx ecx, word ptr [esi + 44]
+    movzx eax, word ptr [esi + 42]
+    mov edx, dword ptr [esi + 28]
+    add edx, esi
+ph_loop:
+    test ecx, ecx
+    jz ph_done
+    cmp dword ptr [edx], 1
+    jne ph_next
+    push ecx
+    push edx
+    mov esi, 0x40000
+    add esi, dword ptr [edx + 4]
+    mov edi, dword ptr [edx + 12]
+    mov ecx, dword ptr [edx + 16]
+    rep movsb
+    mov ecx, dword ptr [edx + 20]
+    sub ecx, dword ptr [edx + 16]
+    xor eax, eax
+    rep stosb
+    pop edx
+    pop ecx
+ph_next:
+    movzx eax, word ptr [0x40000 + 42]
+    add edx, eax
+    dec ecx
+    jmp ph_loop
+ph_done:
+
+    # The modules, in a row at 0x300000.
+    mov esi, 0x60000
+    mov edi, 0x300000
+    mov ecx, [settings_len]
+    rep movsb
+    mov esi, 0x61000
+    mov ecx, [card_len]
+    rep movsb
+    mov esi, 0x62000
+    mov ecx, [guest_len]
+    rep movsb
+
+    # Hand over.
+    mov eax, dword ptr [0x40000 + 24]   # the entry
+    mov ebx, 0x4000
+    mov ecx, 0x2BADB002
+    xchg eax, ecx
+    jmp ecx
+
+# ----------------------------------------------------------------
+# The gate's table.
+    .align 8
+gdt:
+    .quad 0
+    .quad 0x00CF9A000000FFFF   # code: flat, 32-bit
+    .quad 0x00CF92000000FFFF   # data: flat
+gdtr:
+    .word 23
+    .long gdt
+
+# The disc address packet.
+    .align 4
+dap:
+    .byte 16
+    .byte 0
+dap_count:
+    .word 0
+dap_buf_off:
+    .word 0
+dap_buf_seg:
+    .word 0
+dap_lba:
+    .quad 0
+
+# The doorman's own keeping.
+bootdrive:
+    .byte 0
+    .align 4
+dir_lba:
+    .long 0
+dir_len:
+    .long 0
+found_len:
+    .long 0
+want_name:
+    .word 0
+scan_lba:
+    .long 0
+scan_left:
+    .long 0
+stage_lba:
+    .long 0
+stage_seg:
+    .word 0
+stage_off:
+    .word 0
+stage_left:
+    .long 0
+kernel_len:
+    .long 0
+settings_len:
+    .long 0
+card_len:
+    .long 0
+guest_len:
+    .long 0
+mmap_count:
+    .long 0
+mem_upper_kb:
+    .word 0
+want_video:
+    .long 0
+video_ok:
+    .long 0
+mode_ptr_off:
+    .word 0
+mode_ptr_seg:
+    .word 0
+mode_try:
+    .word 0
+mb_off:
+    .word 0
+ask_width:
+    .word 0
+ask_height:
+    .word 0
+fb_addr:
+    .long 0
+fb_pitch:
+    .long 0
+fb_width:
+    .long 0
+fb_height:
+    .long 0
+fb_bpp:
+    .byte 0
+fb_rpos:
+    .byte 0
+fb_rsize:
+    .byte 0
+fb_gpos:
+    .byte 0
+fb_gsize:
+    .byte 0
+fb_bpos:
+    .byte 0
+fb_bsize:
+    .byte 0
+
+name_boot:
+    .asciz "BOOT"
+name_kernel:
+    .asciz "CARDNULL.ELF"
+name_settings:
+    .asciz "SETTINGS.BIN"
+name_card:
+    .asciz "CARD.BIN"
+name_guest:
+    .asciz "GUEST.BIN"
+
+msg_services:
+    .asciz "Cardnull could not start: this machine's disc services are not the extended kind it needs."
+msg_disc:
+    .asciz "Cardnull could not start: the disc could not be read as its own."
+msg_files:
+    .asciz "Cardnull could not start: the disc does not carry the system whole."

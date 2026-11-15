@@ -507,6 +507,81 @@ Proven by the shipped proofs that cover the guest —
 in light, at both doors) — all PASS with the guest in
 its new shape.
 
+### Stone 11 — Our own doorman
+
+The BIOS door is Cardnull's own now. `boot/cardnull-boot.asm`
+is a bootloader written for this repository (assembly,
+public domain like everything here): one stage of some
+1,950 bytes that the El Torito catalog lays at the
+doorstep whole. It checks the machine's extended disc
+services, walks the disc's own ISO9660 tree to find
+`/boot/cardnull.elf` and the three modules, stages them
+in low memory, gathers the machine's memory map in
+multiboot shape, and — when the system's header asks
+for a picture — finds and sets the VESA mode that
+matches the asking and records the grant. Then it steps
+into protected mode, lays the system's ELF segments and
+the modules where the multiboot word expects them, and
+hands over exactly as GRUB did: the magic in EAX, the
+information (flags, memory, the module table, the map,
+and the framebuffer fields when granted) at 0x4000, the
+entry from the system's own header. When something is
+missing it says so in plain words on the text screen —
+"Cardnull could not start: …" — and halts; it never
+guesses.
+
+What stands at each door after this stone, plainly:
+**the BIOS door is Cardnull's own bootloader; the EFI
+door is still GRUB** (its own replacement is a future
+stone). GRUB's BIOS image is gone from the disc — the
+El Torito catalog's BIOS image is `/boot/boot.img`, this
+loader and nothing else. One bench finding rides with
+the EFI door: its GRUB resolves its root to the disc
+itself, so it reads its seven lines of directions from
+the disc's own `/boot/grub/grub.cfg`; that text file
+stands on the disc for it, and a copy rides in the EFI
+partition as well. It is directions, not a piece of
+GRUB, and the BIOS door never touches it.
+
+Two wounds from the building are recorded because they
+are the kind that bite quietly. The loader first wrote
+the module count and table address at offsets +28 and
++32 in the boot information, where the system reads
+them at +20 and +24: the
+system came up but read no modules at all — the disc's
+time choice silently became the built-in default, and
+there was "no guest on this disc". And the modules'
+first staging addresses (0x50000 and upward) sat inside
+the system's own stage — the system is some 123 KiB, so
+its stage reaches past 0x5E000 — and each module's
+sector read splashed 2,048 bytes over the staged
+system's tail. The text face survived it by luck (the
+splashed bytes are largely the system's own, from
+nearby in the disc's stream); the drawn face did not —
+its font and layout code stands in that tail, and the
+machine fell executing the settings module's letters.
+The stages now stand at 0x60000 and upward, above the
+system's stage, and the staged bytes were verified
+against the file byte for byte on the bench.
+
+Proven by booting the finished ISO itself:
+`prove-iso.sh` (the text face through our loader —
+desktop, the disc's carried time choice, the guest's
+visit, the world's-time variant, the tamper refusal)
+and `prove-stone9.sh` (the drawn desktop through our
+loader with the picture the loader itself granted, the
+refusal drawn in light, the text fallback, and the EFI
+door's boot unchanged) — all PASS, and the whole
+earlier set (Stones 3–8) still passes with them.
+
+Honest limits: the loader speaks the BIOS's extended
+disc services and ISO9660 only, and loads the four
+files it knows by name from `/boot`; the picture grant
+is VESA VBE on the BIOS door — a machine whose BIOS
+offers no matching mode gets the text face, said in
+plain words, exactly as before. The EFI door's own
+Cardnull loader is future work.
+
 ## The kernel's files
 
 The kernel is built as several files, never one big one — Tyler's
@@ -581,10 +656,10 @@ Cardnull OS 2 ships as **one disc and nothing else** — Tyler's word
 on the founding morning (November 15, 2026): "we should've built the
 iso from day one like the first OS." `./build-iso.sh` lays it:
 
-- `dist/cardnull-os-2.iso` — 9,050,112 bytes, as built November 15,
-  2026 (the hybrid disc of Stone 9: the framebuffer kernel, booting
-  through both the BIOS and the EFI doors).
-  sha256: `1f26f3c996076e8f9a12da108f56125c3d728eb9388c162b98a1b648d88d3f83`
+- `dist/cardnull-os-2.iso` — 8,904,704 bytes, as built November 15,
+  2026 (the disc of Stone 11: the framebuffer kernel, Cardnull's own
+  bootloader at the BIOS door, GRUB still at the EFI door).
+  sha256: `884f97380700d4a05ee0047a73772e68acf95f71bf156cde99d05ddf3fb52b53`
   (The ISO file itself is a build product and is not kept in this
   repository; the hash records the disc the proof below was run
   against, and `./build-iso.sh` rebuilds it.)
@@ -592,13 +667,16 @@ iso from day one like the first OS." `./build-iso.sh` lays it:
 On the disc: the system (`/boot/cardnull.elf`), the settings module,
 the guest's card, and the guest itself — everything Stones 4 and 5
 need rides as multiboot modules the loader brings with the system —
-plus the loader's own files under `/boot/grub/`, and the EFI system
-partition at `/boot/efi.img` carrying its own copies for the EFI
-door.
+plus `/boot/boot.img`, Cardnull's own bootloader (the El Torito
+catalog's BIOS image), the EFI system partition at `/boot/efi.img`
+carrying the EFI door's GRUB and its own copies, and one small text
+file, `/boot/grub/grub.cfg`: the directions the EFI door's GRUB
+reads from the disc, as Stone 11's section records.
 
-The loader is GRUB at both doors, named honestly: it is a means to
-boot the multiboot kernel, not part of Cardnull. Cardnull's own
-bootloader remains future work (the BIOS door's is Stone 11's).
+The doors, named honestly: **the BIOS door is Cardnull's own
+bootloader since Stone 11**; the EFI door still opens through
+GRUB, a means to boot the multiboot kernel, not part of Cardnull —
+its own Cardnull loader is future work.
 
 **To witness it in UTM:** make a new x86_64 machine, give it
 **4096 MB** of memory, attach `cardnull-os-2.iso` as the machine's
