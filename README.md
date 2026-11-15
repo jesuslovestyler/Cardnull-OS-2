@@ -54,6 +54,8 @@ To build the bootable witness disc (see "The witness disc" below):
 ```
 ./build-iso.sh        # makes dist/cardnull-os-2.iso
 ./prove-iso.sh        # boots the ISO itself, three ways, and reads the screens
+./prove-nowitness.sh  # boots the disc and the stick with NO input at all,
+                      # and watches the face paint (the witness fix)
 ./build-stick.sh      # makes dist/cardnull-stick.img (Stone 17)
 ```
 
@@ -1151,6 +1153,136 @@ including the Stone 5 door proof in its new shape: the
 feather as laid visits and goes home, and a copy with
 one byte flipped in its program is refused in plain
 words and never appears.
+
+## The witness fix (November 15, 2026)
+
+The adopted build was delivered to Tyler's Mac and
+witnessed in UTM that afternoon, and the witness found
+what the bench had not. At the SeaBIOS door: a black
+screen until he typed, and then the TEXT face — not the
+drawn desktop — with the welcome chime unheard. At the
+UEFI door: a black screen that typing could not wake at
+all. The founding Stones 1–5 disc, booted in the same
+setup that morning, had painted its face at once and
+worked throughout. All fifteen live proofs had passed
+on the witnessed build — because the proofs drive the
+machine with injected keys and read its memory or its
+screen afterwards, and a fault in the first paint, or
+in the road before it, is invisible to that method.
+The proofs' correction stands at the end of this entry;
+first, what was wrong.
+
+**The UEFI door was dead before the system was ever
+reached — proven, and reproduced on the bench.** The
+EFI doorman's last step, the handover
+(`boot/cardnull-efi-hand.S`), walks the machine down
+out of the firmware's 64-bit world: a far return
+through its gate lands it in 32-bit compatibility
+reach, where paging is turned off and the system is
+entered. That piece ran where the firmware had laid
+the doorman's own image, on its header's stated trust
+that "the firmware lays its applications in the
+machine's low memory, as the bench's firmware does."
+A firmware is free to lay the image ABOVE the
+four-billion line — and the bench's own firmware does
+exactly that on the q35 machine shape (image base
+about 0x140000000, the handover's gate table standing
+at 0x14003000, read back from the stopped machine). In
+compatibility reach an instruction pointer is
+thirty-two bits wide: the high half of the handover's
+address fell away at the far return, and the processor
+walked off into whatever stood at the truncated
+address, executing stray bytes in low memory with the
+firmware's page tables still standing. The system was
+never entered — no face, no chime, no answer to keys:
+the witness exactly. On the bench's ordinary machine
+shape the same firmware lays the image low, the
+truncation is harmless, and the door had always
+worked — which is why the bench never saw it.
+
+The fix: the handover now stands as one self-carrying
+piece — its code, its gate table, and the gate's
+pointer inside one span, every inner address reckoned
+from the instruction pointer at the run — and the
+doorman copies it whole onto a low page it claims for
+the purpose (0x8E000, claimed as loader code) and
+calls it there. The walking down now always stands on
+low ground of Cardnull's own choosing, wherever the
+firmware laid the rest. Two smaller faults at the same
+door were fixed beside it: the graphics mode search
+stopped one short of the firmware's last mode (the
+specification's MaxMode is the last mode's own number,
+not the count), so a firmware whose only matching
+picture stands last would have been refused a picture
+that was there; and a failure after the doorman has
+set its own picture now gives the firmware its own
+picture back before saying its words, because the
+firmware's text console keeps drawing in the mode that
+stood when the doorman arrived — words said into the
+doorman's mode could land on a screen nobody is shown.
+
+**The BIOS door: the grant walk was hardened where it
+was genuinely weak.** The bench could not make this
+door refuse on any firmware it has: SeaBIOS on both
+machine shapes and VMware's picture firmware grant
+the asked-for mode with the walk as it stood, and the
+one firmware that refuses (the Cirrus one) honestly
+offers no 1024x768x32 mode at all — measured mode by
+mode with a diagnostic doorman that recorded its own
+decisions — so the text fallback there is correct, and
+still stands. But the walk carried real hazards of
+exactly the witnessed shape, and they are fixed:
+both VESA information blocks are wiped before each
+asking (the grant was once read out of a block never
+cleared, so a mode's framebuffer address or pitch
+could be inherited from the mode asked before it);
+the controller is asked with the "VBE2" mark standing
+in its block, the standard's own way of asking for the
+full answer; the asked depth is read from the system's
+header instead of assumed; a mode whose block carries
+no framebuffer address is refused as no grant and the
+walk goes on; the pitch falls back to the block's
+linear scan-line field, then to the shape's own
+reckoning, when the plain field stands at nothing; a
+set is believed only when the firmware, asked which
+mode now stands, names the chosen one; and the walk
+is bounded, so a broken mode list cannot hang the
+door. The system itself now refuses a hollow grant
+too: a picture whose address is nothing at all no
+longer raises the face of light.
+
+Two parts of the witness the bench could not find in
+the machine, and they are recorded as such. The text
+face's wait for a keypress: on every firmware the
+bench has, the machine paints its face — either face —
+before any key is pressed (the new proof below watches
+it happen with empty hands), and the kernel's road to
+the first paint holds no wait a key could release;
+the wait lives in how the emulator's window presented
+the frame, not in what the machine drew. The welcome
+panel's clipped lines: the panel's drawing — its
+place, its size, its very words — is the founding
+build's own, unchanged since the morning disc that
+showed them whole; the clipping is of a piece with
+the wait, a matter of the presented frame, not of the
+drawing. And the chime's silence at the BIOS door
+stands under Stone 18's own caveat: an emulator may
+simply not route the personal computer's speaker. (At
+the UEFI door the silence needs no caveat: the
+machine never rose, so nothing could sound.)
+
+**The proofs changed, so this class cannot hide
+again.** `prove-nowitness.sh` joins the standing set:
+five boots of the shipped images — the disc at the
+BIOS door on both machine shapes, the disc at the EFI
+door on both, and the stick — sending NO key and NO
+mouse movement at all, only watching the screen until
+the drawn desktop stands on it. Before the fix, its
+fourth boot (the EFI door on q35) stayed pure black,
+the witness reproduced; now all five paint. The full
+regression stands on the fixed build: the fifteen
+live proofs pass, and the new no-input proof with
+them.
 
 ## The kernel's files
 

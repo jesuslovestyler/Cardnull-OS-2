@@ -26,13 +26,19 @@
 //      the modules in a row at 0x300000.
 //   4. It lays the system's ELF segments where they
 //      belong, leaves the firmware's services behind
-//      (ExitBootServices), steps down out of the
-//      firmware's 64-bit world into 32-bit protected
-//      mode with paging off (the handoff in
-//      cardnull-efi-hand.S), and hands over: the
+//      (ExitBootServices), and hands over through the
+//      handover piece (cardnull-efi-hand.S) copied onto
+//      a low page of its own claiming — the step down
+//      out of the firmware's 64-bit world into 32-bit
+//      protected mode with paging off — ending with the
 //      multiboot mark in EAX, the information's address
-//      in EBX, interrupts off — the very handover the
-//      BIOS door makes.
+//      in EBX, interrupts off: the very handover the
+//      BIOS door makes. (The handover runs from low
+//      ground of the doorman's own choosing since the
+//      witness fix: a firmware may lay this doorman's
+//      image above the four-billion line, and the step
+//      down cannot be walked from up there — see the
+//      handover's own header.)
 //
 // It borrows nothing at the door: no GRUB stands here
 // any more, at either door. If anything it needs is not
@@ -284,14 +290,27 @@ static u32 mask_size(u32 mask) {
     return s;
 }
 
-// The handoff itself, in cardnull-efi-hand.S: it never
+// The handover piece, in cardnull-efi-hand.S: a
+// self-carrying span — code, gate table, and the
+// gate's pointer — that this doorman copies onto a low
+// page of its own claiming and calls there. It never
 // returns.
-extern void cardnull_handoff(u32 entry, u32 info);
+extern char cardnull_tramp_start[];
+extern char cardnull_tramp_end[];
 
 // ---- the doorman's work ----
 
 static efi_system_table *st;
 static efi_boot_services *bs;
+
+// The graphics door, once opened, and the picture that
+// stood when the doorman arrived — kept here so a
+// failure after the doorman sets its own picture can
+// give the firmware its own picture back before the
+// failure words are said (see stop).
+static efi_gop *gop_saved;
+static u32 gop_home_mode;
+static int gop_mode_set;
 
 // Says one plain line on the firmware's screen — the
 // doorman's only words, and only on a failure road.
@@ -303,6 +322,20 @@ static void say(u16 *text) {
 }
 
 static void stop(u16 *why) {
+    // When the doorman has already set the picture the
+    // system asked for, the firmware's text console
+    // keeps drawing in the mode that stood when the
+    // doorman arrived — words said now would land on a
+    // screen nobody is shown. Give the firmware its own
+    // picture back first, so the words stand on the
+    // screen it draws. (Witness fix, November 15, 2026:
+    // a failure at this door must be sayable on every
+    // firmware, not only the ones whose console follows
+    // a stranger's mode set.)
+    if (gop_mode_set && gop_saved) {
+        gop_saved->set_mode(gop_saved, gop_home_mode);
+        gop_mode_set = 0;
+    }
     say(L"Cardnull could not start:");
     say(why);
     for (;;) {
@@ -343,11 +376,19 @@ static void read_file(efi_file *root, u16 *name, u8 **out, u64 *out_len) {
 // Claims the pages at a given address for the system's
 // use; a claim refused stops the machine, in plain
 // words — a half-laid machine is never handed over.
-static void claim(u64 address, u64 pages) {
+// Claims the pages at a given address for the system's
+// use, of the firmware memory kind named; a claim
+// refused stops the machine, in plain words — a
+// half-laid machine is never handed over.
+static void claim_as(u64 address, u64 pages, u32 mem_type) {
     u64 at = address;
-    if (bs->allocate_pages(2 /* at address */, 2 /* loader data */, pages, &at) != EFI_OK) {
+    if (bs->allocate_pages(2 /* at address */, mem_type, pages, &at) != EFI_OK) {
         stop(L"this machine's low memory is not free for the system.");
     }
+}
+
+static void claim(u64 address, u64 pages) {
+    claim_as(address, pages, 2 /* loader data */);
 }
 
 efi_status efi_main(efi_handle image, efi_system_table *table) {
@@ -411,9 +452,18 @@ efi_status efi_main(efi_handle image, efi_system_table *table) {
         if (bs->locate_protocol(&gop_guid, 0, (void **)&gop) != EFI_OK || gop == 0) {
             stop(L"this machine offers no picture screen.");
         }
+        gop_saved = gop;
+        gop_home_mode = gop->mode->mode;
         int chosen = -1;
         efi_gop_info *chosen_info = 0;
-        for (u32 m = 0; m < gop->mode->max_mode; m++) {
+        // The mode numbers run from 0 to the firmware's
+        // MaxMode — which is the LAST mode's own number,
+        // not the count of modes. The search once stopped
+        // one short of it, and on a firmware whose only
+        // matching picture stands last in its list, the
+        // door would have refused a picture that was
+        // there to grant. (Witness fix.)
+        for (u32 m = 0; m <= gop->mode->max_mode && m < 1024; m++) {
             u64 sz = 0;
             efi_gop_info *info = 0;
             if (gop->query_mode(gop, m, &sz, &info) != EFI_OK || info == 0) continue;
@@ -431,6 +481,7 @@ efi_status efi_main(efi_handle image, efi_system_table *table) {
         if (gop->set_mode(gop, (u32)chosen) != EFI_OK) {
             stop(L"this machine's picture screen would not be set.");
         }
+        gop_mode_set = 1;
         efi_gop_mode *gm = gop->mode;
         efi_gop_info *info = gm->info;
         fb_addr = gm->frame_buffer_base;
@@ -462,6 +513,23 @@ efi_status efi_main(efi_handle image, efi_system_table *table) {
     claim(0x8F000, 1);
     u64 mods_total = settings_len + feather_len;
     claim(0x300000, (mods_total + 4095) / 4096);
+
+    // The handover's own low page (witness fix): the
+    // step down out of the firmware's world is walked
+    // from a copy of the handover piece standing here,
+    // at an address of the doorman's own choosing,
+    // claimed as loader code so the firmware lets it be
+    // run — never from wherever the firmware happened
+    // to lay this doorman's image, which may stand
+    // above the four-billion line, where the step
+    // down's own addresses would be cut in half and the
+    // machine lost before the system is ever reached.
+    claim_as(0x8E000, 1, 1 /* loader code */);
+    u64 tramp_len = (u64)(cardnull_tramp_end - cardnull_tramp_start);
+    if (tramp_len == 0 || tramp_len > 4096) {
+        stop(L"the system's door is not shaped as its own.");
+    }
+    bytecopy((void *)0x8E000, cardnull_tramp_start, tramp_len);
 
     // The system's segments, claimed and laid: program
     // headers at +28 in its ELF header, of the size at
@@ -577,14 +645,14 @@ efi_status efi_main(efi_handle image, efi_system_table *table) {
         // The boot services were never left, so the
         // firmware's screen still answers: say so, and
         // stop. (Reaching here means eight takings of the
-        // map each went stale at the door.)
-        say(L"Cardnull could not start:");
-        say(L"the firmware would not let go of the machine.");
-        for (;;) {
-            __asm__ volatile ("hlt");
-        }
+        // map each went stale at the door.) stop gives
+        // the firmware its own picture back first, so
+        // the words are seen.
+        stop(L"the firmware would not let go of the machine.");
     }
 
-    cardnull_handoff(entry, 0x4000);
+    // The handover, called at its low copy: it never
+    // returns.
+    ((void (*)(u32, u32))(u64)0x8E000)(entry, 0x4000);
     return 0;  // never reached
 }

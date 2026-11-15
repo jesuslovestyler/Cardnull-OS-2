@@ -486,9 +486,45 @@ stage_fail:
 # is, in text mode, and [video_ok] stays 0 — the system
 # will draw its text face, as it honestly does when no
 # picture is granted.
+#
+# The witness fix (November 15, 2026) hardened this
+# walk against the ways one machine's picture firmware
+# honestly answers differently from another's:
+#   - Both information blocks are WIPED before each
+#     asking, and the controller is asked with the
+#     "VBE2" mark standing in its block, the standard's
+#     own way of asking for the full answer. A field a
+#     firmware does not write now reads as the nothing
+#     it is, never as a former mode's leavings — the
+#     walk once read its grant out of a block it had
+#     never cleared, so one mode's framebuffer address
+#     or pitch could be inherited by the next.
+#   - The depth asked for is read from the system's own
+#     header, as the width and height always were,
+#     instead of being assumed.
+#   - A mode whose block carries no framebuffer address
+#     is no grant at all (an older firmware's shape,
+#     which cannot be drawn on): the walk goes on.
+#   - The pitch is taken from the block's scan-line
+#     field; when that stands at nothing, from its
+#     linear scan-line field; when both stand at
+#     nothing, it is reckoned from the shape itself.
+#   - A set is believed only when the firmware, asked
+#     which mode now stands, names the chosen one (or
+#     cannot answer the asking at all, in which case
+#     the set's own success is the evidence there is).
+#   - The walk is bounded, so a broken mode list can
+#     not hang the door.
 try_video:
     mov dword ptr [video_ok], 0
-    # The controller's word (int 10h, AX=4F00).
+    # The controller's word (int 10h, AX=4F00), asked
+    # into a wiped block with the "VBE2" mark standing
+    # in it.
+    mov di, 0x2000
+    mov cx, 256
+    xor ax, ax
+    rep stosw
+    mov dword ptr [0x2000], 0x32454256   # "VBE2"
     mov ax, 0x4F00
     mov di, 0x2000
     int 0x10
@@ -501,7 +537,11 @@ try_video:
     mov [mode_ptr_seg], ax
     mov ax, [0x2000 + 14]
     mov [mode_ptr_off], ax
+    mov word ptr [walk_left], 512
 video_mode_loop:
+    cmp word ptr [walk_left], 0
+    je video_out
+    dec word ptr [walk_left]
     mov es, [mode_ptr_seg]
     mov bx, [mode_ptr_off]
     mov ax, word ptr es:[bx]
@@ -509,20 +549,27 @@ video_mode_loop:
     je video_out
     add word ptr [mode_ptr_off], 2
     mov [mode_try], ax
-    # The mode's own word (AX=4F01) — its block is written
-    # to ES:DI, so ES goes back to this loader's own page
-    # first.
+    # The mode's own word (AX=4F01) — its block is
+    # written to ES:DI, so ES goes back to this loader's
+    # own page first, and the block is wiped before the
+    # asking, so the answer is this mode's alone.
     mov cx, ax
     xor ax, ax
     mov es, ax
+    mov di, 0x2200
+    push cx
+    mov cx, 128
+    xor ax, ax
+    rep stosw
+    pop cx
     mov ax, 0x4F01
     mov di, 0x2200
     int 0x10
     cmp ax, 0x004F
     jne video_mode_loop
     # Its shape against the asking (the staged system's
-    # header, read through its own segment, at the offset
-    # the mark was found):
+    # header, read through its own segment, at the
+    # offset the mark was found):
     push es
     mov ax, 0x4000
     mov es, ax
@@ -531,6 +578,8 @@ video_mode_loop:
     mov [ask_width], dx
     mov dx, word ptr es:[di + 40]
     mov [ask_height], dx
+    mov dx, word ptr es:[di + 44]
+    mov [ask_depth], dl
     pop es
     mov ax, [0x2200 + 18]
     cmp ax, [ask_width]
@@ -538,7 +587,8 @@ video_mode_loop:
     mov ax, [0x2200 + 20]
     cmp ax, [ask_height]
     jne video_mode_loop
-    cmp byte ptr [0x2200 + 25], 32
+    mov al, [0x2200 + 25]
+    cmp al, [ask_depth]
     jne video_mode_loop
     # Attributes: supported (1) and a linear framebuffer
     # offered (128); memory model 6 (direct color).
@@ -549,6 +599,11 @@ video_mode_loop:
     jz video_mode_loop
     cmp byte ptr [0x2200 + 27], 6
     jne video_mode_loop
+    # A grant must carry its framebuffer: a block with
+    # no address in it is an older firmware's shape,
+    # which no one can draw on.
+    cmp dword ptr [0x2200 + 40], 0
+    je video_mode_loop
     # This is the mode. Set it, with its framebuffer.
     mov bx, [mode_try]
     or bx, 0x4000
@@ -556,16 +611,44 @@ video_mode_loop:
     int 0x10
     cmp ax, 0x004F
     jne video_out
+    # And believe the set only when the firmware, asked
+    # which mode now stands (AX=4F03), names this one.
+    # A firmware that cannot answer the asking at all
+    # is not held to it: the set's own success stands.
+    mov ax, 0x4F03
+    int 0x10
+    cmp ax, 0x004F
+    jne grant_record
+    mov ax, bx
+    and ax, 0x3FFF
+    cmp ax, [mode_try]
+    jne video_mode_loop
+grant_record:
     # Record the grant.
     mov eax, dword ptr [0x2200 + 40]
     mov [fb_addr], eax
+    # The pitch: the block's scan-line field; when it
+    # stands at nothing, its linear scan-line field;
+    # when both stand at nothing, the shape's own
+    # reckoning — width by depth, in bytes.
     movzx eax, word ptr [0x2200 + 16]
+    test eax, eax
+    jnz pitch_recorded
+    movzx eax, word ptr [0x2200 + 50]
+    test eax, eax
+    jnz pitch_recorded
+    movzx eax, byte ptr [0x2200 + 25]
+    shr eax, 3
+    movzx edx, word ptr [0x2200 + 18]
+    imul eax, edx
+pitch_recorded:
     mov [fb_pitch], eax
     movzx eax, word ptr [0x2200 + 18]
     mov [fb_width], eax
     movzx eax, word ptr [0x2200 + 20]
     mov [fb_height], eax
-    mov byte ptr [fb_bpp], 32
+    mov al, [0x2200 + 25]
+    mov [fb_bpp], al
     mov al, [0x2200 + 32]
     mov [fb_rpos], al
     mov al, [0x2200 + 31]
@@ -762,6 +845,8 @@ ask_width:
     .word 0
 ask_height:
     .word 0
+walk_left:
+    .word 0
 fb_addr:
     .long 0
 fb_pitch:
@@ -783,6 +868,8 @@ fb_gsize:
 fb_bpos:
     .byte 0
 fb_bsize:
+    .byte 0
+ask_depth:
     .byte 0
 
 name_boot:

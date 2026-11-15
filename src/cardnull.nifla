@@ -717,12 +717,16 @@ if diskset == 1 {
 
 // The pixel face (Stone 9): when the loader granted a
 // picture screen of the shape this face can draw on — a
-// direct-color screen, thirty-two bits a pixel, its whole
-// address under four billion, and room enough for the
-// desktop's words — the face of light is prepared: its
-// desk, the font's letters lifted into a block, and a
-// scratch page for reaching a screen that stands above
-// the waking map. When nothing was granted, or the grant
+// direct-color screen, thirty-two bits a pixel, standing
+// at an address that is really an address (a grant whose
+// framebuffer address is nothing at all is a hollow
+// grant, refused here as the doormen now refuse it
+// there — the witness fix), its whole address under
+// four billion, and room enough for the desktop's
+// words — the face of light is prepared: its desk, the
+// font's letters lifted into a block, and a scratch
+// page for reaching a screen that stands above the
+// waking map. When nothing was granted, or the grant
 // is not of that shape, pix stays 0 and the text face —
 // the system's first face — carries the desktop, with a
 // plain line at boot saying why.
@@ -733,9 +737,11 @@ if fbflags - (fbflags / 8192) * 8192 >= 4096 {
     if fbtype == 1 {
         if fbbpp == 32 {
             if fbaddrhi == 0 {
-                if fbwidth >= 768 {
-                    if fbheight >= 256 {
-                        pix = 1
+                if fbaddrlo != 0 {
+                    if fbwidth >= 768 {
+                        if fbheight >= 256 {
+                            pix = 1
+                        }
                     }
                 }
             }
