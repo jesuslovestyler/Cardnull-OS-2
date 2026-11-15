@@ -48,6 +48,13 @@ pattern the Nifla language's own bare-metal proofs use:
 QEMU is the bench's extracted QEMU 10 (`~/qemu10-root`) when present; set
 `QEMU` to a plain `qemu-system-x86_64` command line if yours is installed.
 
+To build the bootable witness disc (see "The witness disc" below):
+
+```
+./build-iso.sh        # makes dist/cardnull-os-2.iso
+./prove-iso.sh        # boots the ISO itself, three ways, and reads the screens
+```
+
 ## The stones
 
 The system is built stone by stone, in order. Each stone is proven on the
@@ -208,6 +215,44 @@ floor, for the reason in the builder note below. And the layout
 carries one plain assumption: a guest image is never as small as
 the 512-byte settings or the 32-byte card, so a module of exactly
 the card's promised length can only be the image.
+
+## The witness disc
+
+Cardnull OS 2 ships as **one disc and nothing else** — Tyler's word
+on the founding morning (November 15, 2026): "we should've built the
+iso from day one like the first OS." `./build-iso.sh` lays it:
+
+- `dist/cardnull-os-2.iso` — 561,152 bytes, as built November 15, 2026.
+  sha256: `8dbc0860fd356ad7903317877b242b26451ec4e288a128a27182579e5c1d8dec`
+  (The ISO file itself is a build product and is not kept in this
+  repository; the hash records the disc the proof below was run
+  against, and `./build-iso.sh` rebuilds it.)
+
+On the disc: the system (`/boot/cardnull.elf`), the settings module,
+the guest's card, and the guest itself — everything Stones 4 and 5
+need rides as multiboot modules the loader brings with the system —
+plus the loader's own files under `/boot/grub/`.
+
+The loader is GRUB, named honestly: it is a means to boot the
+multiboot kernel, not part of Cardnull. Cardnull's own bootloader
+remains future work, as it was in the first Cardnull OS's early
+doors. The disc boots on a BIOS (SeaBIOS) machine; an EFI boot
+image is future work too.
+
+**To witness it in UTM:** make a new x86_64 machine, give it
+**4096 MB** of memory, attach `cardnull-os-2.iso` as the machine's
+CD/DVD drive, and boot. Nothing else is attached — no hard disk,
+no second image. The desktop comes up on Eastern time; the words
+on its invitation line all work, `guest` included.
+
+Proven by `prove-iso.sh`, booting the ISO file itself as a CD-ROM
+(no `-kernel` shortcut) at 4096 MB: the shipped disc shows the
+desktop, its carried Eastern choice on the clock (hour 19), the
+guest's visit in its color, and `utc` moving the clock for the
+session; a variant disc carrying the world's time in its settings
+comes up at hour 00 uninvited; and a variant disc with one byte of
+the guest flipped refuses the guest in plain words, with the
+desktop unharmed.
 
 ## Notes for builders
 
