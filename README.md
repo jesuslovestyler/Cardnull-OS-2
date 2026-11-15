@@ -299,6 +299,34 @@ comes up at hour 00 uninvited; and a variant disc with one byte of
 the guest flipped refuses the guest in plain words, with the
 desktop unharmed.
 
+**The EFI door, attempted the same day and recorded honestly:**
+Tyler's new UTM machine uses UEFI firmware, and the disc above has
+no EFI door — his first boot of it landed in the UEFI shell. A
+hybrid disc was therefore built on the bench (an EFI system
+partition carrying GRUB's x86_64-efi build as `\EFI\BOOT\BOOTX64.EFI`,
+loading the same kernel and modules) and booted under OVMF. What
+was found, exactly: the firmware loads and starts the EFI GRUB
+willingly. GRUB built without its video drivers then refuses the
+multiboot handoff in plain words on the firmware's screen —
+"WARNING: no console will be available to OS / error: no suitable
+video mode found." GRUB built with its graphics drivers (all_video,
+efi_gop) goes further: it sets an 800×600 graphics mode, loads the
+kernel, and hands over — the kernel provably runs (its instruction
+pointer sits inside the kernel, in its own code segment) — but the
+screen a person sees is black, and the text screen at 0xB8000 reads
+back as void (0xFF), because **UEFI offers no legacy text screen at
+all, only a graphics framebuffer**, and this kernel paints a text
+screen. No loader arrangement can hand a text-mode kernel a text
+screen under UEFI; the kernel itself must either reprogram the
+video card into text mode (a language boot-stub matter) or draw on
+the framebuffer the loader already offers — which is Stone 9's
+road, below in the ladder Tyler has set. So the EFI door does not
+ship yet: a door that opens onto a black screen is not a door. The
+disc keeps its BIOS door (in UTM: a machine whose firmware is
+SeaBIOS, or UTM's QEMU backend with BIOS), and the EFI attempt
+stands here as the record, to be taken up again when the desktop
+is drawn in pixels.
+
 ## Notes for builders
 
 - The visible screen of this system speaks **plain words only** — no codes
