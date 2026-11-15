@@ -1,0 +1,115 @@
+// Cardnull OS 2's disk-keeping library — what the system
+// remembers on a hard disk, when one is fitted and given
+// over to it (Stone 8).
+//
+// Like the other libraries, this file joins the system as
+// a prelude when it is built (build.sh names it); a prelude
+// may only make functions, and these keep no state of their
+// own: what is remembered, and whether a disk stands ready,
+// are the main body's to keep. The disk work itself — the
+// language's own disk tools, and one small piece of floor
+// work to wake the drive — lives here.
+//
+// What is kept: one setting today, the clock's time choice,
+// on sector 8 of the disk, in a small card of the system's
+// own: the letters C and N, then one byte holding the
+// offset with 64 added (so -5 is kept as 59 and 0 as 64; a
+// stored byte of 0 can only mean nothing was ever saved).
+// The card's shape is the one the first disk keeping was
+// proven with, earlier on the founding day.
+
+// Selects the disk drive (the master on the first
+// channel), so the drive is awake and answering before the
+// system asks who it is. This small piece of floor work is
+// needed because of how the language's disksectors() asks:
+// it reads the drive's status port before ever selecting
+// the drive, and an unselected drive's status reads as
+// nothing there — so without this, disksectors() would
+// answer 0 even with a disk fitted. Selecting a drive that
+// is not there is harmless: the word goes out on the wire
+// and nothing answers, and disksectors() still says 0.
+make selectdrive() {
+    floor() {
+        mov edx, 0x1F6
+        mov al, 0xE0
+        out dx, al
+    }
+}
+
+// Whether a hard disk is fitted at all: 1 when one answers,
+// 0 when the machine holds no disk for the system.
+make diskhere() -> number {
+    selectdrive()
+    if disksectors() > 0 {
+        give 1
+    }
+    give 0
+}
+
+// Gives back the stored byte of the card (the offset with
+// 64 added), or 0 when there is no card — or no disk — to
+// read.
+make savedoffset() -> number {
+    selectdrive()
+    if disksectors() > 0 {
+        let block = makebytes(512)
+        let n = diskread(8, block)
+        if block[0] == 67 {
+            if block[1] == 78 {
+                give block[2]
+            }
+        }
+    }
+    give 0
+}
+
+// Writes the card for the given offset. Gives back 1 when
+// the choice was truly written to a disk, 0 when there is
+// no disk to remember it on.
+make remember(offset: number) -> number {
+    selectdrive()
+    if disksectors() > 0 {
+        let block = makebytes(512)
+        block[0] = 67
+        block[1] = 78
+        block[2] = offset + 64
+        let w = diskwrite(8, block)
+        give 1
+    }
+    give 0
+}
+
+// Gives the disk over to the system's keeping: the
+// clearing the gate at the door promised, then the card.
+// The disk's first sixty-four sectors — where a disk's own
+// name and arrangement live — are wiped to zeros, and the
+// card is written last of all, so a disk interrupted
+// mid-clearing never wears a card it did not finish
+// earning. The card is then read back, and only a card
+// that truly stands earns a 1; anything else is a 0, and
+// the main body says so plainly.
+make disksetup(offset: number) -> number {
+    selectdrive()
+    if disksectors() > 0 {
+        let block = makebytes(512)
+        let sector = 0
+        while sector < 64 {
+            let w = diskwrite(sector, block)
+            sector = sector + 1
+        }
+        block[0] = 67
+        block[1] = 78
+        block[2] = offset + 64
+        let w = diskwrite(8, block)
+        let back = makebytes(512)
+        let n = diskread(8, back)
+        if back[0] == 67 {
+            if back[1] == 78 {
+                if back[2] == offset + 64 {
+                    give 1
+                }
+            }
+        }
+    }
+    give 0
+}

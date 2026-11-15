@@ -317,6 +317,59 @@ no true reading can be had at boot, the bar quietly keeps
 the honest count since waking, as it did before this
 stone, and shows no date.
 
+### Stone 8 — Remembers for real
+
+The system can remember. When a hard disk is fitted, the
+desktop offers it in plain words at boot ("A hard disk is
+here. Type setup to let it remember your choices."), and
+the word `setup` opens a typed gate — the first Cardnull
+OS's W3 lesson kept: never a bare dead end, never a silent
+format. The gate asks, "This will clear everything on the
+disk. Type yes to go on," and only the exact word `yes`
+begins: the disk's first sixty-four sectors (where a disk's
+own name and arrangement live) are wiped, and the system's
+card is written last and read back before the system calls
+it done. Anything else at the gate leaves the disk exactly
+as it was. From then on the disk keeps the settings — the
+time choice first — on its card (sector 8: the letters C
+and N and the choice byte, the shape the founding day's
+first disk keeping was proven with), read at every boot in
+preference to the disc's settings module; `eastern` and
+`utc` write the new choice back and say so ("The disk will
+remember it"), and with no disk keeping them they keep
+their session-only wording, which is true there. The
+language's `disksectors()` fresh-boot blindness is worked
+around in the open, as before: the drive is selected first
+(`src/diskkeep.nifla`'s small floor piece), then asked.
+
+Proven by `prove-stone8.sh`, five boots, all PASS: one
+blank disk lives three lives — offered, gated, given over,
+`utc` kept (hour 00); booted again it overrules the disc's
+Eastern and comes up at 00, and `eastern` is kept in turn;
+a third boot comes up at 19, the write-back persisted both
+ways. A second disk, offered and gated but answered `no`,
+is byte-for-byte the image it was before (checked by hash).
+With no disk at all, the disc's choice rules, no offer
+stands, and `setup` answers plainly that there is no hard
+disk here. The whole earlier proof set passes unchanged —
+every earlier boot attaches no disk, which is itself the
+no-disk case.
+
+**Tyler's UTM arrangement for this stone:** alongside the
+ISO (CD/DVD, as before), attach **one small blank disk
+image as an IDE hard disk** — a few megabytes is plenty;
+the system speaks to the master disk on the first IDE
+channel. The desktop will offer it; type `setup`, then
+`yes` at the gate, and from that boot on the machine
+remembers its time choice across restarts. Honest limits:
+only the time choice is kept so far (the card has room to
+grow); the disk the system speaks to is an ATA (IDE) disk
+— a disk attached as NVMe or virtio would not be seen by
+this stone; and setup's clearing is the disk's first
+sixty-four sectors plus the card — the disk is given over
+wholly in intent and in its arrangement, though the system
+does not scrub every sector of a large disk.
+
 ## The kernel's files
 
 The kernel is built as several files, never one big one — Tyler's
@@ -353,6 +406,10 @@ was split by duty, without changing its behavior:
   it, and the calendar reckoning that turns a reading into a
   date in plain words (rtcread, rtcbaseof, datetext, and their
   helpers).
+- `src/diskkeep.nifla` — what the system remembers on a hard
+  disk (Stone 8): waking the drive, the settings card and its
+  reading, the write-back, and the setup clearing
+  (diskhere, savedoffset, remember, disksetup).
 
 The libraries join the main body as preludes at build (build.sh
 names them all): files of pure functions — values in as arguments,

@@ -27,6 +27,13 @@
 //   5 — the world's time is told in words ('time'; the
 //       telling is the main body's, from the true clock's
 //       reading it keeps — rtclock.nifla, Stone 7)
+//   6 — a hard disk is offered its keeping ('setup'; the
+//       offering and its gate are the main body's, with
+//       diskkeep.nifla — Stone 8)
+//   7 — a time-choice word ('eastern', 'utc'): the choice
+//       moves (see wordoffset), and the main body answers
+//       it, because the true answer depends on whether a
+//       disk is keeping the choices (Stone 8)
 make wordkind(word) {
     if word == "" {
         give 0
@@ -42,6 +49,15 @@ make wordkind(word) {
     }
     if word == "time" {
         give 5
+    }
+    if word == "setup" {
+        give 6
+    }
+    if word == "eastern" {
+        give 7
+    }
+    if word == "utc" {
+        give 7
     }
     give 1
 }
@@ -65,7 +81,7 @@ make wordline(word) {
     if word == "utc" {
         give "The clock now shows the world's standard time until turned off."
     }
-    give "I don't know that word yet. Try hello, time, memory, guest, usb, or clear."
+    give "I don't know that word yet. Try hello, time, memory, guest, usb, setup, or clear."
 }
 
 // The clock's hour offset once a word is done: 'eastern'

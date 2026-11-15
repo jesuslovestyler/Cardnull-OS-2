@@ -35,7 +35,9 @@ mkdir -p build
 #   usbkey     ears on the USB road (Stone 6)
 #   rtclock    the real clock: the CMOS reading and the
 #              calendar reckoning (Stone 7)
-LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/guestdoor.nifla src/commands.nifla src/usbkey.nifla src/rtclock.nifla"
+#   diskkeep   what the system remembers on a hard disk
+#              (Stone 8)
+LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/guestdoor.nifla src/commands.nifla src/usbkey.nifla src/rtclock.nifla src/diskkeep.nifla"
 PRELUDE=""
 for lib in $LIBRARIES; do
     # Word splitting is intended: one --prelude pair per file.

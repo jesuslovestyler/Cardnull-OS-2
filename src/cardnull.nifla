@@ -30,6 +30,9 @@
 //   src/rtclock.nifla    the real clock: reading the
 //                        machine's own CMOS clock, and
 //                        reckoning dates from it
+//   src/diskkeep.nifla   what the system remembers on a
+//                        hard disk: the card, its reading,
+//                        and the setup clearing
 //   src/cardnull.nifla   this main body: the boot
 //                        sequence, the first-breath lift,
 //                        the state, the face, the typing
@@ -74,6 +77,10 @@
 //          at boot (rtclock.nifla), and the bar shows the
 //          real time and the date in plain words, the
 //          disc's time choice applied on top.
+// Stone 8: remembers for real — a fitted hard disk is
+//          offered its keeping behind a typed gate
+//          ('setup', then 'yes'), and thereafter holds the
+//          time choice in preference to the disc's.
 //
 // The arrangement of the screen:
 //   row 0      the bar — "Cardnull" at the left, the date
@@ -200,7 +207,7 @@ make drawface(offset, utcnow) {
     writeat(5, 10, "This computer is public domain: free for everyone, forever.", 112)
     writeat(7, 10, "\"Unless Yahweh builds the house,", 112)
     writeat(8, 10, "they labor in vain who build it.\" - Psalm 127:1", 112)
-    writeat(11, 2, "Type a word, then Enter: hello, time, memory, eastern, utc, guest, usb, clear", 7)
+    writeat(11, 2, "Type a word: hello, time, memory, eastern, utc, guest, usb, setup, clear", 7)
 }
 
 // Writes one answer in the answer region at 'row', scrolling
@@ -320,6 +327,25 @@ if guestimglen > 0 {
     }
 }
 
+// Remembers for real (Stone 8): if a hard disk is fitted,
+// it is asked for its card before anything is drawn — a
+// disk that has been given over to the system's keeping
+// (see the 'setup' word in the loop) holds the time choice
+// in preference to the disc's settings, which have just
+// been read above. A disk that is fitted but not yet the
+// system's is remembered here too, so the desktop can
+// offer it plainly; a machine with no disk simply carries
+// on, and the disc's choice rules as it always has.
+let diskup = diskhere()
+let diskset = 0
+if diskup == 1 {
+    let stored = savedoffset()
+    if stored != 0 {
+        offset = stored - 64
+        diskset = 1
+    }
+}
+
 // Ears on the USB road (Stone 6): the driver's whole
 // estate lives in one desk of bytes, taken here and handed
 // to its library (usbkey.nifla) at every asking — the
@@ -366,6 +392,17 @@ drawtyping("")
 if usbup == 1 {
     ansrow = printline(ansrow, "A USB keyboard is ready.")
 }
+if diskup == 1 {
+    if diskset == 0 {
+        ansrow = printline(ansrow, "A hard disk is here. Type setup to let it remember your choices.")
+    }
+}
+
+// The setup gate's standing (Stone 8): 1 while the system
+// is waiting for the gate's answer — the next finished
+// word is that answer, and only the exact word 'yes' lets
+// the clearing begin.
+let awaiting = 0
 
 while true {
     let nowsec = ticks() / 100
@@ -396,6 +433,27 @@ while true {
                 klen = 0
                 drawtyping("")
                 let kind = wordkind(cmd)
+                if awaiting == 1 {
+                    // The setup gate's answer (Stone 8):
+                    // this word answers the gate, not the
+                    // command library — only the exact word
+                    // 'yes' lets the clearing begin, and
+                    // anything else leaves the disk exactly
+                    // as it was. The kind is set aside so no
+                    // kind's doing fires for this word.
+                    awaiting = 0
+                    kind = 0 - 1
+                    if cmd == "yes" {
+                        if disksetup(offset) == 1 {
+                            diskset = 1
+                            ansrow = printline(ansrow, "The disk will remember your choices now.")
+                        } else {
+                            ansrow = printline(ansrow, "The disk could not be written, so nothing was changed.")
+                        }
+                    } else {
+                        ansrow = printline(ansrow, "The disk was left as it was.")
+                    }
+                }
                 if kind == 2 {
                     // 'clear': the face is drawn again, empty.
                     drawface(offset, utcnow)
@@ -439,17 +497,46 @@ while true {
                     }
                     ansrow = printline(ansrow, "This machine has been awake for " + nowsec + " seconds.")
                 }
-                if kind == 1 {
-                    // A line of words answers it. The time
-                    // words also move the clock's offset: the
-                    // library reckons the new one, this body
-                    // keeps it, and a moved offset means the
-                    // bar's clock is drawn again at once.
-                    let newoffset = wordoffset(cmd, offset)
-                    if newoffset != offset {
-                        offset = newoffset
-                        lastsec = 0 - 1
+                if kind == 6 {
+                    // 'setup': the disk is offered its
+                    // keeping, behind the gate (Stone 8).
+                    // The asking itself writes nothing.
+                    if diskup == 0 {
+                        ansrow = printline(ansrow, "There is no hard disk here to set up.")
+                    } else {
+                        if diskset == 1 {
+                            ansrow = printline(ansrow, "This disk is already keeping your choices.")
+                        } else {
+                            ansrow = printline(ansrow, "This will clear everything on the disk. Type yes to go on.")
+                            awaiting = 1
+                        }
                     }
+                }
+                if kind == 7 {
+                    // A time-choice word: the library reckons
+                    // the new offset, this body keeps it, and
+                    // the bar's clock is drawn again at once.
+                    // When a disk is keeping the choices, the
+                    // new one is written to it and the answer
+                    // says so; otherwise the library's line
+                    // answers, which says the choice lasts
+                    // until the machine is turned off — true,
+                    // there.
+                    offset = wordoffset(cmd, offset)
+                    lastsec = 0 - 1
+                    if diskset == 1 {
+                        let kept = remember(offset)
+                        if cmd == "eastern" {
+                            ansrow = printline(ansrow, "The clock now shows Eastern time. The disk will remember it.")
+                        } else {
+                            ansrow = printline(ansrow, "The clock now shows the world's standard time. The disk will remember it.")
+                        }
+                    } else {
+                        ansrow = printline(ansrow, wordline(cmd))
+                    }
+                }
+                if kind == 1 {
+                    // A line of words answers it.
                     ansrow = printline(ansrow, wordline(cmd))
                 }
             } else {
