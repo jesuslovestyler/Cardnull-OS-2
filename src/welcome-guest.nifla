@@ -14,263 +14,110 @@
 // it does not stop the machine, it returns to the host,
 // leaving a parting number with guestgive().
 //
-// The drawing below is this guest's own, in one floor block
-// that is handed nothing. It would have been natural to
-// share the system's screen library, or to hand this block
-// the guest's lines as text — but as the language stands,
-// neither works inside a guest: the library's tools hand
-// their arguments onward to their floor blocks, which a
-// guest build refuses; and a floor block in a guest that IS
-// handed a piece of text or a block of bytes is given a
-// desk whose length reads as zero, so nothing can be copied
-// from it (measured on the bench both ways; the system's
-// own floor blocks, handed the same things, work). So the
-// guest writes its letters one by one, each value below
-// being a letter wearing this guest's color — 0x2F, white
-// on green, in the high byte, the letter's own code in the
-// low — with each line quoted above the run that writes it.
-// The panel stands at rows 15-19, columns 14-65 of the
-// screen it is given; the lines begin at column 16 of rows
-// 16, 17, and 18.
+// The drawing below is this guest's own: two small tools
+// that are handed the guest's words as text, the way any
+// program would hand them. It was not always so: as first
+// built (Stone 5) the guest painted its letters one by one
+// as immediate values in a floor block handed nothing,
+// because the founding morning's bench notes recorded that
+// a guest's floor blocks handed text or bytes were given a
+// desk whose length read as zero. At Stone 10 that record
+// was measured again, shape by shape — a floor handed a
+// text literal, a block of bytes, a function's own handed
+// words, joined and returned text, text with numbers — and
+// it did not hold: in every shape the desk arrived whole,
+// pointer, length, and letters, and the assembly the
+// compiler writes for the handing is the same for a guest
+// as for a host. The record is corrected in the README,
+// and the guest is written plainly now, as it should have
+// been.
 //
-// Which screen it is given stands in a word at the top of
-// the guest's own doorstep (address 0x27FFF8), laid there
-// by the host before the call (Stone 9): on a machine
+// Which screen the guest paints stands in a word at the
+// top of the guest's own doorstep (address 0x27FFF8), laid
+// there by the host before the call (Stone 9): on a machine
 // showing the text screen it is that screen's own address,
-// 0xB8000, and the guest paints the screen itself, as it
-// always has; on a machine showing the face of light it is
-// a block of the host's own memory holding a text screen's
-// worth of letter-and-color cells, which the host then
-// shows as light. A missing word (an older host) means the
-// text screen, as before.
+// 0xB8000, and the guest paints the screen itself; on a
+// machine showing the face of light it is a block of the
+// host's own memory holding a text screen's worth of
+// letter-and-color cells, which the host then shows as
+// light. A missing word (an older host) means the text
+// screen, as before. The panel stands at rows 15-19,
+// columns 14-65; the lines begin at column 16 of rows 16,
+// 17, and 18, in this guest's color — 0x2F, white on green.
+
+// The screen this guest is to paint: the doorstep word,
+// or the text screen's address when no word was laid.
+make paintbase() -> number {
+    give floor() {
+        mov rax, qword ptr [0x27FFF8]
+        test rax, rax
+        jnz pb_done
+        mov rax, 0xB8000
+    pb_done:
+    }
+}
+
+// Paints a filled rectangle of spaces in one color — the
+// panel's ground.
+make paintrect(base: number, row: number, col: number, wide: number, high: number, color: number) {
+    floor(base, row, col, wide, high, color) {
+        mov rax, [r10]
+        mov rcx, [r10 + 8]
+        imul rcx, 160
+        add rax, rcx
+        mov rcx, [r10 + 16]
+        shl rcx, 1
+        add rax, rcx
+        mov rdi, rax
+        mov r8, [r10 + 32]
+        mov rdx, [r10 + 40]
+        shl rdx, 8
+        or rdx, 32
+        mov eax, edx
+    pr_row:
+        mov rcx, [r10 + 24]
+        rep stosw
+        mov rcx, [r10 + 24]
+        shl rcx, 1
+        mov rdx, 160
+        sub rdx, rcx
+        add rdi, rdx
+        dec r8
+        jnz pr_row
+    }
+}
+
+// Writes one line of text at (row, col) in one color, from
+// the words it is handed.
+make paintline(base: number, row: number, col: number, color: number, text: text) {
+    floor(text, base, row, col, color) {
+        mov rax, [r10]
+        mov rcx, [r10 + 8]
+        imul rcx, 160
+        add rax, rcx
+        mov rcx, [r10 + 16]
+        shl rcx, 1
+        add rax, rcx
+        mov rdi, rax
+        mov rdx, [r10 + 24]
+        shl rdx, 8
+        mov rcx, 0
+    pl_loop:
+        cmp rcx, r12
+        jae pl_done
+        movzx eax, byte ptr [rbx + rcx]
+        or rax, rdx
+        mov word ptr [rdi + rcx * 2], ax
+        inc rcx
+        jmp pl_loop
+    pl_done:
+    }
+}
 
 let gift = guestvalue()
-
-floor() {
-    mov rdi, qword ptr [0x27FFF8]
-    test rdi, rdi
-    jnz wg_p1
-    mov rdi, 0xB8000
-wg_p1:
-    add rdi, 2428
-    mov r8, 5
-wg_rows:
-    mov rcx, 52
-    mov ax, 0x2F20
-    rep stosw
-    add rdi, 56
-    dec r8
-    jnz wg_rows
-    mov rdi, qword ptr [0x27FFF8]
-    test rdi, rdi
-    jnz wg_p2
-    mov rdi, 0xB8000
-wg_p2:
-    add rdi, 2592
-    // "A guest is visiting"
-    mov ax, 0x2F41
-    stosw
-    mov ax, 0x2F20
-    stosw
-    mov ax, 0x2F67
-    stosw
-    mov ax, 0x2F75
-    stosw
-    mov ax, 0x2F65
-    stosw
-    mov ax, 0x2F73
-    stosw
-    mov ax, 0x2F74
-    stosw
-    mov ax, 0x2F20
-    stosw
-    mov ax, 0x2F69
-    stosw
-    mov ax, 0x2F73
-    stosw
-    mov ax, 0x2F20
-    stosw
-    mov ax, 0x2F76
-    stosw
-    mov ax, 0x2F69
-    stosw
-    mov ax, 0x2F73
-    stosw
-    mov ax, 0x2F69
-    stosw
-    mov ax, 0x2F74
-    stosw
-    mov ax, 0x2F69
-    stosw
-    mov ax, 0x2F6E
-    stosw
-    mov ax, 0x2F67
-    stosw
-    add rdi, 122
-    // "Hello. I am a small program, here as a guest."
-    mov ax, 0x2F48
-    stosw
-    mov ax, 0x2F65
-    stosw
-    mov ax, 0x2F6C
-    stosw
-    mov ax, 0x2F6C
-    stosw
-    mov ax, 0x2F6F
-    stosw
-    mov ax, 0x2F2E
-    stosw
-    mov ax, 0x2F20
-    stosw
-    mov ax, 0x2F49
-    stosw
-    mov ax, 0x2F20
-    stosw
-    mov ax, 0x2F61
-    stosw
-    mov ax, 0x2F6D
-    stosw
-    mov ax, 0x2F20
-    stosw
-    mov ax, 0x2F61
-    stosw
-    mov ax, 0x2F20
-    stosw
-    mov ax, 0x2F73
-    stosw
-    mov ax, 0x2F6D
-    stosw
-    mov ax, 0x2F61
-    stosw
-    mov ax, 0x2F6C
-    stosw
-    mov ax, 0x2F6C
-    stosw
-    mov ax, 0x2F20
-    stosw
-    mov ax, 0x2F70
-    stosw
-    mov ax, 0x2F72
-    stosw
-    mov ax, 0x2F6F
-    stosw
-    mov ax, 0x2F67
-    stosw
-    mov ax, 0x2F72
-    stosw
-    mov ax, 0x2F61
-    stosw
-    mov ax, 0x2F6D
-    stosw
-    mov ax, 0x2F2C
-    stosw
-    mov ax, 0x2F20
-    stosw
-    mov ax, 0x2F68
-    stosw
-    mov ax, 0x2F65
-    stosw
-    mov ax, 0x2F72
-    stosw
-    mov ax, 0x2F65
-    stosw
-    mov ax, 0x2F20
-    stosw
-    mov ax, 0x2F61
-    stosw
-    mov ax, 0x2F73
-    stosw
-    mov ax, 0x2F20
-    stosw
-    mov ax, 0x2F61
-    stosw
-    mov ax, 0x2F20
-    stosw
-    mov ax, 0x2F67
-    stosw
-    mov ax, 0x2F75
-    stosw
-    mov ax, 0x2F65
-    stosw
-    mov ax, 0x2F73
-    stosw
-    mov ax, 0x2F74
-    stosw
-    mov ax, 0x2F2E
-    stosw
-    add rdi, 70
-    // "I was checked first, and I am whole."
-    mov ax, 0x2F49
-    stosw
-    mov ax, 0x2F20
-    stosw
-    mov ax, 0x2F77
-    stosw
-    mov ax, 0x2F61
-    stosw
-    mov ax, 0x2F73
-    stosw
-    mov ax, 0x2F20
-    stosw
-    mov ax, 0x2F63
-    stosw
-    mov ax, 0x2F68
-    stosw
-    mov ax, 0x2F65
-    stosw
-    mov ax, 0x2F63
-    stosw
-    mov ax, 0x2F6B
-    stosw
-    mov ax, 0x2F65
-    stosw
-    mov ax, 0x2F64
-    stosw
-    mov ax, 0x2F20
-    stosw
-    mov ax, 0x2F66
-    stosw
-    mov ax, 0x2F69
-    stosw
-    mov ax, 0x2F72
-    stosw
-    mov ax, 0x2F73
-    stosw
-    mov ax, 0x2F74
-    stosw
-    mov ax, 0x2F2C
-    stosw
-    mov ax, 0x2F20
-    stosw
-    mov ax, 0x2F61
-    stosw
-    mov ax, 0x2F6E
-    stosw
-    mov ax, 0x2F64
-    stosw
-    mov ax, 0x2F20
-    stosw
-    mov ax, 0x2F49
-    stosw
-    mov ax, 0x2F20
-    stosw
-    mov ax, 0x2F61
-    stosw
-    mov ax, 0x2F6D
-    stosw
-    mov ax, 0x2F20
-    stosw
-    mov ax, 0x2F77
-    stosw
-    mov ax, 0x2F68
-    stosw
-    mov ax, 0x2F6F
-    stosw
-    mov ax, 0x2F6C
-    stosw
-    mov ax, 0x2F65
-    stosw
-    mov ax, 0x2F2E
-    stosw
-}
+let base = paintbase()
+paintrect(base, 15, 14, 52, 5, 47)
+paintline(base, 16, 16, 47, "A guest is visiting")
+paintline(base, 17, 16, 47, "Hello. I am a small program, here as a guest.")
+paintline(base, 18, 16, 47, "I was checked first, and I am whole.")
 guestgive(gift + gift)

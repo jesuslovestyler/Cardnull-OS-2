@@ -459,6 +459,54 @@ things; and the EFI door's loader is still GRUB — its
 own replacement is future work, as the BIOS door's is
 Stone 11's.
 
+### Stone 10 — Guests that can be handed things
+
+This stone set out to repair the language: the founding
+morning's bench notes (kept in "Notes for builders"
+below) recorded that a floor block in a guest program,
+handed a piece of text or a block of bytes, was given a
+desk whose length read as zero — which is why the
+welcome guest painted its letters one by one as
+immediate values. Measured again at this stone, shape
+by shape, **the record did not hold**: a guest's floor
+blocks receive handed text and bytes whole — pointer,
+length, and letters — for a literal and a block handed
+in the main body, for a function's own handed words
+passed onward to its floor, for joined and returned
+text, and for text handed with numbers to a small
+painter, which wrote the line it was handed onto the
+host's screen. The assembly the compiler writes for
+the handing is the same for a guest as for a host. The
+one refusal in the neighborhood — a library whose floor
+tools' shapes no call has pinned — falls on host builds
+identically, and is the checker's shape reckoning, not
+a guest's wound (marks of kind, the language's Stone
+18, are its standing cure, and the system's own
+libraries carry them where they need them).
+
+So the language needed no change, and none was made.
+The full language suites were re-run and stand at their
+Stone 18 counts (interpreted 39/39, compiled 112/112,
+voice 6/6, self-hosted 39/39, the bare proofs all PASS),
+and the verification itself now stands as a proof in
+the language's repository (`run-bare-guest-desk.sh`),
+so the claim is checkable rather than remembered.
+
+What changed here is the guest: `src/welcome-guest.nifla`
+is written plainly now — two small tools handed the
+guest's words as text paint its panel and its three
+lines, at the screen the doorstep word names (Stone 9).
+Its header tells the story, and the founding note in
+"Notes for builders" carries this correction beside it,
+as corrections are kept in this house: in the open,
+dated, next to the words they correct.
+
+Proven by the shipped proofs that cover the guest —
+`prove-stone5.sh` (the visit and the tamper refusal),
+`prove-iso.sh`, and `prove-stone9.sh` (the visit drawn
+in light, at both doors) — all PASS with the guest in
+its new shape.
+
 ## The kernel's files
 
 The kernel is built as several files, never one big one — Tyler's
@@ -642,6 +690,16 @@ open now.
   so the welcome guest paints with a nothing-handed floor block and
   writes its letters as immediate values, each quoted in its source.
   (A finding about the language as it stands at Stone 18.)
+  **Correction (Stone 10, November 15, 2026): this finding did not
+  survive re-measurement.** Shape by shape — literals, blocks,
+  functions handing their own words onward, joined and returned
+  text, text with numbers, the letters themselves read back — a
+  guest's floor blocks receive the desk whole, and the generated
+  assembly for the handing is the same in both builds. The welcome
+  guest is written with handed text now, and the language carries
+  a standing proof of the desk (`run-bare-guest-desk.sh` in its
+  repository). The words above stand as they were recorded on the
+  founding morning; this correction stands beside them.
 - The bootloader's module table and the modules themselves are left
   in low memory that the language's heap also claims from above:
   measured on the bench, the table was found overwritten by the
