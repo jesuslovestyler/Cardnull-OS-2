@@ -41,7 +41,9 @@ mkdir -p build
 #              hand-drawn bitmap font (Stone 9)
 #   pixface    the face of light: the picture screen's
 #              desk, its palette, and its drawing (Stone 9)
-LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/guestdoor.nifla src/commands.nifla src/usbkey.nifla src/rtclock.nifla src/diskkeep.nifla src/font.nifla src/pixface.nifla"
+#   mouse      the pointer: the PS/2 mouse's waking and
+#              its packets (Stone 13)
+LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/guestdoor.nifla src/commands.nifla src/usbkey.nifla src/rtclock.nifla src/diskkeep.nifla src/font.nifla src/pixface.nifla src/mouse.nifla"
 PRELUDE=""
 for lib in $LIBRARIES; do
     # Word splitting is intended: one --prelude pair per file.

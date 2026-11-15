@@ -1,0 +1,228 @@
+// Cardnull OS 2's pointer library — the PS/2 mouse
+// (Stone 13).
+//
+// Like the other libraries, this file joins the system as
+// a prelude when it is built (build.sh names it); a
+// prelude may only make functions, and these keep no
+// state of their own: the packet being gathered lives in
+// one small desk of bytes the main body takes and hands
+// to every asking, the pattern the USB road set. The
+// desk's ledger (single bytes, at the places named):
+//
+//   0  the gathering's place: which packet byte is next
+//   1  the packet's first byte (its marks and buttons)
+//   2  the packet's second byte (the sideways travel)
+//   3  the packet's third byte (the up-and-down travel)
+//   5  the buttons standing in the last whole packet
+//
+// The mouse shares the keyboard's controller: its bytes
+// arrive at the same data door (0x60), told apart by the
+// standing word at 0x64, whose sixth bit (32) stands for
+// a mouse byte. The keyboard's own bytes are never read
+// here — the keyboard's interrupt takes those, as it
+// always has — and the mouse is heard by polling, once a
+// pass of the main loop, which the machine's own tick
+// keeps frequent: its interrupt could never arrive here
+// in any case, the second interrupt controller being
+// masked whole by the language's boot stub. A mouse that
+// is not there, or does not answer, simply leaves the
+// road quiet: every wait below is bounded, and nothing
+// in this file can stop the machine.
+
+// ---- the controller's doors ----
+
+// The controller's standing word.
+make mstatus() -> number {
+    give floor() {
+        xor eax, eax
+        in al, 0x64
+    }
+}
+
+// One byte from the data door. Only ever called when the
+// standing word says a mouse byte waits there.
+make mreadbyte() -> number {
+    give floor() {
+        xor eax, eax
+        in al, 0x60
+    }
+}
+
+// A word to the controller's own door (0x64).
+make mwrite64(v: number) {
+    floor(v) {
+        mov rax, [r10]
+        out 0x64, al
+    }
+}
+
+// A word to the data door (0x60).
+make mwrite60(v: number) {
+    floor(v) {
+        mov rax, [r10]
+        out 0x60, al
+    }
+}
+
+// Waits, bounded, until the controller will take a byte:
+// 1 when it will, 0 when the wait ran out.
+make mwaitwrite() -> number {
+    let i = 0
+    while i < 100000 {
+        if andmask(mstatus(), 2) == 0 {
+            give 1
+        }
+        i = i + 1
+    }
+    give 0
+}
+
+// Waits, bounded, until a byte stands at the data door:
+// 1 when one does, 0 when the wait ran out.
+make mwaitread() -> number {
+    let i = 0
+    while i < 100000 {
+        if andmask(mstatus(), 1) == 1 {
+            give 1
+        }
+        i = i + 1
+    }
+    give 0
+}
+
+// ---- the waking ----
+
+// Wakes the mouse and sets it reporting: the controller's
+// mouse door opened (0xA8), and the word sent that starts
+// the reports. The controller's arrangement byte is never
+// read or laid by this driver, for two honest reasons:
+// its answers come back as keyboard-side bytes, which the
+// keyboard's interrupt takes for its own ring before any
+// poll could read them; and nothing here needs it — the
+// mouse's interrupt can never reach this system anyway
+// (the language's boot stub masks the second interrupt
+// controller whole), so polling is the only road the
+// mouse could ever be heard on, whatever the arrangement
+// says. Gives back 1 when the mouse answered its word
+// (250, the mouse's yes), 0 when anything along the way
+// did not answer — the machine carries on exactly as
+// before then.
+make mouseinit() -> number {
+    // Whatever the controller is holding from before the
+    // system woke is drained, a bounded handful of bytes.
+    let d = 0
+    while d < 32 {
+        if andmask(mstatus(), 1) == 0 {
+            d = 32
+        } else {
+            let b = mreadbyte()
+            d = d + 1
+        }
+    }
+    // The mouse's door opened (0xA8).
+    if mwaitwrite() == 0 {
+        give 0
+    }
+    mwrite64(168)
+    // The word that starts the reports: 0xD4 sends the
+    // next data byte to the mouse, and 0xF4 is the word.
+    if mwaitwrite() == 0 {
+        give 0
+    }
+    mwrite64(212)
+    if mwaitwrite() == 0 {
+        give 0
+    }
+    mwrite60(244)
+    // The mouse answers 250. Other bytes along the way
+    // are drained and the wait goes on, bounded.
+    let t = 0
+    while t < 64 {
+        if mwaitread() == 0 {
+            give 0
+        }
+        let st = mstatus()
+        let b = mreadbyte()
+        if andmask(st, 32) != 0 {
+            if b == 250 {
+                give 1
+            }
+        }
+        t = t + 1
+    }
+    give 0
+}
+
+// ---- the gathering ----
+
+// Asks after the mouse once: any bytes standing at the
+// door that are the mouse's own are gathered into the
+// packet standing in the desk — a byte without the
+// packet's sync mark (the first byte's fourth bit),
+// arriving when a first byte is awaited, is dropped, so
+// a gathering that lost its place finds it again. Gives
+// back 1 when a whole packet now stands in the desk (its
+// bytes at 1, 2, 3 and its buttons at 5), 0 when none
+// completed. A keyboard byte standing at the door is
+// never read here: the asking stops, and the keyboard's
+// interrupt takes it, as it always has.
+make mousepoll(desk: bytes) -> number {
+    let guard = 0
+    while guard < 48 {
+        guard = guard + 1
+        let st = mstatus()
+        if andmask(st, 1) == 0 {
+            give 0
+        }
+        if andmask(st, 32) == 0 {
+            give 0
+        }
+        let b = mreadbyte()
+        let place = desk[0]
+        if place == 0 {
+            if andmask(b, 8) != 0 {
+                desk[1] = b
+                desk[0] = 1
+            }
+        }
+        if place == 1 {
+            desk[2] = b
+            desk[0] = 2
+        }
+        if place == 2 {
+            desk[3] = b
+            desk[0] = 0
+            desk[5] = andmask(desk[1], 7)
+            give 1
+        }
+    }
+    give 0
+}
+
+// The whole packet's sideways travel, signed by its
+// first byte's mark — and nothing when the packet's
+// overflow marks stand, whose travel is not honest.
+make mousedx(desk: bytes) -> number {
+    if andmask(desk[1], 192) != 0 {
+        give 0
+    }
+    let d = desk[2]
+    if andmask(desk[1], 16) != 0 {
+        d = d - 256
+    }
+    give d
+}
+
+// The whole packet's up-and-down travel, the same
+// reckoning: the mouse speaks of up as forward, and the
+// screen's own reckoning (the main body's) turns it.
+make mousedy(desk: bytes) -> number {
+    if andmask(desk[1], 192) != 0 {
+        give 0
+    }
+    let d = desk[3]
+    if andmask(desk[1], 32) != 0 {
+        d = d - 256
+    }
+    give d
+}

@@ -20,6 +20,11 @@
 //   28  the face's columns       32  the face's rows
 //   36  the letter shapes' address (a block font.nifla fills)
 //   40  a scratch page's address (for the page tables)
+//   44  the pointer's shapes' address (Stone 13: a block
+//       arrowload fills with the arrow's fourteen rows)
+//   48  the pointer's save block's address (Stone 13: the
+//       sixteen-by-sixteen square of screen the arrow
+//       stands on, kept while it stands there)
 //   56  the pen: the color now being drawn with, composed
 //   60  the paper: the color a letter's cell is filled with
 //   64..127  the palette: sixteen colors, composed for this
@@ -528,5 +533,186 @@ make cellbyte(block: bytes, off: number) -> number {
     give floor(block, off) {
         mov rax, [r10]
         movzx eax, byte ptr [rbx + rax]
+    }
+}
+
+// ---- the pointer's arrow (Stone 13) ----
+//
+// The arrow stands in a sixteen-by-sixteen square of the
+// screen whose corner the main body keeps: before the
+// arrow is drawn there, the square's own pixels are kept
+// in the save block the desk names at 48, and when the
+// arrow moves on they are laid back, so the desktop under
+// it is never harmed. The arrow's own shape — fourteen
+// rows, eleven letters wide, its point at the square's
+// (2, 2) — stands as fourteen numbers in the block the
+// desk names at 44, each number one row, its high bit the
+// row's leftmost pixel:
+//
+//   #..........
+//   ##.........
+//   ###........
+//   ####.......
+//   #####......
+//   ######.....
+//   #######....
+//   ########...
+//   #########..
+//   ##########.
+//   #######....
+//   #####......
+//   ####.##....
+//   ###...##...
+
+// Lays the arrow's fourteen rows into the block handed
+// in, by the desk's own writing (pset writes any block).
+make arrowload(block: bytes) {
+    pset(block, 0, 1024)
+    pset(block, 4, 1536)
+    pset(block, 8, 1792)
+    pset(block, 12, 1920)
+    pset(block, 16, 1984)
+    pset(block, 20, 2016)
+    pset(block, 24, 2032)
+    pset(block, 28, 2040)
+    pset(block, 32, 2044)
+    pset(block, 36, 2046)
+    pset(block, 40, 2032)
+    pset(block, 44, 1984)
+    pset(block, 48, 1968)
+    pset(block, 52, 1816)
+}
+
+// Keeps the sixteen-by-sixteen square at (x, y) in the
+// save block, before the arrow is drawn over it.
+make pixsave(desk: bytes, x: number, y: number) {
+    floor(desk, x, y) {
+        mov rax, [r10 + 8]
+        mov ecx, dword ptr [rbx + 4]
+        mul rcx
+        mov rcx, [r10]
+        shl rcx, 2
+        add rax, rcx
+        mov ecx, dword ptr [rbx]
+        add rax, rcx
+        mov rsi, rax
+        mov edi, dword ptr [rbx + 48]
+        mov r8, 16
+    psv_row:
+        mov rcx, 16
+    psv_px:
+        mov eax, dword ptr [rsi]
+        mov dword ptr [rdi], eax
+        add rsi, 4
+        add rdi, 4
+        dec rcx
+        jnz psv_px
+        mov eax, dword ptr [rbx + 4]
+        sub rax, 64
+        add rsi, rax
+        dec r8
+        jnz psv_row
+    }
+}
+
+// Lays the kept square back at (x, y): the arrow is gone
+// from there, and the desktop stands as it was.
+make pixrestore(desk: bytes, x: number, y: number) {
+    floor(desk, x, y) {
+        mov rax, [r10 + 8]
+        mov ecx, dword ptr [rbx + 4]
+        mul rcx
+        mov rcx, [r10]
+        shl rcx, 2
+        add rax, rcx
+        mov ecx, dword ptr [rbx]
+        add rax, rcx
+        mov rdi, rax
+        mov esi, dword ptr [rbx + 48]
+        mov r8, 16
+    prs_row:
+        mov rcx, 16
+    prs_px:
+        mov eax, dword ptr [rsi]
+        mov dword ptr [rdi], eax
+        add rsi, 4
+        add rdi, 4
+        dec rcx
+        jnz prs_px
+        mov eax, dword ptr [rbx + 4]
+        sub rax, 64
+        add rdi, rax
+        dec r8
+        jnz prs_row
+    }
+}
+
+// Draws the arrow in the square at (x, y): first its
+// white edge — the shape laid at the four places around
+// its home — then the shape itself in black at (2, 2)
+// within the square, so its point stands at (x + 2,
+// y + 2) and it reads on any ground the desktop shows.
+make pixarrow(desk: bytes, x: number, y: number) {
+    floor(desk, x, y) {
+        mov r14d, dword ptr [rbx + 44]
+        xor r13, r13
+    par_pass:
+        cmp r13, 5
+        jae par_done
+        mov rax, offset par_dx
+        movzx ecx, byte ptr [rax + r13]
+        mov r15, rcx
+        mov rax, offset par_dy
+        movzx ecx, byte ptr [rax + r13]
+        mov rax, [r10 + 8]
+        add rax, rcx
+        mov ecx, dword ptr [rbx + 4]
+        mul rcx
+        mov rcx, [r10]
+        add rcx, r15
+        shl rcx, 2
+        add rax, rcx
+        mov ecx, dword ptr [rbx]
+        add rax, rcx
+        mov rdi, rax
+        cmp r13, 4
+        je par_black
+        mov r8d, dword ptr [rbx + 124]
+        jmp par_color
+    par_black:
+        mov r8d, dword ptr [rbx + 64]
+    par_color:
+        xor r11, r11
+    par_row:
+        cmp r11, 14
+        jae par_next
+        mov eax, dword ptr [r14 + r11 * 4]
+        mov rsi, rdi
+        mov ecx, 1024
+    par_col:
+        test ecx, ecx
+        jz par_rowdone
+        test eax, ecx
+        jz par_skip
+        mov dword ptr [rsi], r8d
+    par_skip:
+        add rsi, 4
+        shr ecx, 1
+        jmp par_col
+    par_rowdone:
+        mov eax, dword ptr [rbx + 4]
+        add rdi, rax
+        inc r11
+        jmp par_row
+    par_next:
+        inc r13
+        jmp par_pass
+    par_done:
+        jmp par_end
+    par_dx:
+        .byte 1, 3, 2, 2, 2
+    par_dy:
+        .byte 2, 2, 1, 3, 2
+    par_end:
     }
 }

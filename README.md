@@ -635,6 +635,61 @@ and a capital command word is an unknown word — the
 machine's words are still spelled small, and it says so
 kindly when it meets one it does not know.
 
+### Stone 13 — A pointer
+
+The face of light gains a pointer. `src/mouse.nifla`
+wakes the machine's PS/2 mouse — the mouse door of the
+keyboard's own controller opened, and the word sent
+that starts its reports — and gathers its three-byte
+packets into a small desk, polled once a pass of the
+main loop. The controller's arrangement byte is never
+read or laid, for two honest reasons: its answers come
+back as keyboard-side bytes, which the keyboard's
+interrupt takes for its own ring before any poll could
+read them; and nothing needs it — the mouse's interrupt
+could never reach this system anyway, the language's
+boot stub masking the second interrupt controller
+whole, so polling is the only road the mouse could ever
+be heard on. The keyboard's bytes are never read by
+this driver: the standing word at the controller's door
+tells whose byte waits, and a keyboard byte stops the
+asking, for the keyboard's interrupt to take as it
+always has.
+
+The arrow is drawn by the pixel face (`pixarrow` in
+`src/pixface.nifla`): a hand-drawn shape, black with a
+white edge so it reads on any ground, standing in a
+sixteen-by-sixteen square whose own pixels are first
+kept in a save block and laid back when the arrow moves
+on — the desktop under it is never harmed, and each
+pass of the loop takes the arrow off before anything is
+drawn and lays it again at the pass's end. A fresh
+press of the mouse's first button with the arrow's
+point on the guest's panel asks for the guest, and the
+receiving is the very doing the word `guest` has always
+had — the two askings gathered into one at this stone.
+
+Proven by `prove-stone13.sh`: the shipped disc booted
+from the ISO file, the bench's mouse driven through the
+monitor — the arrow standing at the screen's middle
+when the desktop rises, following a move (the monitor's
+own reckoning: right and down are forward), the desktop
+whole where it left, no green anywhere before the
+press, and the guest's green panel standing after a
+press on its panel, with `hello` still answered in
+light afterward. The whole earlier proof set passes
+unchanged.
+
+Honest limits: the pointer lives on the face of light
+only — the text face has none, as it never has; the
+mouse spoken is the PS/2 mouse, and a USB mouse is a
+later road if it is ever taken (the USB road today
+carries a keyboard, Stone 6); the arrow's travel is
+polled, so it moves in the loop's own steps, not in an
+interrupt's; and the one button-press the desktop yet
+understands is the guest's panel — the rest of the
+desktop does not answer presses yet.
+
 ## The kernel's files
 
 The kernel is built as several files, never one big one — Tyler's
@@ -685,7 +740,14 @@ was split by duty, without changing its behavior:
   fills, letters, whole lines, the wrapped and scrolling
   answers, and the reading of the guest's cells
   (pixbegin, pixfill, pixglyph, pixline, pixprintline,
-  cellbyte, and their helpers).
+  cellbyte, and their helpers). The pointer's arrow is
+  drawn here too (Stone 13: arrowload, pixsave,
+  pixrestore, pixarrow).
+- `src/mouse.nifla` — the pointer (Stone 13): the PS/2
+  mouse's waking and the gathering of its packets into a
+  desk the main body hands it, polled once a pass
+  (mouseinit, mousepoll, mousedx, mousedy, and the
+  controller-door helpers).
 
 The libraries join the main body as preludes at build (build.sh
 names them all): files of pure functions — values in as arguments,

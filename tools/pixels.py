@@ -17,6 +17,8 @@
 #   sendkey(name)     one key by its QEMU name
 #   typewrite(text)   types letters and spaces, slowly
 #   enter()           the Enter key
+#   mousemove(dx, dy) moves the emulated mouse, relatively
+#   mousebutton(n)    sets its buttons (1 = first down)
 #   waitdump(fn, secs) polls dump() until fn(dump) holds
 #   expect(cond, why) records one check, prints ok / NOT OK
 #   done()            quits QEMU, prints PASS or FAIL, exits
@@ -136,6 +138,20 @@ def sendkey(name):
     time.sleep(0.25)
 
 
+def mousemove(dx, dy):
+    """Moves the emulated mouse by (dx, dy), as the
+    monitor's own mouse_move speaks it."""
+    _command(f"mouse_move {dx} {dy}")
+    time.sleep(0.25)
+
+
+def mousebutton(state):
+    """Sets the emulated mouse's buttons: 1 is the first
+    button down, 0 is all buttons up."""
+    _command(f"mouse_button {state}")
+    time.sleep(0.25)
+
+
 def typewrite(text):
     for ch in text:
         if "a" <= ch <= "z":
@@ -201,6 +217,8 @@ exec(compile(scenario, scenario_path, "exec"), {
     "sendkey": sendkey,
     "typewrite": typewrite,
     "enter": enter,
+    "mousemove": mousemove,
+    "mousebutton": mousebutton,
     "waitdump": waitdump,
     "expect": expect,
     "done": done,

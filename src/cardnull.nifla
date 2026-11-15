@@ -38,6 +38,9 @@
 //   src/pixface.nifla    the face of light: the picture
 //                        screen's desk, palette, and
 //                        drawing
+//   src/mouse.nifla      the pointer: the PS/2 mouse's
+//                        waking and its packets, gathered
+//                        into a desk this body hands it
 //   src/cardnull.nifla   this main body: the boot
 //                        sequence, the first-breath lift,
 //                        the state, the face, the typing
@@ -102,6 +105,11 @@
 //          its command word, and the rest of the line is
 //          kept whole as handed text (linerest) for the
 //          words that want it.
+// Stone 13: a pointer — a PS/2 mouse is woken on the
+//          face of light, an arrow follows it (kept
+//          harmless by a save block), and a press of its
+//          first button on the guest's panel receives the
+//          guest, as the word 'guest' does.
 //
 // The arrangement of the screen:
 //   row 0      the bar — "Cardnull" at the left, the date
@@ -526,6 +534,12 @@ if pix == 1 {
     pixdesk = makebytes(256)
     let fontblock = makebytes(1024)
     fontload(fontblock)
+    // The pointer's shapes and its save block (Stone 13):
+    // the arrow's rows laid into their block, and a block
+    // to keep the square of screen the arrow stands on.
+    let arrowblock = makebytes(64)
+    arrowload(arrowblock)
+    let saveblock = makebytes(1024)
     let pdblock = makebytes(8192)
     pset(pixdesk, 0, fbaddrlo)
     pset(pixdesk, 4, fbpitch)
@@ -536,6 +550,8 @@ if pix == 1 {
     pset(pixdesk, 24, fbbpos)
     pset(pixdesk, 36, blockaddr(fontblock))
     pset(pixdesk, 40, blockaddr(pdblock))
+    pset(pixdesk, 44, blockaddr(arrowblock))
+    pset(pixdesk, 48, blockaddr(saveblock))
     pixbegin(pixdesk)
     // The guest's canvas on this face: a text screen's
     // worth of cells, laid out as the text screen's own
@@ -560,6 +576,28 @@ if pix == 1 {
 // road carries the typing alone, as before.
 let usbdesk = makebytes(16384)
 let usbup = usbinit(usbdesk)
+
+// The pointer (Stone 13): a PS/2 mouse, woken only on
+// the face of light — the text face has no pointer, as
+// it never has. Its packet desk, its standing, the
+// arrow's place and the button standing live here; the
+// driver itself is mouse.nifla, and the arrow's drawing
+// is pixface.nifla's. A guest may be asked for by the
+// word 'guest' or by a press of the mouse's first button
+// on the guest's panel; 'guestask' carries either asking
+// to the one receiving, in the loop below.
+let mousedesk = makebytes(64)
+let mouseup = 0
+let mx = 0
+let my = 0
+let mbtn = 0
+let mshown = 0
+let guestask = 0
+if pix == 1 {
+    mouseup = mouseinit()
+    mx = pget(pixdesk, 8) / 2 - 8
+    my = pget(pixdesk, 12) / 2 - 8
+}
 
 // A true clock (Stone 7): the machine's own clock is read
 // once, here, and kept as a count of seconds — the world's
@@ -614,6 +652,18 @@ if diskup == 1 {
     }
 }
 
+// The arrow is laid at the screen's middle before the
+// loop begins (Stone 13); every pass of the loop takes
+// it off before anything is drawn and lays it again at
+// the pass's end, wherever it then stands.
+if pix == 1 {
+    if mouseup == 1 {
+        pixsave(pixdesk, mx, my)
+        pixarrow(pixdesk, mx, my)
+        mshown = 1
+    }
+}
+
 // The setup gate's standing (Stone 8): 1 while the system
 // is waiting for the gate's answer — the next finished
 // word is that answer, and only the exact word 'yes' lets
@@ -633,6 +683,16 @@ let caps = 0
 let linerest = ""
 
 while true {
+    // The arrow comes off first (Stone 13): whatever
+    // this pass draws, it draws on the desktop as it
+    // stands without the arrow; the arrow is laid again
+    // at the pass's end, wherever it then stands.
+    if pix == 1 {
+        if mshown == 1 {
+            pixrestore(pixdesk, mx, my)
+            mshown = 0
+        }
+    }
     let nowsec = ticks() / 100
     let utcnow = 0 - 1
     if rtcok == 1 {
@@ -745,54 +805,10 @@ while true {
                     lastsec = 0 - 1
                 }
                 if kind == 3 {
-                    // 'guest': receive it through the door
-                    // (guestdoor.nifla), and say how it went.
-                    // The guest is told which screen to paint:
-                    // the text screen itself, or — on the face
-                    // of light — the host's block of cells.
-                    let paintbase = 753664
-                    if pix == 1 {
-                        paintbase = blockaddr(cellblock)
-                    }
-                    let how = runguest(guestimg, guestgot, guestimglen, guestwant, paintbase)
-                    if how == 1 {
-                        ansrow = printline(ansrow, "There is no guest on this disc to visit.", pix, pixdesk)
-                    }
-                    if how == 2 {
-                        ansrow = printline(ansrow, "The guest on this disc is not whole, so it was not let in.", pix, pixdesk)
-                    }
-                    if how == 3 {
-                        if pix == 1 {
-                            // The guest painted the host's block
-                            // of cells; the host now shows the
-                            // visit as light, cell by cell, in
-                            // the colors the guest itself chose
-                            // (Stone 9).
-                            let gr = 15
-                            while gr < 20 {
-                                let gc = 0
-                                while gc < 80 {
-                                    let ch = cellbyte(cellblock, (gr * 80 + gc) * 2)
-                                    let at = cellbyte(cellblock, (gr * 80 + gc) * 2 + 1)
-                                    let fg = at - (at / 16) * 16
-                                    let bgv = (at / 16) - (at / 128) * 8
-                                    let lr = layrow(pixdesk, gr)
-                                    let lc = laycol(pixdesk, gc)
-                                    pset(pixdesk, 56, pget(pixdesk, 64 + bgv * 4))
-                                    pixfill(pixdesk, lc * 16, lr * 16, 16, 16)
-                                    if ch != 32 {
-                                        pset(pixdesk, 56, pget(pixdesk, 64 + fg * 4))
-                                        pixglyph(pixdesk, lc * 16, lr * 16, ch)
-                                    }
-                                    gc = gc + 1
-                                }
-                                gr = gr + 1
-                            }
-                            pixline(pixdesk, (layrow(pixdesk, 21)) * 256 + (2), "The guest visited, and has gone home again.", 7)
-                        } else {
-                            writeat(21, 2, "The guest visited, and has gone home again.", 7)
-                        }
-                    }
+                    // 'guest': the receiving stands below,
+                    // where the pointer's asking meets it —
+                    // the one doing serves both (Stone 13).
+                    guestask = 1
                 }
                 if kind == 4 {
                     // 'usb': the USB road reports its own
@@ -896,6 +912,126 @@ while true {
                     }
                 }
             }
+        }
+    }
+    // The pointer's asking (Stone 13): the mouse's whole
+    // packets move the arrow's place — the mouse speaks
+    // of up as forward, so its travel is taken from the
+    // screen's reckoning — and a fresh press of its first
+    // button with the arrow's point on the guest's panel
+    // asks for the guest, as the word does. The place is
+    // kept on the screen, the arrow's square whole.
+    if pix == 1 {
+        if mouseup == 1 {
+            let mp = 0
+            while mp < 8 {
+                if mousepoll(mousedesk) == 1 {
+                    mx = mx + mousedx(mousedesk)
+                    my = my - mousedy(mousedesk)
+                    if mx < 0 {
+                        mx = 0
+                    }
+                    if my < 0 {
+                        my = 0
+                    }
+                    let maxx = pget(pixdesk, 8) - 16
+                    let maxy = pget(pixdesk, 12) - 16
+                    if mx > maxx {
+                        mx = maxx
+                    }
+                    if my > maxy {
+                        my = maxy
+                    }
+                    let btn = mousedesk[5]
+                    if btn != mbtn {
+                        if andmask(btn, 1) == 1 {
+                            if andmask(mbtn, 1) == 0 {
+                                let cxp = mx + 2
+                                let cyp = my + 2
+                                if cxp >= laycol(pixdesk, 14) * 16 {
+                                    if cxp < laycol(pixdesk, 66) * 16 {
+                                        if cyp >= layrow(pixdesk, 15) * 16 {
+                                            if cyp < layrow(pixdesk, 20) * 16 {
+                                                guestask = 1
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        mbtn = btn
+                    }
+                    mp = mp + 1
+                } else {
+                    mp = 8
+                }
+            }
+        }
+    }
+
+    // A guest asked for — by the word, or by the pointer's
+    // press on its panel — is received here, the one doing
+    // for both askings (Stone 13).
+    if guestask == 1 {
+        guestask = 0
+        // 'guest': receive it through the door
+        // (guestdoor.nifla), and say how it went.
+        // The guest is told which screen to paint:
+        // the text screen itself, or — on the face
+        // of light — the host's block of cells.
+        let paintbase = 753664
+        if pix == 1 {
+            paintbase = blockaddr(cellblock)
+        }
+        let how = runguest(guestimg, guestgot, guestimglen, guestwant, paintbase)
+        if how == 1 {
+            ansrow = printline(ansrow, "There is no guest on this disc to visit.", pix, pixdesk)
+        }
+        if how == 2 {
+            ansrow = printline(ansrow, "The guest on this disc is not whole, so it was not let in.", pix, pixdesk)
+        }
+        if how == 3 {
+            if pix == 1 {
+                // The guest painted the host's block
+                // of cells; the host now shows the
+                // visit as light, cell by cell, in
+                // the colors the guest itself chose
+                // (Stone 9).
+                let gr = 15
+                while gr < 20 {
+                    let gc = 0
+                    while gc < 80 {
+                        let ch = cellbyte(cellblock, (gr * 80 + gc) * 2)
+                        let at = cellbyte(cellblock, (gr * 80 + gc) * 2 + 1)
+                        let fg = at - (at / 16) * 16
+                        let bgv = (at / 16) - (at / 128) * 8
+                        let lr = layrow(pixdesk, gr)
+                        let lc = laycol(pixdesk, gc)
+                        pset(pixdesk, 56, pget(pixdesk, 64 + bgv * 4))
+                        pixfill(pixdesk, lc * 16, lr * 16, 16, 16)
+                        if ch != 32 {
+                            pset(pixdesk, 56, pget(pixdesk, 64 + fg * 4))
+                            pixglyph(pixdesk, lc * 16, lr * 16, ch)
+                        }
+                        gc = gc + 1
+                    }
+                    gr = gr + 1
+                }
+                pixline(pixdesk, (layrow(pixdesk, 21)) * 256 + (2), "The guest visited, and has gone home again.", 7)
+            } else {
+                writeat(21, 2, "The guest visited, and has gone home again.", 7)
+            }
+        }
+    }
+
+    // The arrow is laid again, wherever it now stands
+    // (Stone 13): the square under it kept first, so the
+    // next pass can lay that square back untouched.
+    if pix == 1 {
+        if mouseup == 1 {
+            pixsave(pixdesk, mx, my)
+            pixarrow(pixdesk, mx, my)
+            mshown = 1
         }
     }
     waittick()
