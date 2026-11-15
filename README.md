@@ -56,6 +56,22 @@ bench before the next begins, and its honest limits are written down here.
 This repository, the license, the build, and the proof bench. No system
 code yet — the first stone is the first boot.
 
+### Stone 1 — First boot
+
+The seed kernel (`src/cardnull.nifla`) boots on its own, greets the
+person in plain words — "Cardnull", a welcome, and the machine's memory
+reported plainly from the loader's memory map — and then stays alive,
+sleeping between timer ticks. Proven by `prove-stone1.sh`: booted
+headless with 96 MiB, the screen read back the greeting and the figure
+100,137,984 bytes (95 megabytes), the usable sum for that machine.
+
+Honest limits: the greeting is three lines and the machine then simply
+waits — it cannot hear the keyboard yet (Stone 2), has no face (Stone 3),
+and the clock the tick makes possible is not shown yet. The memory
+figure is the loader map's usable sum, which is always a little less
+than the machine's whole memory; the firmware's reserved stretches are
+not counted, and nothing here manages memory beyond reading the map.
+
 ## Notes for builders
 
 - The visible screen of this system speaks **plain words only** — no codes

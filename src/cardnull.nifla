@@ -1,0 +1,23 @@
+// Cardnull OS 2 — the seed kernel.
+//
+// Stone 1: first boot. This program is compiled with
+// `niflac --bare` into a binary that boots on its own — no
+// operating system underneath it. It clears nothing and owns
+// everything: it greets the person in plain words, says how
+// much memory the machine has (the loader's memory map, read
+// with memorysize()), and then stays alive, sleeping between
+// timer ticks — the tick has been running since the machine
+// woke, and Stone 2 will let a person hear it.
+//
+// The screen is the text screen; `say` writes there, line by
+// line, and scrolls when it must.
+
+say "Cardnull"
+say "Welcome. This computer is yours, and everything on it is given freely."
+say "This machine has " + memorysize() + " bytes of memory (" + (memorysize() / 1048576) + " megabytes)."
+
+// An operating system does not exit. Sleep a tick at a time,
+// forever; the timer interrupt keeps the count while we rest.
+while true {
+    waittick()
+}
