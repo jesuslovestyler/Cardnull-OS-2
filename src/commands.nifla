@@ -44,6 +44,9 @@
 //       the main body's (Stone 15)
 //  10 — the kept notes are shown ('notes'; the showing
 //       is the main body's, from the page it keeps)
+//  11 — the welcome chime is sounded again ('chime';
+//       the voice is speaker.nifla's, Stone 18, and the
+//       sounding is the main body's to make)
 make wordkind(word) {
     if word == "" {
         give 0
@@ -77,6 +80,9 @@ make wordkind(word) {
     }
     if word == "notes" {
         give 10
+    }
+    if word == "chime" {
+        give 11
     }
     give 1
 }

@@ -41,6 +41,10 @@
 //   src/mouse.nifla      the pointer: the PS/2 mouse's
 //                        waking and its packets, gathered
 //                        into a desk this body hands it
+//   src/speaker.nifla    the voice: the PC speaker's
+//                        notes — the welcome chime and
+//                        the refusal's low note — timed
+//                        off the timer's count (Stone 18)
 //   src/cardnull.nifla   this main body: the boot
 //                        sequence, the first-breath lift,
 //                        the state, the face, the typing
@@ -855,6 +859,14 @@ if pix == 1 {
     paintwindows(pixdesk, cellblock)
 }
 
+// The welcome is sounded as the desktop stands (Stone
+// 18): three gentle notes from the machine's small
+// voice. The waits inside it are bounded twice over —
+// a machine with no speaker, or a timer that stands
+// still, is not held by it, and the typing line below
+// is reached either way.
+welcomechime()
+
 let keys = makebytes(48)
 // The shift standing resolved for each key in 'keys', at
 // the same place (Stone 12): 1 when that key stands as its
@@ -1178,8 +1190,23 @@ while true {
                         }
                     }
                 }
+                if kind == 11 {
+                    // 'chime': the welcome sounded again
+                    // (Stone 18), and a line to say so.
+                    welcomechime()
+                    ansrow = printline(ansrow, "The welcome chime, once more.", pix, pixdesk)
+                }
                 if kind == 1 {
-                    // A line of words answers it.
+                    // A line of words answers it. A word
+                    // the machine does not know is a
+                    // refusal, and the refusal is sounded
+                    // too (Stone 18) — one low note. The
+                    // old word 'guest' is not a refusal: it
+                    // is answered with the way to the new
+                    // one, and no note sounds for it.
+                    if cmd != "guest" {
+                        refusenote()
+                    }
                     ansrow = printline(ansrow, wordline(cmd), pix, pixdesk)
                 }
             } else {
@@ -1463,9 +1490,13 @@ while true {
             paintwindows(pixdesk, cellblock)
         }
         if how == 1 {
+            // A refusal, sounded as well as written
+            // (Stone 18): one low note.
+            refusenote()
             ansrow = printline(ansrow, "There is no feather on this disc to visit.", pix, pixdesk)
         }
         if how == 2 {
+            refusenote()
             ansrow = printline(ansrow, "The feather on this disc is not whole, so it was not let in.", pix, pixdesk)
         }
         if how == 3 {

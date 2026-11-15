@@ -43,7 +43,9 @@ mkdir -p build
 #              desk, its palette, and its drawing (Stone 9)
 #   mouse      the pointer: the PS/2 mouse's waking and
 #              its packets (Stone 13)
-LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/featherdoor.nifla src/commands.nifla src/usbkey.nifla src/rtclock.nifla src/diskkeep.nifla src/font.nifla src/pixface.nifla src/mouse.nifla"
+#   speaker    the voice: the PC speaker's notes, timed
+#              off the timer's count (Stone 18)
+LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/featherdoor.nifla src/commands.nifla src/usbkey.nifla src/rtclock.nifla src/diskkeep.nifla src/font.nifla src/pixface.nifla src/mouse.nifla src/speaker.nifla"
 PRELUDE=""
 for lib in $LIBRARIES; do
     # Word splitting is intended: one --prelude pair per file.

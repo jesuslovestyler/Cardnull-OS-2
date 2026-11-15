@@ -1,0 +1,169 @@
+// src/speaker.nifla — the voice (Stone 18).
+//
+// The machine's small voice: the PC speaker, spoken to
+// from the floor. The programmable timer's second
+// channel (its data door at 0x42, its command door at
+// 0x43) is the throat — set counting in its square-wave
+// way with a divisor, it hums at the divisor's pitch —
+// and the speaker gate at port 0x61 lets the hum out:
+// its first two bits open the gate, and clearing them
+// stills it. The waits are read off the timer's first
+// channel (data door 0x40), whose count the BIOS leaves
+// falling at the timer's own rate (1,193,182 counts to
+// a second): latch it, read it twice, reckon how far it
+// fell. Nothing here trusts the machine blindly: every
+// wait is bounded by a guard as well as by the count,
+// so a machine whose timer stands still, or whose
+// speaker path is absent or strange, is never held —
+// the sound is an offering, never a gate, and its
+// failure can neither stop the boot nor still the
+// typing line. On a machine with no speaker the notes
+// are counted out to silence, and everything else the
+// system does is exactly as it was.
+//
+// The library is pure, as all the libraries are: no
+// state of its own, only the doors and the reckoning.
+// The main body decides WHEN a sound is made — the
+// welcome as the desktop rises, the low note at a
+// refusal, the welcome again at the word 'chime'.
+
+//// The doors.
+
+// A word to the timer's command door (0x43).
+make pitcmd(v: number) {
+    floor(v) {
+        mov rax, [r10]
+        out 0x43, al
+    }
+}
+
+// A word to the timer's second channel (0x42) — the
+// singing channel: its divisor, low byte then high.
+make pit2data(v: number) {
+    floor(v) {
+        mov rax, [r10]
+        out 0x42, al
+    }
+}
+
+// One byte from the timer's first channel (0x40). Only
+// ever read just after the channel is latched (see
+// pit0count), low byte then high.
+make pit0byte() -> number {
+    give floor() {
+        xor eax, eax
+        in al, 0x40
+    }
+}
+
+// The speaker gate's standing word (port 0x61).
+make gatebyte() -> number {
+    give floor() {
+        xor eax, eax
+        in al, 0x61
+    }
+}
+
+// A word to the speaker gate (port 0x61).
+make gatewrite(v: number) {
+    floor(v) {
+        mov rax, [r10]
+        out 0x61, al
+    }
+}
+
+//// The reckoning.
+
+// The first channel's count, latched and read whole:
+// a number that falls from 65535 toward 0 and wraps,
+// at the timer's own rate.
+make pit0count() -> number {
+    pitcmd(0)
+    let lo = pit0byte()
+    let hi = pit0byte()
+    give lo + hi * 256
+}
+
+// Waits about n timer counts (1,193,182 to a second),
+// watching the first channel fall. The wrap is reckoned
+// in; a guard ends the wait if the count does not move,
+// so no machine can be held here.
+make waitclocks(n: number) {
+    let prev = pit0count()
+    let acc = 0
+    let guard = 0
+    while acc < n {
+        let now = pit0count()
+        let d = prev - now
+        if d < 0 {
+            d = d + 65536
+        }
+        acc = acc + d
+        prev = now
+        guard = guard + 1
+        if guard > 3000000 {
+            acc = n
+        }
+    }
+}
+
+//// The notes.
+
+// Begins a note at the given pitch: the singing
+// channel is set counting at the pitch's divisor
+// (1,193,182 divided by the pitch), and the gate's
+// two bits are opened — set by adding when they stand
+// clear, so the gate's other bits are left as found.
+make noteon(freq: number) {
+    let div = 1193182 / freq
+    pitcmd(182)
+    pit2data(andmask(div, 255))
+    pit2data(andmask(div / 256, 255))
+    let g = gatebyte()
+    if andmask(g, 1) == 0 {
+        g = g + 1
+    }
+    if andmask(g, 2) == 0 {
+        g = g + 2
+    }
+    gatewrite(g)
+}
+
+// Stills the note: the gate's two bits are closed,
+// taken away when they stand set, the rest as found.
+make noteoff() {
+    let g = gatebyte()
+    if andmask(g, 1) == 1 {
+        g = g - 1
+    }
+    if andmask(g, 2) == 2 {
+        g = g - 2
+    }
+    gatewrite(g)
+}
+
+// One note: sounded, held for its counts, stilled.
+make playnote(freq: number, clocks: number) {
+    noteon(freq)
+    waitclocks(clocks)
+    noteoff()
+}
+
+// The welcome: three gentle notes rising — the C, E,
+// and G of the middle octave (523, 659, 784) — the
+// last held a little longer, a short breath between
+// them. About two thirds of a second in all.
+make welcomechime() {
+    noteoff()
+    playnote(523, 190000)
+    waitclocks(48000)
+    playnote(659, 190000)
+    waitclocks(48000)
+    playnote(784, 286000)
+}
+
+// The refusal: one low note, brief — the G below
+// middle C (196), about a fifth of a second.
+make refusenote() {
+    playnote(196, 262000)
+}

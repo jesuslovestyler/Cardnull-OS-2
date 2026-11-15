@@ -1015,6 +1015,78 @@ device as always — a stick made from this image is
 the system, not the keeping disk, and notes and the
 settings card live on the keeping disk as before.
 
+### Stone 18 — A voice
+
+The machine has a small voice now, and it is the last
+stone of this ladder. `src/speaker.nifla` speaks to
+the PC speaker from the floor: the programmable
+timer's second channel is the throat (set counting in
+its square-wave way with a divisor of 1,193,182
+divided by the pitch, it hums at that pitch), the
+speaker gate at port 0x61 lets the hum out and stills
+it, and the waits are read off the timer's first
+channel, whose count the BIOS leaves falling at the
+timer's own rate — latch it, read it, reckon how far
+it fell. Every wait is bounded twice over (the count's
+wrap is reckoned in, and a guard ends the wait if the
+count does not move), so the sound can never hold the
+machine: a timer that stands still, or a speaker path
+that is absent or strange, costs a little silence and
+nothing else.
+
+Three sounds are made, all decided in the main body:
+
+- **The welcome.** Three gentle notes rising — the
+  C, E, and G of the middle octave (523, 659, 784),
+  the last held a little longer, about two thirds of
+  a second in all — sounded as the drawn desktop
+  rises, on either face.
+- **The refusal.** One low note (the G below middle
+  C, 196), about a fifth of a second, when a command
+  is refused: a word the machine does not know, and
+  the feather's two refusals (no feather on the disc;
+  a feather not whole). The old word 'guest' is not a
+  refusal — it is answered with the way to the new
+  one, and no note sounds for it.
+- **`chime`.** A new word (kind 11): the welcome
+  sounded again, and a line to say so — "The welcome
+  chime, once more."
+
+Proven by `prove-stone18.sh`, all PASS. Its first boot
+wires the speaker to the bench's wav capture and opens
+a capture window around each event (the bench's
+capture delivers the speaker's active samples, so the
+proof asserts on those windows exactly): the welcome
+in its window (a tone whose crossing-rate sits in the
+chime's band), the refusal in its (one low tone), four
+seconds of idle holding **no loud sample at all** —
+the silence discipline — and the word 'chime' bringing
+the welcome again in its window. Its second boot has
+**no audio device attached at all**: the text face
+rises, 'chime' is answered in plain words, and typing
+is unheld — the evidence that machines without the
+speaker path are unaffected. The full earlier proof
+set passes unchanged. (One bench note, kept honestly:
+in this stone's full regression run, prove-stone17.sh
+once failed on a truncated screendump read inside the
+harness — the same scenario had passed inside
+prove-stone9.sh minutes before, and prove-stone17.sh
+passed clean on its re-run; the fault was the bench's
+reading of a half-written picture, not the system's.)
+
+Honest limits: the voice is the PC speaker **where
+one is present** — many modern machines have none, or
+route it nowhere a person can hear, and on such a
+machine the notes are counted out to silence and
+everything else is exactly as it was; QEMU's emulation
+of the speaker is this stone's bench proof, as with
+the other stones' devices. The pitches are the
+timer's arithmetic, within a fraction of a percent of
+their names. And the voice says only these three
+things; it has no words, and the desktop's law of
+plain words is unchanged — the sounds accompany the
+words, they never replace them.
+
 ## The kernel's files
 
 The kernel is built as several files, never one big one — Tyler's
@@ -1077,6 +1149,11 @@ was split by duty, without changing its behavior:
   desk the main body hands it, polled once a pass
   (mouseinit, mousepoll, mousedx, mousedy, and the
   controller-door helpers).
+- `src/speaker.nifla` — the voice (Stone 18): the PC
+  speaker's notes — the timer's singing channel, the
+  gate, and the waits read off the timer's falling
+  count, bounded twice over (noteon, noteoff, playnote,
+  welcomechime, refusenote, and the door helpers).
 
 The libraries join the main body as preludes at build (build.sh
 names them all): files of pure functions — values in as arguments,
@@ -1102,20 +1179,20 @@ iso from day one like the first OS." `./build-iso.sh` lays it, and
 since Stone 17 the same disc's bytes also travel as a stick image
 beside it (the stick is the disc, not a second system):
 
-- `dist/cardnull-os-2.iso` — 8,943,616 bytes, as built November 15,
-  2026 (the disc after Stone 17: the framebuffer kernel with its
-  two windows and its notes that stay, and Cardnull's own loaders
-  at both doors — the BIOS bootloader and the EFI loader; no GRUB
-  anywhere on it).
-  sha256: `901978134928afb5ccaffd13454c7eb347a957378da3249358aa5712dfdce6ba`
+- `dist/cardnull-os-2.iso` — 8,947,712 bytes, as built November 15,
+  2026 (the disc after Stone 18, the ladder's last: the
+  framebuffer kernel with its two windows, its notes that stay,
+  and its voice, and Cardnull's own loaders at both doors — the
+  BIOS bootloader and the EFI loader; no GRUB anywhere on it).
+  sha256: `49712641c52060c1d974c1fcb12644c1120cf906d27537bce43b5f95dabd9614`
   (The ISO file itself is a build product and is not kept in this
   repository; the hash records the disc the proof below was run
   against, and `./build-iso.sh` rebuilds it.)
-- `dist/cardnull-stick.img` — 8,943,616 bytes, as built November
+- `dist/cardnull-stick.img` — 8,947,712 bytes, as built November
   15, 2026 by `./build-stick.sh` from the same tree: the disc
   above with Cardnull's master boot record at its head and the
   BIOS bootloader in the sectors after it (Stone 17).
-  sha256: `828e113d1c78bf0b2cbce593670fa63560919f6da62b24f09cf86496464f4a50`
+  sha256: `756915912f0662a291efed6dd8e4f52447b1cdaeaadddbaf21409b0b8667959d`
   (Likewise a build product, not kept in this repository.)
 
 On the disc: the system (`/boot/cardnull.elf`), the settings module,
