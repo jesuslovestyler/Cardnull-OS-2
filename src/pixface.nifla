@@ -121,6 +121,11 @@
 //       panel's place is reckoned in the main body
 //       (restleft and its kin), the same discipline as
 //       the menu's at 268; only its standing lives here.
+//  296  the kept picture's standing (Stone 26): whether
+//       a picture stands kept on the disk (1) or none
+//       does (0) — the main body's fact, copied into the
+//       desk whenever it changes, so the files window's
+//       painting can list the picture beside the notes.
 //
 // A letter cell is sixteen pixels square: the font's eight
 // by eight, drawn at twice size. The face's layout is the

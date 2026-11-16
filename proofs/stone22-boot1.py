@@ -83,9 +83,9 @@ def old_place_remnants(d):
     part compared here."""
     w, h, px = d
     bad = []
-    for y in range(GY * 16, (GY + 14) * 16):
+    for y in range(GY * 16, (GY + 15) * 16):
         for x in range(GX * 16, (GX + 54) * 16):
-            if NX * 16 <= x < (NX + 54) * 16 and NY * 16 <= y < (NY + 14) * 16:
+            if NX * 16 <= x < (NX + 54) * 16 and NY * 16 <= y < (NY + 15) * 16:
                 continue
             if GX * 16 <= x < (GX + 54) * 16 and 26 * 16 <= y < 35 * 16:
                 continue
@@ -98,8 +98,9 @@ def old_place_remnants(d):
 
 
 # The files window's places on this face (1024x768,
-# sixty-four cells across): fifty-four wide, fourteen
-# high. It opens centered at the desktop's foot — left
+# sixty-four cells across): fifty-four wide, fifteen
+# high (fourteen until Stone 26 grew it by the kept
+# picture's row). It opens centered at the desktop's foot — left
 # cell 5, top row 32 — and the drag carries it to left
 # cell 10 (the rightmost place it wholly fits: 10 + 54
 # is the face's 64) and top row 22. Its list stands at

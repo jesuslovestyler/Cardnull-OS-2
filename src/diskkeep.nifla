@@ -38,6 +38,22 @@
 // yes, and a disk not yet given over is never written at
 // all — the main body asks for a saving only when the
 // disk already stands as the system's own.
+//
+// The kept picture (Stone 26) lives further out still,
+// beyond the notes page, in the same style: a header on
+// sector 80 — the letters C, N, P, one byte saying
+// whether a picture stands kept (1) or none does (0),
+// and one byte holding the paint feather's chosen-color
+// figure (the letter at the painted cells' own keeping
+// cell, '0' to '5') — and the picture itself on sectors
+// 81 to 83: the paint feather's painted region exactly
+// as the feather left it in the host's cells (the text
+// reckoning's rows 10 to 20, columns 14 to 65 — eleven
+// rows of fifty-two cells, a letter byte and a color
+// byte to a cell, 1144 bytes in all), laid row by row.
+// The host keeps the picture; the feather never touches
+// the disk, as the compiler's guest discipline has
+// always refused it — see picload and picsave below.
 
 // Selects the disk drive (the master on the first
 // channel), so the drive is awake and answering before the
@@ -190,6 +206,94 @@ make notesave(block: bytes, count: number) -> number {
             }
             let w2 = diskwrite(65 + i, sector)
             i = i + 1
+        }
+        give 1
+    }
+    give 0
+}
+
+// Reads the kept picture into the main body's picture
+// block (the painted region's 1144 bytes, as picsave
+// lays them): the header first, then the three picture
+// sectors, each laid into its place in the block. Gives
+// back the kept chosen-color figure ('0' to '5', the
+// letter the paint feather keeps at its cells' first
+// cell) when a picture stands kept — 0 when there is no
+// disk, or the disk carries no kept picture. (A figure
+// is never 0, so the two answers never meet.)
+make picload(block: bytes) -> number {
+    selectdrive()
+    if disksectors() > 0 {
+        let head = makebytes(512)
+        let n = diskread(80, head)
+        if head[0] == 67 {
+            if head[1] == 78 {
+                if head[2] == 80 {
+                    if head[3] == 1 {
+                        let sector = makebytes(512)
+                        let s = 0
+                        while s < 3 {
+                            let m = diskread(81 + s, sector)
+                            let j = 0
+                            while j < 512 {
+                                let at = s * 512 + j
+                                if at < 1144 {
+                                    block[at] = sector[j]
+                                }
+                                j = j + 1
+                            }
+                            s = s + 1
+                        }
+                        let sel = head[4]
+                        if sel < 48 {
+                            sel = 48
+                        }
+                        if sel > 53 {
+                            sel = 48
+                        }
+                        give sel
+                    }
+                }
+            }
+        }
+    }
+    give 0
+}
+
+// Writes the picture block's painted region to the
+// disk: the header first (its kept byte saying whether
+// a picture stands kept at all), then — when one does —
+// the three picture sectors, each holding its stretch
+// of the block. 'sel' is the chosen-color figure the
+// feather keeps, carried in the header so the restored
+// picture's keeping stands whole. Gives back 1 when the
+// header was written, 0 when there is no disk to keep
+// the picture on.
+make picsave(block: bytes, present: number, sel: number) -> number {
+    selectdrive()
+    if disksectors() > 0 {
+        let head = makebytes(512)
+        head[0] = 67
+        head[1] = 78
+        head[2] = 80
+        head[3] = present
+        head[4] = sel
+        let w = diskwrite(80, head)
+        if present == 1 {
+            let s = 0
+            while s < 3 {
+                let sector = makebytes(512)
+                let j = 0
+                while j < 512 {
+                    let at = s * 512 + j
+                    if at < 1144 {
+                        sector[j] = block[at]
+                    }
+                    j = j + 1
+                }
+                let w2 = diskwrite(81 + s, sector)
+                s = s + 1
+            }
         }
         give 1
     }

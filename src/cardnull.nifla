@@ -303,6 +303,40 @@
 //          machine boots again fresh, and what was kept
 //          before the rest is there when it rises, read
 //          back from the disk as at every boot.
+// Stone 26: paint keeps its pictures — the paint
+//          feather's drawing no longer lives only for
+//          the sitting. The persistence is the HOST's,
+//          honestly: a feather is refused the disk by
+//          the compiler, and needs none of it — the host
+//          already holds the painted cells between
+//          visits (that holding is the canvas, Stone
+//          24), so after every press visit that stands,
+//          when a disk is keeping things, the host writes
+//          the feather's painted region through to the
+//          disk's picture store (sectors 80 onward,
+//          beyond the notes page — diskkeep.nifla's
+//          picsave), verbatim, with the feather's
+//          chosen-color figure beside it. At boot a
+//          keeping disk's picture is read back (picload)
+//          into this body's keeping, and the paint
+//          window's opening visit — the feather painting
+//          its fresh window, checked at the door as
+//          always — is followed by the host laying the
+//          kept region back into the cells over it, so
+//          the picture stands again with its colors as
+//          drawn and its chosen color standing. The
+//          feather itself is unchanged, and every visit
+//          still runs the door's full reckoning first.
+//          The files window lists the kept picture
+//          beside the notes ("A picture you painted"),
+//          and picking it — a press on its row, or Enter
+//          while it stands picked — opens it again in
+//          the paint window, the one opening doing above.
+//          A picture stands kept while any canvas cell
+//          stands painted; clearing the canvas clear
+//          through lets the keeping go. With no keeping
+//          disk, painting is exactly as Stone 24 left
+//          it: for the sitting only.
 //
 // The arrangement of the screen:
 //   row 0      the bar — "Cardnull" at the left, the date
@@ -801,6 +835,18 @@ make onefeather(desk, block) {
 // note, and the main body's facts copied in — how many
 // notes stand kept, whether a disk is keeping them, and
 // whether a disk is fitted at all.
+//
+// Since Stone 26 the disk honestly holds one more thing
+// — the kept picture (sectors 80 onward) — and the
+// window lists it beside the notes, in plain words, on
+// its last row: "A picture you painted". The pick runs
+// over the notes and then the picture (the pick at the
+// notes' count is the picture's, its standing copied
+// into the desk at 296); picking it by the arrow keys
+// shows at the window's foot how it opens, and a press
+// on its row, or Enter while it stands picked, opens it
+// again in the paint window — the main loop's doing,
+// through the paint window's own opening below.
 
 make fiwide(desk) {
     if pget(desk, 28) >= 56 {
@@ -818,7 +864,12 @@ make fitop(desk) {
 }
 
 make fihigh(desk) {
-    give 14
+    // Fourteen rows through Stone 25; fifteen since
+    // Stone 26 — the kept picture's entry stands on the
+    // window's last row (gy + 13), below the picked
+    // note's words, so the window grew by that one row
+    // and nothing above it moved.
+    give 15
 }
 
 // Draws one kept note's words at a letter cell, letter
@@ -892,14 +943,35 @@ make onefiles(desk, notes) {
                 pixline(desk, (gy + 3) * 256 + (gx + 2), "Nothing is saved on it.", 7)
             }
         } else {
+            let haspic = pget(desk, 296)
+            let shown = 0
             if count == 0 {
-                pixline(desk, (gy + 2) * 256 + (gx + 2), "No notes are kept on the disk yet.", 7)
-            } else {
+                if haspic == 0 {
+                    pixline(desk, (gy + 2) * 256 + (gx + 2), "No notes are kept on the disk yet.", 7)
+                    shown = 1
+                }
+            }
+            if shown == 0 {
+                // The pick runs over the notes and then,
+                // when a picture stands kept (Stone 26),
+                // the picture itself: the pick at 'count'
+                // is the picture's. The picture's entry
+                // stands on the window's last row, below
+                // the picked words, in plain words.
                 let sel = pget(desk, 192)
-                if sel >= count {
+                if sel > count {
                     sel = 0
                 }
-                pixline(desk, (gy + 2) * 256 + (gx + 2), "Notes kept on the disk:", 7)
+                if sel == count {
+                    if haspic == 0 {
+                        sel = 0
+                    }
+                }
+                if count > 0 {
+                    pixline(desk, (gy + 2) * 256 + (gx + 2), "Notes kept on the disk:", 7)
+                } else {
+                    pixline(desk, (gy + 2) * 256 + (gx + 2), "What is kept on the disk:", 7)
+                }
                 let i = 0
                 while i < count {
                     let row = gy + 3 + i
@@ -914,8 +986,25 @@ make onefiles(desk, notes) {
                     }
                     i = i + 1
                 }
-                pixline(desk, (gy + 11) * 256 + (gx + 2), "The note you picked:", 7)
-                filenotetext(desk, notes, sel * 65536 + (gy + 12) * 256 + (gx + 2), 15)
+                if sel < count {
+                    pixline(desk, (gy + 11) * 256 + (gx + 2), "The note you picked:", 7)
+                    filenotetext(desk, notes, sel * 65536 + (gy + 12) * 256 + (gx + 2), 15)
+                } else {
+                    pixline(desk, (gy + 11) * 256 + (gx + 2), "The picture you picked:", 7)
+                    pixline(desk, (gy + 12) * 256 + (gx + 2), "Press Enter or click it to open it in Paint.", 15)
+                }
+                if haspic == 1 {
+                    let prow = gy + 13
+                    if sel == count {
+                        pixink(desk, 1)
+                        pixfill(desk, gx * 16 + 2, prow * 16, gw * 16 - 4, 16)
+                        pixline(desk, prow * 256 + (gx + 2), ">", 31)
+                        pixline(desk, prow * 256 + (gx + 4), "A picture you painted", 31)
+                    } else {
+                        pixline(desk, prow * 256 + (gx + 2), " ", 7)
+                        pixline(desk, prow * 256 + (gx + 4), "A picture you painted", 7)
+                    }
+                }
             }
         }
     }
@@ -1837,6 +1926,30 @@ if diskset == 1 {
     notecount = notesload(notesblock)
 }
 
+// The kept picture (Stone 26): the paint feather's
+// painted region as the disk keeps it — eleven rows of
+// fifty-two cells, a letter byte and a color byte to a
+// cell, 1144 bytes in a block of 1536 — read back at
+// boot from a keeping disk (diskkeep.nifla's picload),
+// and laid back into the paint window's cells when the
+// paint feather's opening visit stands, so the picture
+// stands again. 'pichas' says whether a picture stands
+// kept; 'picsel' is the chosen-color figure the feather
+// had standing when the picture was kept ('0' to '5',
+// the letter at its cells' first cell). The picture is
+// this body's keeping, as the notes page is; the
+// feather never touches the disk.
+let picblock = makebytes(1536)
+let pichas = 0
+let picsel = 48
+if diskset == 1 {
+    let picret = picload(picblock)
+    if picret != 0 {
+        pichas = 1
+        picsel = picret
+    }
+}
+
 // The pixel face (Stone 9): when the loader granted a
 // picture screen of the shape this face can draw on — a
 // direct-color screen, thirty-two bits a pixel, standing
@@ -1934,6 +2047,11 @@ if pix == 1 {
     // starts closed — the word 'rest' or the menu's
     // Rest choice opens it.
     pset(pixdesk, 292, 0)
+    // The kept picture's standing (Stone 26), at 296:
+    // whether a picture stands kept on the disk, copied
+    // in here and whenever it changes below, for the
+    // files window's painting.
+    pset(pixdesk, 296, pichas)
     pixbegin(pixdesk)
     // The windows' places (Stone 22), at 236 to 264:
     // each window's left and top are laid here, at the
@@ -2262,7 +2380,12 @@ while true {
                     if pget(pixdesk, 180) == 3 {
                         if pget(pixdesk, 200) == 1 {
                             let sel = pget(pixdesk, 192)
-                            if sel + 1 < pget(pixdesk, 196) {
+                            // The pick runs over the notes
+                            // and then the kept picture
+                            // (Stone 26): one more place
+                            // stands at the list's end when
+                            // a picture stands kept.
+                            if sel + 1 < pget(pixdesk, 196) + pichas {
                                 pset(pixdesk, 192, sel + 1)
                                 paintwindows(pixdesk, cellblock, notesblock)
                             }
@@ -2310,6 +2433,36 @@ while true {
                 // setup gate's waiting answer is never the
                 // window's: while the gate waits, Enter
                 // answers the gate as it always has.
+                // The files window's Enter (Stone 26):
+                // while the files window stands forward
+                // with the kept picture picked, Enter on
+                // an EMPTY typing line opens the picture
+                // in the paint window — the paint window
+                // is opened and the feather's opening
+                // visit asked for, exactly as the word
+                // 'paint' asks, and the receiving below
+                // lays the kept picture back into its
+                // cells. 'fileused' marks the line as the
+                // window's, so no command kind fires.
+                let fileused = 0
+                if awaiting == 0 {
+                    if klen == 0 {
+                        if pix == 1 {
+                            if pget(pixdesk, 180) == 3 {
+                                if pget(pixdesk, 188) == 1 {
+                                    if pichas == 1 {
+                                        if pget(pixdesk, 192) == notecount {
+                                            fileused = 1
+                                            pset(pixdesk, 272, 1)
+                                            pset(pixdesk, 180, 6)
+                                            paintask = 1
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 let edused = 0
                 if awaiting == 0 {
                     if klen == 0 {
@@ -2409,6 +2562,13 @@ while true {
                 if edused == 1 {
                     // The line was the editor window's own
                     // (Stone 21): no kind's doing fires.
+                    kind = 0
+                }
+                if fileused == 1 {
+                    // The line was the files window's own
+                    // (Stone 26): Enter on the picked
+                    // picture opened it in the paint
+                    // window; no kind's doing fires.
                     kind = 0
                 }
                 if awaiting == 1 {
@@ -3690,6 +3850,44 @@ while true {
                                     }
                                 }
                                 if acted == 0 {
+                                    // A press on the kept
+                                    // picture's row in the
+                                    // files window (Stone 26)
+                                    // opens the picture in
+                                    // the paint window: the
+                                    // row stands at the
+                                    // window's last row (its
+                                    // painter's own reckoning,
+                                    // fy + 13), the picture
+                                    // stands picked, the paint
+                                    // window opens forward,
+                                    // and the feather's
+                                    // opening visit is asked
+                                    // for — the receiving
+                                    // below lays the kept
+                                    // picture back into its
+                                    // cells, as the word
+                                    // 'paint' opening does.
+                                    if pget(pixdesk, 188) == 1 {
+                                        if pget(pixdesk, 200) == 1 {
+                                            if pichas == 1 {
+                                                if cxp >= fx * 16 {
+                                                    if cxp < (fx + fw) * 16 {
+                                                        if cyp / 16 == fy + 13 {
+                                                            pset(pixdesk, 192, notecount)
+                                                            pset(pixdesk, 272, 1)
+                                                            pset(pixdesk, 180, 6)
+                                                            paintask = 1
+                                                            paintwindows(pixdesk, cellblock, notesblock)
+                                                            acted = 1
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
                                     // A press on one of the
                                     // settings window's choice
                                     // rows sets that choice
@@ -4104,6 +4302,15 @@ while true {
     // pointer's asking below keeps that — so a disc whose
     // paint feather is refused hears the refusal once, at
     // its asking, and not once a press.)
+    //
+    // Since Stone 26 the receiving also keeps the picture:
+    // an opening visit that stands is followed by the
+    // host laying a kept picture back into the cells, and
+    // a press visit that stands is followed by the host
+    // writing the painted region through to a keeping
+    // disk — the keeping is the host's, in the receiving
+    // below, and the door's reckoning above it is exactly
+    // as it always was.
     if paintask != 0 {
         let pgift = paintask
         paintask = 0
@@ -4111,6 +4318,94 @@ while true {
             let phow = runfeather(paintimg, paintgot, blockaddr(paintblock), pgift)
             if phow == 3 {
                 pset(pixdesk, 276, 1)
+                if pgift == 1 {
+                    // The opening visit stands (Stone 26):
+                    // the feather has painted its fresh
+                    // window, and when a picture stands
+                    // kept on the disk, the host lays the
+                    // kept region back into the cells over
+                    // it — the invitation, the swatches
+                    // with their star, the named color, and
+                    // the canvas, every cell exactly as the
+                    // feather left it when it was kept —
+                    // and the chosen-color figure back at
+                    // the cells' first cell, so the
+                    // feather's own keeping stands whole
+                    // for the presses that follow.
+                    if pichas == 1 {
+                        let prr = 0
+                        while prr < 11 {
+                            let pcc = 0
+                            while pcc < 52 {
+                                let psrc = (prr * 52 + pcc) * 2
+                                let pdst = ((10 + prr) * 80 + 14 + pcc) * 2
+                                paintblock[pdst] = picblock[psrc]
+                                paintblock[pdst + 1] = picblock[psrc + 1]
+                                pcc = pcc + 1
+                            }
+                            prr = prr + 1
+                        }
+                        paintblock[0] = picsel
+                    }
+                } else {
+                    // A press visit stands (Stone 26): the
+                    // feather has reckoned the press and
+                    // laid its mark, and when a disk is
+                    // keeping things the host keeps the
+                    // picture through to the disk at once —
+                    // the whole painted region, copied into
+                    // the picture block and written by
+                    // picsave, with the feather's chosen-
+                    // color figure. A picture stands kept
+                    // while any canvas cell stands painted
+                    // (its color byte is not the empty
+                    // canvas's 119); a canvas cleared clear
+                    // through lets the keeping go, and the
+                    // header on the disk says so. The
+                    // feather is unchanged and was checked
+                    // at the door for this visit as for
+                    // every visit, above.
+                    if diskset == 1 {
+                        let srr = 0
+                        while srr < 11 {
+                            let scc = 0
+                            while scc < 52 {
+                                let ssrc = ((10 + srr) * 80 + 14 + scc) * 2
+                                let sdst = (srr * 52 + scc) * 2
+                                picblock[sdst] = paintblock[ssrc]
+                                picblock[sdst + 1] = paintblock[ssrc + 1]
+                                scc = scc + 1
+                            }
+                            srr = srr + 1
+                        }
+                        let anypaint = 0
+                        let crow = 14
+                        while crow < 21 {
+                            let ccol = 16
+                            while ccol < 64 {
+                                if paintblock[(crow * 80 + ccol) * 2 + 1] != 119 {
+                                    anypaint = 1
+                                }
+                                ccol = ccol + 1
+                            }
+                            crow = crow + 1
+                        }
+                        let sl = paintblock[0]
+                        if sl < 48 {
+                            sl = 48
+                        }
+                        if sl > 53 {
+                            sl = 48
+                        }
+                        if picsave(picblock, anypaint, sl) == 1 {
+                            pichas = anypaint
+                            if anypaint == 1 {
+                                picsel = sl
+                            }
+                            pset(pixdesk, 296, pichas)
+                        }
+                    }
+                }
                 paintwindows(pixdesk, cellblock, notesblock)
             }
             if phow == 1 {

@@ -58,16 +58,16 @@
 #   0x4400  the module table (three entries)
 #   0x4800  the memory map, as the BIOS gave it
 #   0x7C00  this loader (its stack grows down from here)
-#   0x40000 the system file, staged (up to 192 KiB)
-#   0x70000 the settings module, staged
-#   0x72000 the feather, staged (up to 56 KiB) — the
+#   0x40000 the system file, staged (up to 224 KiB)
+#   0x78000 the settings module, staged
+#   0x7A000 the feather, staged (up to 56 KiB) — the
 #           feather carries its card at its own head
 #           (Nifla Stone 20); no card module rides anymore
-#   0x80000 the paint feather, staged (Stone 24: the
+#   0x88000 the paint feather, staged (Stone 24: the
 #           second feather, its own card at its own head,
 #           received through the same door)
 # (The modules' stages stand above the system's WHOLE
-# stage, all 192 KiB of its claim: the system's file is
+# stage, all 224 KiB of its claim: the system's file is
 # staged entire, and any byte of it may be wanted by the
 # segment copies that follow. They once stood at 0x60000
 # and 0x62000, inside the claim, on the reckoning that
@@ -78,7 +78,16 @@
 # overwrote the GDT's code descriptor, and the system
 # died at its first far jump. Measured on the bench
 # (November 15, 2026) and moved in the open: nothing may
-# stage inside another stage's claim again.)
+# stage inside another stage's claim again. The claim
+# itself grew at Stone 26 (November 16, 2026), by the
+# same measure and for the same reason: Stone 26's code
+# carried the staged file's span past the 192 KiB line
+# (its text reaching 0x719AD in the stage), the staged
+# settings splashed its tail again, and the machine
+# never rose — reproduced on the bench, the stages
+# moved above the new whole claim, and the feather's
+# 56 KiB claim ends where the paint feather's stage
+# begins, as it did before.)
 # and on the far side of the step into protected mode:
 #   0x300000 the three modules, laid in a row
 #
@@ -187,7 +196,7 @@ sec_known:
     mov si, offset name_settings
     call find_in_dir
     jc fail_files
-    mov edi, 0x70000
+    mov edi, 0x78000
     call stage_file
     jc fail_disc
     mov eax, [found_len]
@@ -196,7 +205,7 @@ sec_known:
     mov si, offset name_feather
     call find_in_dir
     jc fail_files
-    mov edi, 0x72000
+    mov edi, 0x7A000
     call stage_file
     jc fail_disc
     mov eax, [found_len]
@@ -205,7 +214,7 @@ sec_known:
     mov si, offset name_paint
     call find_in_dir
     jc fail_files
-    mov edi, 0x80000
+    mov edi, 0x88000
     call stage_file
     jc fail_disc
     mov eax, [found_len]
@@ -761,14 +770,14 @@ ph_next:
 ph_done:
 
     # The modules, in a row at 0x300000.
-    mov esi, 0x70000
+    mov esi, 0x78000
     mov edi, 0x300000
     mov ecx, [settings_len]
     rep movsb
-    mov esi, 0x72000
+    mov esi, 0x7A000
     mov ecx, [feather_len]
     rep movsb
-    mov esi, 0x80000
+    mov esi, 0x88000
     mov ecx, [paint_len]
     rep movsb
 

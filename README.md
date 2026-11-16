@@ -88,6 +88,13 @@ To build the bootable witness disc (see "The witness disc" below):
                       # and rises a second time in the same run,
                       # and the kept note is read back after it
                       # (Stone 25)
+./prove-stone26.sh    # DRAWS in the paint feather on a keeping
+                      # disk, reads the picture store's own
+                      # bytes off the disk, then REBOOTS on the
+                      # same disk: the files window lists the
+                      # picture beside a note, and opening it
+                      # there shows the drawing again, its
+                      # cells decoded back (Stone 26)
 ./build-stick.sh      # makes dist/cardnull-stick.img (Stone 17)
 ```
 
@@ -1761,6 +1768,171 @@ choosing is a person's own act, like closing a window
 on a draft. And the drawing in the paint window lives
 for the sitting, as Stone 24 said: a restart starts
 with an empty canvas, as a reboot always has.
+(Stone 26, below, keeps the picture on a keeping disk
+now; that line stands as the record of how it was,
+and Stone 26's own limits say where it still holds.)
+
+### Stone 26 — Paint keeps its pictures
+
+The paint feather's drawing stays now, when a disk is
+keeping things: **a picture drawn in the paint window
+is kept on the fitted keeping disk and stands again
+after a restart**, with its colors as drawn, and the
+files window can open it again.
+
+**The shape of the keeping, said plainly: it is the
+host's, and the feather is unchanged.** A feather is
+refused the disk by the compiler — that refusal stands
+exactly as it always has — and it needs no disk: the
+host already holds the painted cells between visits
+(that holding IS the canvas, Stone 24), so the host
+keeps the picture. After every press visit that stands
+— each one still received through the door's full
+reckoning first, the card parsed and the FNV-1a-64
+check run, nothing weakened — when a disk is keeping
+things, the host writes the feather's painted region
+through to the disk at once, and the files window's
+standing follows. The picture lives in the disk's
+store beyond the notes page, in the store's own style
+(`picload` and `picsave` in `src/diskkeep.nifla`): a
+header on **sector 80** — the letters C, N, P, one byte
+saying whether a picture stands kept, and the feather's
+chosen-color figure — and the region itself on
+**sectors 81 to 83**: the cells the feather paints
+(the text reckoning's rows 10 to 20, columns 14 to 65),
+a letter byte and a color byte to a cell, exactly as
+the feather left them. Nothing already kept moves:
+the settings card still stands on sector 8, the notes
+page on sectors 64 onward, and the setup clearing
+(sectors 0 to 63) reaches neither, as it has never
+reached the notes. At boot a keeping disk's picture is
+read back into the main body's keeping, and when the
+paint window is next opened — the word `paint`, or
+the files window's opening below — the feather's
+opening visit paints its fresh window as it always
+has, and the host then lays the kept region back into
+the cells over it: the invitation, the swatches with
+their star, the named color, and the canvas, every
+cell as it was left, and the chosen-color figure back
+at the cells' own keeping cell, so the feather's next
+press reckons from the color the picture was left in.
+A picture stands kept while any canvas cell stands
+painted; clearing the canvas clear through lets the
+keeping go, and the header says so. Marks drawn before
+a disk is given over at the gate are kept with the
+rest at the first press after the gate's yes, because
+what is written is the whole region as it then stands.
+With no keeping disk, painting is exactly as Stone 24
+left it — for the sitting only — and Paint says
+nothing of keeping at all, as it never has.
+
+**The files window opens it again.** The window lists
+the kept picture beside the notes, in plain words, on
+a row of its own at the window's foot — **"A picture
+you painted"** — and the window grew by that one row
+(it is fifteen high now; nothing above the new row
+moved). The pick runs over the notes and then the
+picture: the arrow keys can pick it, and the window's
+foot then names it ("The picture you picked:") and
+says how it opens ("Press Enter or click it to open
+it in Paint."). A press on its row, or Enter while it
+stands picked, opens the paint window with the
+picture standing in it, through the same opening the
+word `paint` makes. The window's standing for the
+picture lives in the pixel face's desk at 296, beside
+the others'.
+
+**One building finding, in the open, as this house
+keeps them.** This stone's first bench build never
+rose: the screen stayed at the firmware's text shape,
+and the founding proofs failed with it. The fault was
+not in the stone's logic — the same kernel booted and
+answered through the bench's own loader — but in
+measure, the very fault the feather-card adoption
+recorded at the BIOS door (see its section below): the
+BIOS doorman stages the system file at 0x40000 under a
+192 KiB claim, with the modules staged above it, and
+this stone's growth carried the staged file's span
+past that line (its text reaching 0x719AD in the
+stage, where the baseline reached 0x6FF35 — two
+hundred and three bytes under the line). The staged
+settings then splashed the staged system's tail, as
+in the adoption's telling, and the machine never
+rose. The remedy is the adoption's own: the doorman's
+header now claims 224 KiB for the system's stage, and
+the module stages stand above the whole of it —
+settings at 0x78000, the feather at 0x7A000 (its
+56 KiB claim ending where the paint feather's stage
+begins, as before), the paint feather at 0x88000, all
+below the firmware's own reserved ground. The EFI
+doorman needed no move: it lays the system's segments
+directly and stages no file. The full proof set below
+was re-run on the moved stages.
+
+Proven by `prove-stone26.sh`: a keeping disk prepared
+with its Eastern card and one known note is booted;
+the word `paint` opens the feather and the bench's
+mouse **draws** — a Red cell, the Blue swatch, a Blue
+cell — on the real pointer road; the word `files`
+lists the note and **"A picture you painted"** beside
+it, **decoded letter by letter**, and a press on the
+picture's row opens it again in the paint window. The
+disk's own bytes are then read: the header on sector
+80 (its kept byte standing, its figure the Blue '2'),
+the two drawn cells' color bytes standing in the
+region on sectors 81 to 83, an untouched cell on the
+canvas ground, and the settings card and the CNN3
+header unharmed beside the new store. A **second
+boot on the same disk** — nothing drawn yet in that
+sitting — finds the files window listing the picture
+still; the down arrow picks it, its foot is decoded,
+and **Enter opens it in the paint window with its
+cells decoded back against what was drawn**: the Red
+cell Red, the Blue cell Blue, an untouched cell on
+its ground, "Color: Blue" standing with the star on
+the Blue swatch. The neighbouring proofs pass with it
+— Stones 24, 19, and 25, the feather start fix, the
+ISO proof, and, because the doorman's stages moved,
+Stones 9 and 16, with Stones 15, 20, 21, and 23
+beside them. Stone 22 passes too, its proof's own
+reckoning of the files window's place updated for
+the window's new height — the one measure this stone
+changed — its ground check scanning the whole true
+place exactly as before. (Two bench notes, kept
+honestly. In this stone's regression run,
+`prove-stone25.sh` once failed a single check — the
+rest panel's "Restart" not decoding within its poll
+in boot 2 — while the restart itself, the second
+rise, and the kept note all stood in that same run;
+the proof passed clean, whole, on its re-run, the
+bench's reading race the earlier stones' notes also
+record, not the system's. And `prove-stone17.sh`
+stood intermittent on this bench throughout: it
+passed whole, and in other runs its stick boot was
+refused at the loader — "the disc could not be read
+as its own" — a refusal reproduced the same way on
+the unmodified baseline build, so the intermittency
+is this bench's USB road, not this stone's stages;
+the proof's shape audit passed in every run.)
+
+Honest limits: one picture is kept — the paint
+window's one canvas — not a gallery of them; a new
+drawing writes over the kept one as it is drawn, press
+by press. The keeping is the disk's CNN3-style store
+of this system, in its own shape, as the notes are —
+no other system would read it as a picture file. The
+paint window and the files window are the face of
+light's, as they have always been: on the text face
+the picture still stands kept on the disk, but no
+window there shows or opens it, and the word `paint`
+is answered as it always has been there. And the
+door's standing honesty is unchanged, for the keeping
+as for the drawing: host and feather share one
+privilege level and one memory, the card proves the
+bytes match it and nothing more, and the host's
+keeping trusts the cells the feather laid — it keeps
+them verbatim, and reckons nothing of its own into
+them but where they live.
 
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 
