@@ -58,6 +58,9 @@ To build the bootable witness disc (see "The witness disc" below):
                       # and watches the face paint (the witness fix)
 ./prove-featherpaint.sh  # receives the feather and DECODES its painted
                       # window letter by letter (the feather paint fix)
+./prove-pointertrail.sh  # drags the pointer across the desktop and
+                      # requires the desktop pixel for pixel as it was
+                      # (the pointer trail fix)
 ./build-stick.sh      # makes dist/cardnull-stick.img (Stone 17)
 ```
 
@@ -1356,6 +1359,72 @@ build it fails five checks; on the fixed build it
 passes, and the full standing regression passes
 with it (the founding Stones 1 and 2 proofs, which
 describe the pre-face screen, fail on the fixed
+build exactly as they failed before it — their
+staleness, unchanged).
+
+## The pointer trail fix (November 16, 2026)
+
+The same witness carried a third fault: dragging the
+pointer across the pixel desktop left DOTTED PIXEL
+TRAILS — pixels under the pointer's path were not
+restored, and dotted remnants stood on the desktop
+where the arrow had passed. Kernel-drawn static
+screens were clean; the corruption appeared only
+after pointer MOVEMENT, which is why the bench
+proofs, which had never compared the desktop after
+movement, let it ship.
+
+**The fault was in the save's measure, proven and
+reproduced on the bench.** The pointer keeps the
+patch of screen under its arrow in a save block and
+lays it back when the arrow moves on (Stone 13).
+The arrow's black shape stands fourteen rows tall
+at y + 2 to y + 15 within its patch, and its white
+edge is laid one pixel around the shape — so the
+edge's bottom pass paints the shape's last row
+again at y + 16, one row BELOW the sixteen-by-
+sixteen square the save kept. That row was drawn
+but never saved and never laid back: every place
+the arrow had stood kept exactly the five white
+pixels of its last row (at x + 2, x + 3, x + 4,
+x + 8, x + 9). Reproduced on the bench before the
+fix: after the arrow moved away, the sixteen kept
+rows stood whole — not one stray pixel — and those
+five pixels at y + 16 stood white on the black
+ground, at the first stop and at every stop after.
+The restore's timing and place were always right;
+the save was simply one row too short for the
+arrow it kept.
+
+The fix: the save and the laying back now cover
+the arrow's whole footprint — sixteen pixels wide
+and SEVENTEEN tall — the save block is grown to
+hold it (16 × 17 × 4 = 1088 bytes), and the
+pointer's place is kept seventeen rows from the
+screen's bottom edge, so the whole patch always
+stands on the screen. The arrow itself is drawn
+exactly as before, its point at the same place.
+
+**The proofs changed, so this class cannot hide
+again.** Stone 13's proof moved the arrow and
+checked the square it left — sixteen rows of it —
+and passed, because the trail stands in the
+seventeenth row it never looked at.
+`prove-pointertrail.sh` joins the standing set: it
+boots the shipped disc, takes a reference picture
+of the desktop, drags the pointer through wide
+moves and a small-step drag across different
+grounds and home again, and requires the desktop
+afterwards to agree with the reference at EVERY
+pixel below the top bar (whose clock honestly
+advances), with the old trail row at every stop
+named and checked on its own. On the pre-fix build
+it fails with 55 differing pixels — 25 of them the
+five-pixel remnants at the five wide stops, the
+rest along the drag's stands; on the fixed build
+the two pictures agree at every pixel, and the
+full standing regression passes with it (the
+founding Stones 1 and 2 proofs fail on the fixed
 build exactly as they failed before it — their
 staleness, unchanged).
 

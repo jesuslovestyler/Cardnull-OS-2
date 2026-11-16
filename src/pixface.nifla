@@ -23,8 +23,15 @@
 //   44  the pointer's shapes' address (Stone 13: a block
 //       arrowload fills with the arrow's fourteen rows)
 //   48  the pointer's save block's address (Stone 13: the
-//       sixteen-by-sixteen square of screen the arrow
-//       stands on, kept while it stands there)
+//       patch of screen the arrow stands on, kept while
+//       it stands there — sixteen pixels wide and
+//       SEVENTEEN tall, the arrow's whole footprint: its
+//       white edge is laid one pixel around its black
+//       shape, so below the shape's last row (which ends
+//       at y + 15) the edge's bottom pass still paints at
+//       y + 16. A sixteen-tall save left that one row
+//       unsaved and unrestored — the dotted trail the
+//       pointer left behind it (the pointer trail fix))
 //   56  the pen: the color now being drawn with, composed
 //   60  the paper: the color a letter's cell is filled with
 //   64..127  the palette: sixteen colors, composed for this
@@ -576,12 +583,30 @@ make cellbyte(block: bytes, off: number) -> number {
 
 // ---- the pointer's arrow (Stone 13) ----
 //
-// The arrow stands in a sixteen-by-sixteen square of the
-// screen whose corner the main body keeps: before the
-// arrow is drawn there, the square's own pixels are kept
-// in the save block the desk names at 48, and when the
-// arrow moves on they are laid back, so the desktop under
-// it is never harmed. The arrow's own shape — fourteen
+// The arrow stands in a patch of the screen whose corner
+// the main body keeps: before the arrow is drawn there,
+// the patch's own pixels are kept in the save block the
+// desk names at 48, and when the arrow moves on they are
+// laid back, so the desktop under it is never harmed. The
+// patch is sixteen pixels wide and seventeen tall — one
+// row taller than the square it was first kept as —
+// because the arrow's whole footprint is that tall: the
+// shape's fourteen rows stand at y + 2 to y + 15, and its
+// white edge is laid one pixel around the shape (see
+// pixarrow's passes), so the edge's bottom pass paints
+// the shape's last row again at y + 16, one row BELOW a
+// sixteen-tall save. That row was drawn but never saved
+// or laid back, so every place the arrow had stood kept
+// the last row's five white edge pixels — the dotted
+// trail across the desktop (witnessed by Tyler in UTM,
+// November 15, 2026, and reproduced on the bench: after a
+// move, the sixteen kept rows stood whole and exactly
+// those five pixels at y + 16 stayed white on the black
+// ground). The save and the laying back below now cover
+// all seventeen rows, and the main body keeps the
+// arrow's corner one row further from the screen's
+// bottom edge, so the whole patch always stands on the
+// screen. The arrow's own shape — fourteen
 // rows, eleven letters wide, its point at the square's
 // (2, 2) — stands as fourteen numbers in the block the
 // desk names at 44, each number one row, its high bit the
@@ -621,8 +646,10 @@ make arrowload(block: bytes) {
     pset(block, 52, 1816)
 }
 
-// Keeps the sixteen-by-sixteen square at (x, y) in the
-// save block, before the arrow is drawn over it.
+// Keeps the arrow's whole patch at (x, y) in the save
+// block, before the arrow is drawn over it: sixteen
+// pixels wide and seventeen tall, the footprint's full
+// measure (see the pointer's heading above).
 make pixsave(desk: bytes, x: number, y: number) {
     floor(desk, x, y) {
         mov rax, [r10 + 8]
@@ -635,7 +662,7 @@ make pixsave(desk: bytes, x: number, y: number) {
         add rax, rcx
         mov rsi, rax
         mov edi, dword ptr [rbx + 48]
-        mov r8, 16
+        mov r8, 17
     psv_row:
         mov rcx, 16
     psv_px:
@@ -653,8 +680,10 @@ make pixsave(desk: bytes, x: number, y: number) {
     }
 }
 
-// Lays the kept square back at (x, y): the arrow is gone
-// from there, and the desktop stands as it was.
+// Lays the kept patch back at (x, y) — all seventeen
+// rows of it, the bottom edge's row among them: the
+// arrow is gone from there, and the desktop stands as
+// it was.
 make pixrestore(desk: bytes, x: number, y: number) {
     floor(desk, x, y) {
         mov rax, [r10 + 8]
@@ -667,7 +696,7 @@ make pixrestore(desk: bytes, x: number, y: number) {
         add rax, rcx
         mov rdi, rax
         mov esi, dword ptr [rbx + 48]
-        mov r8, 16
+        mov r8, 17
     prs_row:
         mov rcx, 16
     prs_px:
@@ -690,6 +719,10 @@ make pixrestore(desk: bytes, x: number, y: number) {
 // its home — then the shape itself in black at (2, 2)
 // within the square, so its point stands at (x + 2,
 // y + 2) and it reads on any ground the desktop shows.
+// The edge's four places reach one pixel past the shape
+// on every side: across, x + 1 to x + 12, and down, y + 1
+// to y + 16 — the bottom reach is the row the seventeen-
+// tall save above exists for.
 make pixarrow(desk: bytes, x: number, y: number) {
     floor(desk, x, y) {
         mov r14d, dword ptr [rbx + 44]

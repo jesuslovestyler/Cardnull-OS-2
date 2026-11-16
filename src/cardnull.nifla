@@ -811,10 +811,15 @@ if pix == 1 {
     fontload(fontblock)
     // The pointer's shapes and its save block (Stone 13):
     // the arrow's rows laid into their block, and a block
-    // to keep the square of screen the arrow stands on.
+    // to keep the patch of screen the arrow stands on —
+    // sixteen pixels wide and seventeen tall, four bytes
+    // a pixel: 16 * 17 * 4 = 1088 bytes (the pointer
+    // trail fix: the patch is seventeen tall because the
+    // arrow's white edge paints one row below its shape,
+    // at y + 16 — see pixface.nifla's pointer heading).
     let arrowblock = makebytes(64)
     arrowload(arrowblock)
-    let saveblock = makebytes(1024)
+    let saveblock = makebytes(1088)
     let pdblock = makebytes(8192)
     pset(pixdesk, 0, fbaddrlo)
     pset(pixdesk, 4, fbpitch)
@@ -1358,7 +1363,10 @@ while true {
     // mark closes, a press on the feather's panel asks for
     // the feather as the word does, and a press on a window
     // brings it forward. The place is kept on the screen,
-    // the arrow's square whole.
+    // the arrow's whole patch whole: sixteen wide, and
+    // seventeen tall (the pointer trail fix — the white
+    // edge's bottom row stands at my + 16, so the corner
+    // is kept seventeen rows from the screen's bottom).
     if pix == 1 {
         if mouseup == 1 {
             let mp = 0
@@ -1373,7 +1381,7 @@ while true {
                         my = 0
                     }
                     let maxx = pget(pixdesk, 8) - 16
-                    let maxy = pget(pixdesk, 12) - 16
+                    let maxy = pget(pixdesk, 12) - 17
                     if mx > maxx {
                         mx = maxx
                     }
