@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below."
+authors:
+  - family-names: "Kovalevich"
+    given-names: "Tyler Austin James"
+title: "Cardnull OS 2"
+type: software
+repository-code: "https://github.com/jesuslovestyler/Cardnull-OS-2"
+url: "https://github.com/jesuslovestyler/Cardnull-OS-2"
+license: "Unlicense"
+abstract: "An operating system written in Nifla, built from scratch, public domain."
