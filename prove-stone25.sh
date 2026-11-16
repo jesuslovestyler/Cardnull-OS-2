@@ -8,10 +8,12 @@
 #
 #   Boot 1 (shutdown): a note is kept by the word
 #     'note' and seen in the files window; the bar's
-#     menu is opened and its six choices DECODED — the
-#     five windows of Stone 23 and Rest under them (the
-#     menu grew by that one choice at this stone; Stone
-#     23's proof still checks its five) — and a press
+#     menu is opened and its seven choices DECODED —
+#     the six windows and Rest under them (the menu
+#     grew by Rest at this stone, and by Verse at
+#     Stone 29, which moved Rest to the seventh row
+#     and this proof's reckoning with it; Stone 23's
+#     proof still checks its five) — and a press
 #     on Rest opens the rest panel, whose plain words
 #     (Rest, Shut down, Restart, Stay) are decoded at
 #     its reckoned place. A press on Shut down's row

@@ -1,0 +1,77 @@
+// Cardnull OS 2's verses library — the kept set of
+// verses the verse window shows (Stone 29).
+//
+// Like the other libraries, this file joins the system as
+// a prelude when it is built (build.sh names it); a prelude
+// may only make functions, and these keep no state of their
+// own: which verse stands is reckoned by the main body
+// when the window is opened (verseday below) and kept in
+// the pixel face's desk, and the window's painting in the
+// main body asks here for the words.
+//
+// The kept set is twelve beloved verses, in the World
+// English Bible's wording exactly as that public-domain
+// text is published (the wording the desktop already
+// carries — the welcome window's Psalm 127:1 is WEB):
+// the words are copied, never paraphrased, and no other
+// translation is mixed in. Each verse stands whole, with
+// its reference named plainly beside it.
+
+// How many verses stand kept.
+make versecount() -> number {
+    give 12
+}
+
+// One kept verse's words, by its place in the set
+// (0 to 11). A place outside the set gives the first
+// verse's words, so a painter is never handed nothing.
+make versetext(idx: number) -> text {
+    if idx == 1 { give "Yahweh is my shepherd; I shall lack nothing." }
+    if idx == 2 { give "God is our refuge and strength, a very present help in trouble." }
+    if idx == 3 { give "Trust in Yahweh with all your heart, and don't lean on your own understanding." }
+    if idx == 4 { give "Don't you be afraid, for I am with you. Don't be dismayed, for I am your God. I will strengthen you. Yes, I will help you. Yes, I will uphold you with the right hand of my righteousness." }
+    if idx == 5 { give "Come to me, all you who labor and are heavily burdened, and I will give you rest." }
+    if idx == 6 { give "For God so loved the world, that he gave his only born Son, that whoever believes in him should not perish, but have eternal life." }
+    if idx == 7 { give "I am the good shepherd. The good shepherd lays down his life for the sheep." }
+    if idx == 8 { give "We know that all things work together for good for those who love God, for those who are called according to his purpose." }
+    if idx == 9 { give "I can do all things through Christ, who strengthens me." }
+    if idx == 10 { give "Now faith is assurance of things hoped for, proof of things not seen." }
+    if idx == 11 { give "These things I have written to you who believe in the name of the Son of God, that you may know that you have eternal life, and that you may continue to believe in the name of the Son of God." }
+    give "In the beginning, God created the heavens and the earth."
+}
+
+// One kept verse's reference, named plainly, by the
+// same place.
+make verseref(idx: number) -> text {
+    if idx == 1 { give "Psalm 23:1" }
+    if idx == 2 { give "Psalm 46:1" }
+    if idx == 3 { give "Proverbs 3:5" }
+    if idx == 4 { give "Isaiah 41:10" }
+    if idx == 5 { give "Matthew 11:28" }
+    if idx == 6 { give "John 3:16" }
+    if idx == 7 { give "John 10:11" }
+    if idx == 8 { give "Romans 8:28" }
+    if idx == 9 { give "Philippians 4:13" }
+    if idx == 10 { give "Hebrews 11:1" }
+    if idx == 11 { give "1 John 5:13" }
+    give "Genesis 1:1"
+}
+
+// The day's verse: which place in the kept set stands
+// for a moment, reckoned from the date the desktop
+// itself shows — the true clock's count of seconds
+// (Stone 7), with the person's time choice laid on it
+// exactly as the bar's date lays it, turned into a
+// count of days, and taken around the kept set, so a
+// new day brings the next verse and the set turns
+// whole every twelve days. When no true reading could
+// be had (the count stands below zero, Stone 7's honest
+// fallback), the first verse stands, and the README
+// says so.
+make verseday(utcnow: number, offset: number) -> number {
+    if utcnow < 0 {
+        give 0
+    }
+    let days = (utcnow + offset * 3600) / 86400
+    give days - (days / versecount()) * versecount()
+}

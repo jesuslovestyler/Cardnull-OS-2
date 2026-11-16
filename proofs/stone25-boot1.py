@@ -2,10 +2,14 @@
 # keeping disk stands ready (its settings card laid by
 # prove-stone25.sh); a note is kept by the word 'note'
 # and seen standing in the files window; the bar's menu
-# is opened and its SIX choices decoded — the five
-# windows of Stone 23 and, under them, Rest (Stone 25:
-# the menu grew by that one choice, and Stone 23's own
-# proof still checks the five it always checked). A
+# is opened and its SEVEN choices decoded — the six
+# windows (Stone 23's five, and the verse window,
+# Stone 29) and, under them, Rest (Stone 25: the menu
+# grew by that one choice; Stone 29's Verse choice
+# later took the sixth row and Rest moved to the
+# seventh, and this proof's reckoning moved with it —
+# Stone 23's own proof still checks the five it
+# always checked). A
 # press on the Rest choice opens the rest panel at the
 # desktop's middle, and its plain words are DECODED
 # letter by letter against the system's own letter
@@ -80,7 +84,7 @@ def find_answer(d, text):
 # across, forty-eight down): the files window at left
 # cell 5, top row 32 (Stone 19); the menu at left 0,
 # top 1, its choices one to a row (Stone 23, grown at
-# Stone 25); the rest panel centered — sixteen wide,
+# Stone 25 and again at Stone 29); the rest panel centered — sixteen wide,
 # four high, so left cell 24, top row 22, its words at
 # its left + 1.
 FX, FY = 5, 32
@@ -105,24 +109,26 @@ d = waitdump(lambda d: d is not None
              and pixel(d, 200, FY * 16 + 8) == BLACK, 15)
 expect(d is not None, "Escape closed the files window")
 
-# The bar's menu opens; its six choices stand decoded,
-# Rest the sixth, under Stone 23's five.
+# The bar's menu opens; its seven choices stand
+# decoded, Rest the seventh, under the six windows
+# (Stone 29's Verse choice stands sixth, and Rest's
+# row moved down one — this reckoning moved with it).
 mousemove(-306, -370)
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None
-             and decode(d, MT + 5, ML + 1, "Rest", WHITE) == "Rest", 25)
+             and decode(d, MT + 6, ML + 1, "Rest", WHITE) == "Rest", 25)
 expect(d is not None, "a press on the bar opened the menu, with Rest standing in it")
 if d:
     for i, word in enumerate(("Welcome", "Feather", "Files",
-                              "Settings", "Editor", "Rest")):
+                              "Settings", "Editor", "Verse", "Rest")):
         said = decode(d, MT + i, ML + 1, word, WHITE)
         expect(said == word,
                f"the menu's choice {i + 1} reads {word!r} (read: {said!r})")
 
 # A press on the Rest choice opens the rest panel; its
 # plain words decode at its reckoned place.
-mousemove(-160, 96)
+mousemove(-160, 112)
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None
@@ -135,7 +141,8 @@ if d:
                f"the rest panel's row {i + 1} reads {word!r} (read: {said!r})")
 
 # A press on Shut down's row: the point stands at
-# (40, 104); a move of (+410, +272) lays it at
+# (40, 120) (the Rest choice's row, one lower since
+# Stone 29); a move of (+410, +256) lays it at
 # (450, 376), on the panel's second row. The release
 # is wrapped: on a bench whose power door answers, the
 # machine can be gone before the release is even sent
@@ -143,7 +150,7 @@ if d:
 # (measured on this bench: exactly that happened, the
 # broken pipe itself the poweroff's first evidence) —
 # and the poll below is the judge either way.
-mousemove(410, 272)
+mousemove(410, 256)
 mousebutton(1)
 try:
     mousebutton(0)

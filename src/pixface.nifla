@@ -141,6 +141,18 @@
 //       which note it is about (316: the note's place
 //       on the page — the pick's note from the picking
 //       way, or the open note from the writing way).
+//  324  the verse window's standing (Stone 29): whether
+//       it stands open (324), its place (328 its left
+//       column, 332 its top row, in letter cells) — the
+//       seventh window's pair, laid at the face's rising
+//       and written by dragging, like the pairs at 236
+//       to 284 — and which kept verse stands in it
+//       (336: the verse's place in the kept set, laid
+//       by the main body when the window is opened,
+//       reckoned from the day — see verses.nifla).
+//       (180's forward reckoning grows again: 7 is the
+//       verse window.) The desk stands 352 bytes, as it
+//       has since Stone 28; 340 to 351 stand unused.
 //  320  the letter cell's size in pixels (Stone 28):
 //       sixteen at the words' usual size — the font's
 //       eight by eight drawn at twice size — and

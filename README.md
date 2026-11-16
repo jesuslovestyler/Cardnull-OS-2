@@ -115,6 +115,12 @@ To build the bootable witness disc (see "The witness disc" below):
                       # large print standing from the card,
                       # and proves an old-shape card and a
                       # sitting with no disk (Stone 28)
+./prove-stone29.sh    # opens the verse window by its word
+                      # and from the bar's menu, DECODES the
+                      # day's verse letter by letter at the
+                      # usual size and at large print, and
+                      # closes it by Escape and by its close
+                      # mark (Stone 29)
 ./build-stick.sh      # makes dist/cardnull-stick.img (Stone 17)
 ```
 
@@ -2225,6 +2231,112 @@ window stands open, as the files window's foot has
 always done at its place; typing paints the line
 again, as it always has.
 
+### Stone 29 — A verse window
+
+A **seventh window** stands on the desktop now, titled
+**Verse** in plain words, opened by the typed word
+`verse` and by a new choice in the bar's menu. It
+carries **a verse of Scripture**, standing whole in
+the window with its reference named plainly under it
+— the window is fifty-four cells wide at the usual
+size, and the verse is wrapped by the window's own
+painter at the window's width (fifty letters at the
+usual size, thirty-six at large), so the whole verse
+stands at **both print sizes** through Stone 28's one
+scale measure, as every window's painting does. The
+window keeps the windows' discipline entire: framed,
+its close mark closes it, Tab brings windows forward
+in their turn (seven now, the verse window last
+before the round begins again), Escape closes it,
+and it drags by its title bar.
+
+**The kept set** stands in its own library,
+`src/verses.nifla`, in the pattern of `src/rest.nifla`:
+**twelve beloved verses in exact World English Bible
+wording** — the wording the desktop already carries,
+as the welcome window's Psalm 127:1 is WEB — each
+with its reference: Genesis 1:1, Psalm 23:1, Psalm
+46:1, Proverbs 3:5, Isaiah 41:10, Matthew 11:28, John
+3:16, John 10:11, Romans 8:28, Philippians 4:13,
+Hebrews 11:1, and 1 John 5:13. The wording is copied
+from the World English Bible as published, never
+paraphrased and never mixed with another translation.
+
+**Which verse stands is reckoned simply, and in the
+open:** when the window is opened, the day is counted
+from the date the desktop itself shows — the true
+clock's reading (Stone 7) turned by the kept time
+choice, the same date the bar's clock and the word
+`time` speak — as days since New Year's Day 1970, and
+that count is taken around the kept set of twelve.
+So a new day brings a new verse, and the same day
+brings the same verse every time the window opens.
+**Nothing is kept about which verse was seen** — no
+mark is made on any disk, and the system makes no
+claim to remember it. The bar's menu grew by the one
+choice: its seven choices now stand Welcome, Feather,
+Files, Settings, Editor, **Verse**, and Rest — Rest
+moved down one row, and Stone 25's proof, which
+presses Rest by its row, had its reckoning updated
+for that one moved measure, exactly as Stone 26
+updated Stone 22's proof and Stone 28 updated Stone
+20's.
+
+**One building note, in the open:** this stone's
+growth carried the kernel's staged segment end from
+224,274 to **234,640 bytes** — past the BIOS
+doorman's 224 KiB claim — so the doorman's stages
+were moved the way Stone 26 moved them, and the
+doorman's header says so: the claim stands at
+**256 KiB** now, and the module stages stand above
+the whole of it (the settings at 0x80000, the feather
+at 0x82000, its 56 KiB claim ending where the paint
+feather's stage begins, the paint feather at
+0x90000), all below the firmware's own reserved
+ground. The headroom under the new claim is
+**27,504 bytes**.
+
+Proven by `prove-stone29.sh`: the disc is booted
+twice with no disk fitted, the bench clock pinned at
+2026-11-15T00:00:00 on the world's standard time —
+with the disc's Eastern choice the desktop's date is
+November 14, 2026, a count of 20,771 days, which
+taken around twelve stands at the twelfth verse,
+**1 John 5:13**. In the first boot the word `verse`
+opens the window and the verse standing in it is
+**decoded letter by letter** against the system's own
+letter shapes, its wrapped lines joined back into the
+verse's **exact WEB wording**, its reference decoded
+under it; Tab brings the welcome window forward, the
+word brings the verse window forward again, Escape
+closes it; the bar's menu is opened and its **seven
+choices decoded**, a press on the Verse choice opens
+the window again, and a press on its close mark
+closes it (38 checks across the two boots). In the
+second boot the settings window's Large row is
+pressed, and the same verse stands whole in the
+window at the **large size**, wrapped at the narrower
+width, decoded letter by letter at the large scale.
+The neighbouring proofs pass with it — Stones 14, 23,
+25 (with its updated reckoning), and 28, the feather
+start fix, and the ISO proof, which boots the shipped
+disc itself through the moved doorman.
+
+Honest limits: the verse is reckoned **when the
+window opens** — a window left open across midnight
+keeps the verse it opened with until it is closed and
+opened again, and nothing anywhere records that any
+verse was seen. The set is **twelve verses, fixed**:
+there is no "another verse" choice — the day's
+turning is the choosing, as it is stated above. If
+the machine gives **no true clock reading** at all,
+the first verse of the set stands (Genesis 1:1) — the
+reckoning says so plainly rather than pretend a date
+it does not have. And the verse window lives on the
+**face of light only**, as every window does: on the
+text face the word `verse` is answered in plain
+words — "This face has no windows to open."
+
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 
 This is not one of this system's own stones; it is the
@@ -2713,6 +2825,11 @@ was split by duty, without changing its behavior:
   stands on (powout, powerofftry, cf9out,
   machinerestart, haltmachine). The disk's own flush
   word stands in diskkeep.nifla (ataflush, Stone 25).
+- `src/verses.nifla` — the verse window's kept set
+  (Stone 29): twelve beloved verses in exact World
+  English Bible wording, each with its reference, and
+  the day reckoning that chooses among them
+  (versecount, versetext, verseref, verseday).
 
 The libraries join the main body as preludes at build (build.sh
 names them all): files of pure functions — values in as arguments,

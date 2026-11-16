@@ -48,6 +48,10 @@
 //   src/rest.nifla       the resting: the ACPI power
 //                        doors, the reset doors, and the
 //                        final halt (Stone 25)
+//   src/verses.nifla     the kept set of verses the
+//                        verse window shows, in the
+//                        World English Bible's wording,
+//                        and the day's reckoning (Stone 29)
 //   src/cardnull.nifla   this main body: the boot
 //                        sequence, the first-breath lift,
 //                        the state, the face, the typing
@@ -414,6 +418,28 @@
 //          desktop whole at once. The text face stays as
 //          it is: large print lives on the face of light
 //          only, as the windows do.
+// Stone 29: a verse window — a seventh window on the
+//          face of light, opened by the word 'verse' and
+//          by a new choice, Verse, in the bar's menu (the
+//          menu's sixth window choice; Rest stands under
+//          it now, seven rows in all). It shows one verse
+//          from a kept set of twelve (verses.nifla), in
+//          the World English Bible's wording exactly,
+//          with its reference named plainly under it.
+//          Which verse stands is reckoned when the
+//          window is opened, from the date the desktop
+//          itself shows — the true clock's day in the
+//          person's chosen time (verseday in
+//          verses.nifla) — taken around the kept set, so
+//          a new day brings a new verse; when no true
+//          clock reading could be had, the first verse
+//          stands. Nothing is kept anywhere about which
+//          verse was seen. The window is a window like
+//          the others: it drags by its title bar, Tab
+//          reaches it, Escape and its close mark close
+//          it, and its words wrap at its own width, so
+//          the whole verse stands at either word size.
+//          Its standing lives in the desk at 324 to 336.
 //
 // The arrangement of the screen:
 //   row 0      the bar — "Cardnull" at the left, the date
@@ -1622,6 +1648,125 @@ make onepaint(desk) {
     }
 }
 
+// ---- the verse window (Stone 29) ----
+//
+// A seventh window, standing where the files, settings,
+// and editor windows stand. It shows one verse from the
+// kept set in verses.nifla — the World English Bible's
+// wording exactly, wrapped at the window's own width so
+// the whole verse stands at either word size (Stone
+// 28's measure, read like every painter reads it) —
+// with its reference named plainly under it. Which
+// verse stands is the desk's 336, laid by the main body
+// when the window is opened, reckoned from the day
+// (verseday in verses.nifla); the painter simply shows
+// the verse that stands there. Its standing lives in
+// the desk at 324 to 336 (pixface.nifla's ledger):
+// open, its place, and the verse's place in the set.
+// The window is fifty-four cells wide, like the files
+// window's, and twelve high: its title row, a breathing
+// row, up to seven wrapped rows of the verse, a
+// breathing row, the reference's row, and one row below.
+
+make vwide(desk) {
+    if pget(desk, 28) >= 56 {
+        give 54
+    }
+    give pget(desk, 28) - 2
+}
+
+make vleft(desk) {
+    give pget(desk, 328)
+}
+
+make vtop(desk) {
+    give pget(desk, 332)
+}
+
+make vhigh(desk) {
+    give 12
+}
+
+// Paints the verse window from the desk's standing:
+// closed, the plain desktop; open, its frame and title
+// bar, the day's verse wrapped word by word at the
+// window's width — the answers printer's own wrapping
+// reckoning (pixprintline in pixface.nifla), laid in
+// the window's light ground — and the verse's
+// reference under it, named plainly.
+make oneverse(desk) {
+    let cs = pget(desk, 320)
+    let gx = vleft(desk)
+    let gy = vtop(desk)
+    let gw = vwide(desk)
+    let gh = vhigh(desk)
+    if pget(desk, 324) == 0 {
+        pixink(desk, 0)
+        pixfill(desk, gx * cs, gy * cs, gw * cs, gh * cs)
+    } else {
+        let front = 0
+        if pget(desk, 180) == 7 {
+            front = 1
+        }
+        winframe(desk, gy * 256 + gx, gh * 256 + gw, front)
+        pixspan(desk, 0, 5, 15)
+        pixtext(desk, gy, gx + 1, "Verse")
+        pixink(desk, 7)
+        pixfill(desk, gx * cs + 2, gy * cs + cs + 2, gw * cs - 4, gh * cs - cs - 4)
+        let idx = pget(desk, 336)
+        let text = versetext(idx)
+        let n = length(text)
+        let width = gw - 4
+        let r = gy + 2
+        let start = 0
+        let going = 1
+        if n == 0 {
+            going = 0
+        }
+        while going == 1 {
+            if r > gy + 8 {
+                going = 0
+            } else {
+                let end = start + width
+                if end >= n {
+                    end = n
+                } else {
+                    let j = end
+                    let hunting = 1
+                    while hunting == 1 {
+                        if j <= start {
+                            hunting = 0
+                        } else {
+                            if textbyte(text, j) == 32 {
+                                hunting = 0
+                            } else {
+                                j = j - 1
+                            }
+                        }
+                    }
+                    if j > start {
+                        end = j
+                    }
+                }
+                pixpaper(desk, 7)
+                pixspan(desk, start, end - start, 0)
+                pixtext(desk, r, gx + 2, text)
+                r = r + 1
+                start = end
+                if start < n {
+                    if textbyte(text, start) == 32 {
+                        start = start + 1
+                    }
+                }
+                if start >= n {
+                    going = 0
+                }
+            }
+        }
+        pixline(desk, (gy + 10) * 256 + (gx + 2), verseref(idx), 112)
+    }
+}
+
 // ---- the bar's menu (Stone 23) ----
 //
 // A press of the pointer on the top bar — the Cardnull
@@ -1631,7 +1776,9 @@ make onepaint(desk) {
 // Settings, Editor, the names the desktop already
 // gives them — and, since Stone 25, a sixth choice
 // under them: Rest, which offers the machine's
-// resting, exactly as the word 'rest' does. A press
+// resting, exactly as the word 'rest' does. Since
+// Stone 29 a sixth window choice, Verse, stands
+// between Editor and Rest, and Rest stands last. A press
 // on a window choice opens that window (or brings it
 // forward), exactly as the choice's typed word does —
 // the feather's choice asks for the feather, as the
@@ -1652,8 +1799,9 @@ make onepaint(desk) {
 // top is the bar's underside (row 1), it is twelve
 // cells wide — room for the longest name, Settings,
 // with the frame's breathing room the windows keep —
-// and six cells high, one row to a choice (five window
-// choices, and Rest under them since Stone 25).
+// and seven cells high, one row to a choice (six
+// window choices, and Rest under them since Stone 25,
+// standing last since Stone 29).
 
 make menuleft(desk) {
     give 0
@@ -1668,7 +1816,7 @@ make menuwide(desk) {
 }
 
 make menuhigh(desk) {
-    give 6
+    give 7
 }
 
 // Wipes the menu's place back to the plain desktop:
@@ -1682,7 +1830,7 @@ make menuwash(desk) {
 }
 
 // Paints the bar's menu from the desk's standing: open,
-// its gray edge and black body and the six choices in
+// its gray edge and black body and the seven choices in
 // white, one to a row; closed, nothing — putting the
 // menu away is menuwash's and the windows' painting's
 // work.
@@ -1702,7 +1850,8 @@ make onemenu(desk) {
         pixline(desk, (mt + 2) * 256 + (ml + 1), "Files", 15)
         pixline(desk, (mt + 3) * 256 + (ml + 1), "Settings", 15)
         pixline(desk, (mt + 4) * 256 + (ml + 1), "Editor", 15)
-        pixline(desk, (mt + 5) * 256 + (ml + 1), "Rest", 15)
+        pixline(desk, (mt + 5) * 256 + (ml + 1), "Verse", 15)
+        pixline(desk, (mt + 6) * 256 + (ml + 1), "Rest", 15)
     }
 }
 
@@ -1809,6 +1958,9 @@ make paintwindows(desk, block, notes) {
     if pget(desk, 272) == 0 {
         onepaint(desk)
     }
+    if pget(desk, 324) == 0 {
+        oneverse(desk)
+    }
     let f = pget(desk, 180)
     if f != 1 {
         if pget(desk, 172) == 1 {
@@ -1840,6 +1992,11 @@ make paintwindows(desk, block, notes) {
             onepaint(desk)
         }
     }
+    if f != 7 {
+        if pget(desk, 324) == 1 {
+            oneverse(desk)
+        }
+    }
     if f == 1 {
         if pget(desk, 172) == 1 {
             onewelcome(desk)
@@ -1868,6 +2025,11 @@ make paintwindows(desk, block, notes) {
     if f == 6 {
         if pget(desk, 272) == 1 {
             onepaint(desk)
+        }
+    }
+    if f == 7 {
+        if pget(desk, 324) == 1 {
+            oneverse(desk)
         }
     }
     // The bar's menu stands over everything (Stone 23):
@@ -1927,6 +2089,7 @@ make winopen(desk, win) {
     if win == 4 { give pget(desk, 208) }
     if win == 5 { give pget(desk, 220) }
     if win == 6 { give pget(desk, 272) }
+    if win == 7 { give pget(desk, 324) }
     give 0
 }
 
@@ -1940,6 +2103,7 @@ make winleft(desk, win) {
     if win == 4 { give seleft(desk) }
     if win == 5 { give edleft(desk) }
     if win == 6 { give paleft(desk) }
+    if win == 7 { give vleft(desk) }
     give 0
 }
 
@@ -1950,6 +2114,7 @@ make wintop(desk, win) {
     if win == 4 { give setop(desk) }
     if win == 5 { give edtop(desk) }
     if win == 6 { give patop(desk) }
+    if win == 7 { give vtop(desk) }
     give 0
 }
 
@@ -1960,6 +2125,7 @@ make winwide(desk, win) {
     if win == 4 { give sewide(desk) }
     if win == 5 { give edwide(desk) }
     if win == 6 { give pawide(desk) }
+    if win == 7 { give vwide(desk) }
     give 0
 }
 
@@ -1970,6 +2136,7 @@ make winhigh(desk, win) {
     if win == 4 { give sehigh(desk) }
     if win == 5 { give edhigh(desk) }
     if win == 6 { give pahigh(desk) }
+    if win == 7 { give vhigh(desk) }
     give 0
 }
 
@@ -2004,6 +2171,10 @@ make winmove(desk, win, newleft, newtop) {
     if win == 6 {
         pset(desk, 280, newleft)
         pset(desk, 284, newtop)
+    }
+    if win == 7 {
+        pset(desk, 328, newleft)
+        pset(desk, 332, newtop)
     }
 }
 
@@ -2066,6 +2237,15 @@ make layplaces(desk) {
         pt2 = 1
     }
     pset(desk, 284, pt2)
+    pset(desk, 328, (pget(desk, 28) - vwide(desk)) / 2)
+    let vt = layrow(desk, 17)
+    if vt + vhigh(desk) > pget(desk, 32) {
+        vt = pget(desk, 32) - vhigh(desk)
+    }
+    if vt < 1 {
+        vt = 1
+    }
+    pset(desk, 332, vt)
 }
 
 // ---- the machine ----
@@ -2404,6 +2584,13 @@ if pix == 1 {
     pset(pixdesk, 308, 0)
     pset(pixdesk, 312, 1)
     pset(pixdesk, 316, 0)
+    // The verse window's standing (Stone 29), at 324 to
+    // 336: it starts closed — the word 'verse' opens it —
+    // and the first verse stands in it until an opening
+    // reckons the day's. Its place is laid with the other
+    // windows' places by layplaces below.
+    pset(pixdesk, 324, 0)
+    pset(pixdesk, 336, 0)
     // The letter cell's size (Stone 28), at 320: sixteen
     // pixels at the words' usual size, twenty-four when
     // large print stands — laid from the size standing
@@ -3449,6 +3636,26 @@ while true {
                     // starting again (Stone 25).
                     restdo = 2
                 }
+                if kind == 19 {
+                    // 'verse': the verse window is opened
+                    // and brought forward (Stone 29), and
+                    // the day's verse is reckoned as it
+                    // opens — from the date the desktop
+                    // itself shows, the true clock's day in
+                    // the person's chosen time (verseday
+                    // in verses.nifla), taken around the
+                    // kept set. The text face has no
+                    // windows, and says so in plain words,
+                    // as for 'welcome'.
+                    if pix == 1 {
+                        pset(pixdesk, 336, verseday(utcnow, offset))
+                        pset(pixdesk, 324, 1)
+                        pset(pixdesk, 180, 7)
+                        paintwindows(pixdesk, cellblock, notesblock)
+                    } else {
+                        ansrow = printline(ansrow, "This face has no windows to open.", pix, pixdesk)
+                    }
+                }
                 if kind == 1 {
                     // A line of words answers it. A word
                     // the machine does not know is a
@@ -3468,8 +3675,9 @@ while true {
                     // forward (Stone 14, grown at Stone 19
                     // to three windows, at Stone 20 to
                     // four, at Stone 21 to five, and at
-                    // Stone 24 to six: welcome, feather,
-                    // files, settings, editor, paint, and
+                    // Stone 24 to six, and at Stone 29 to
+                    // seven: welcome, feather, files,
+                    // settings, editor, paint, verse, and
                     // round again). The key types nothing,
                     // as it never has; on the text face,
                     // which has no windows, it simply passes.
@@ -3478,9 +3686,9 @@ while true {
                         let nxt = 0
                         let cand = cur
                         let tries = 0
-                        while tries < 6 {
+                        while tries < 7 {
                             cand = cand + 1
-                            if cand > 6 {
+                            if cand > 7 {
                                 cand = 1
                             }
                             let open = 0
@@ -3502,9 +3710,12 @@ while true {
                             if cand == 6 {
                                 open = pget(pixdesk, 272)
                             }
+                            if cand == 7 {
+                                open = pget(pixdesk, 324)
+                            }
                             if open == 1 {
                                 nxt = cand
-                                tries = 6
+                                tries = 7
                             } else {
                                 tries = tries + 1
                             }
@@ -3667,7 +3878,7 @@ while true {
                             // forward in the closed window's
                             // place.
                             if fr >= 1 {
-                                if fr <= 5 {
+                                if fr <= 6 {
                                     if pget(pixdesk, 180) == 0 {
                                         if pget(pixdesk, 220) == 1 {
                                             pset(pixdesk, 180, 5)
@@ -3677,6 +3888,12 @@ while true {
                                     if pget(pixdesk, 180) == 0 {
                                         if pget(pixdesk, 272) == 1 {
                                             pset(pixdesk, 180, 6)
+                                            paintwindows(pixdesk, cellblock, notesblock)
+                                        }
+                                    }
+                                    if pget(pixdesk, 180) == 0 {
+                                        if pget(pixdesk, 324) == 1 {
+                                            pset(pixdesk, 180, 7)
                                             paintwindows(pixdesk, cellblock, notesblock)
                                         }
                                     }
@@ -3712,7 +3929,8 @@ while true {
                                 // forward in its place — the
                                 // welcome first, then the
                                 // feather, the files, the
-                                // settings, and the editor.
+                                // settings, the editor, and
+                                // (Stone 29) the verse window.
                                 pset(pixdesk, 272, 0)
                                 if pget(pixdesk, 172) == 1 {
                                     pset(pixdesk, 180, 1)
@@ -3729,7 +3947,48 @@ while true {
                                                 if pget(pixdesk, 220) == 1 {
                                                     pset(pixdesk, 180, 5)
                                                 } else {
-                                                    pset(pixdesk, 180, 0)
+                                                    if pget(pixdesk, 324) == 1 {
+                                                        pset(pixdesk, 180, 7)
+                                                    } else {
+                                                        pset(pixdesk, 180, 0)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                paintwindows(pixdesk, cellblock, notesblock)
+                            }
+                            if fr == 7 {
+                                // The verse window closes
+                                // (Stone 29): another window,
+                                // if one stands open, comes
+                                // forward in its place — the
+                                // welcome first, then the
+                                // feather, the files, the
+                                // settings, the editor, and
+                                // the paint window.
+                                pset(pixdesk, 324, 0)
+                                if pget(pixdesk, 172) == 1 {
+                                    pset(pixdesk, 180, 1)
+                                } else {
+                                    if pget(pixdesk, 176) == 1 {
+                                        pset(pixdesk, 180, 2)
+                                    } else {
+                                        if pget(pixdesk, 188) == 1 {
+                                            pset(pixdesk, 180, 3)
+                                        } else {
+                                            if pget(pixdesk, 208) == 1 {
+                                                pset(pixdesk, 180, 4)
+                                            } else {
+                                                if pget(pixdesk, 220) == 1 {
+                                                    pset(pixdesk, 180, 5)
+                                                } else {
+                                                    if pget(pixdesk, 272) == 1 {
+                                                        pset(pixdesk, 180, 6)
+                                                    } else {
+                                                        pset(pixdesk, 180, 0)
+                                                    }
                                                 }
                                             }
                                         }
@@ -4026,6 +4285,10 @@ while true {
                                 let qy = patop(pixdesk)
                                 let qw = pawide(pixdesk)
                                 let qh = pahigh(pixdesk)
+                                let vx = vleft(pixdesk)
+                                let vy = vtop(pixdesk)
+                                let vw = vwide(pixdesk)
+                                let vh = vhigh(pixdesk)
                                 let acted = 0
                                 if acted == 0 {
                                     // The rest panel (Stone
@@ -4153,6 +4416,20 @@ while true {
                                                 pset(pixdesk, 180, 5)
                                             }
                                             if pick == 5 {
+                                                // The menu's Verse
+                                                // choice (Stone
+                                                // 29): the verse
+                                                // window opens and
+                                                // the day's verse
+                                                // is reckoned as it
+                                                // opens, exactly as
+                                                // the word 'verse'
+                                                // opens it.
+                                                pset(pixdesk, 336, verseday(utcnow, offset))
+                                                pset(pixdesk, 324, 1)
+                                                pset(pixdesk, 180, 7)
+                                            }
+                                            if pick == 6 {
                                                 // The menu's Rest
                                                 // choice (Stone
                                                 // 25): the menu is
@@ -4374,6 +4651,48 @@ while true {
                                         }
                                     }
                                 }
+                                if acted == 0 {
+                                    if pget(pixdesk, 324) == 1 {
+                                        if cxp >= (vx + vw - 2) * cellpx {
+                                            if cxp < (vx + vw - 1) * cellpx {
+                                                if cyp >= vy * cellpx {
+                                                    if cyp < (vy + 1) * cellpx {
+                                                        pset(pixdesk, 324, 0)
+                                                        if pget(pixdesk, 180) == 7 {
+                                                            if pget(pixdesk, 172) == 1 {
+                                                                pset(pixdesk, 180, 1)
+                                                            } else {
+                                                                if pget(pixdesk, 176) == 1 {
+                                                                    pset(pixdesk, 180, 2)
+                                                                } else {
+                                                                    if pget(pixdesk, 188) == 1 {
+                                                                        pset(pixdesk, 180, 3)
+                                                                    } else {
+                                                                        if pget(pixdesk, 208) == 1 {
+                                                                            pset(pixdesk, 180, 4)
+                                                                        } else {
+                                                                            if pget(pixdesk, 220) == 1 {
+                                                                                pset(pixdesk, 180, 5)
+                                                                            } else {
+                                                                                if pget(pixdesk, 272) == 1 {
+                                                                                    pset(pixdesk, 180, 6)
+                                                                                } else {
+                                                                                    pset(pixdesk, 180, 0)
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                                 if acted == 1 {
                                     // A close mark's reckoning
                                     // above may have found
@@ -4397,6 +4716,17 @@ while true {
                                     if pget(pixdesk, 180) == 0 {
                                         if pget(pixdesk, 272) == 1 {
                                             pset(pixdesk, 180, 6)
+                                            paintwindows(pixdesk, cellblock, notesblock)
+                                        }
+                                    }
+                                    // The verse window joins
+                                    // the same reckoning (Stone
+                                    // 29): when it alone stands
+                                    // open, it comes forward in
+                                    // the closed window's place.
+                                    if pget(pixdesk, 180) == 0 {
+                                        if pget(pixdesk, 324) == 1 {
+                                            pset(pixdesk, 180, 7)
                                             paintwindows(pixdesk, cellblock, notesblock)
                                         }
                                     }
@@ -4942,10 +5272,10 @@ while true {
                                     let fwd = pget(pixdesk, 180)
                                     let cand = fwd
                                     let tries = 0
-                                    while tries < 7 {
+                                    while tries < 8 {
                                         let took = 0
                                         if cand >= 1 {
-                                            if cand <= 6 {
+                                            if cand <= 7 {
                                                 if winopen(pixdesk, cand) == 1 {
                                                     let wl = winleft(pixdesk, cand)
                                                     let wt = wintop(pixdesk, cand)
@@ -4976,7 +5306,7 @@ while true {
                                             }
                                         }
                                         if acted == 1 {
-                                            tries = 7
+                                            tries = 8
                                         } else {
                                             if tries == 0 {
                                                 cand = 1
@@ -5097,6 +5427,21 @@ while true {
                                                 if cyp >= qy * cellpx {
                                                     if cyp < (qy + qh) * cellpx {
                                                         pset(pixdesk, 180, 6)
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    if pget(pixdesk, 324) == 1 {
+                                        if cxp >= vx * cellpx {
+                                            if cxp < (vx + vw) * cellpx {
+                                                if cyp >= vy * cellpx {
+                                                    if cyp < (vy + vh) * cellpx {
+                                                        pset(pixdesk, 180, 7)
                                                         paintwindows(pixdesk, cellblock, notesblock)
                                                         acted = 1
                                                     }
