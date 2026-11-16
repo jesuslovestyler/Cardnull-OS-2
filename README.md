@@ -69,6 +69,10 @@ To build the bootable witness disc (see "The witness disc" below):
 ./prove-stone21.sh    # opens the editor window, TYPES a note in it,
                       # changes it, and reads the changed words back
                       # from the disk's CNN3 store (Stone 21)
+./prove-stone22.sh    # DRAGS the files window by its title bar to a
+                      # new place, DECODES it there, checks the ground
+                      # it left, and clicks a note's row in the
+                      # dragged window (Stone 22)
 ./build-stick.sh      # makes dist/cardnull-stick.img (Stone 17)
 ```
 
@@ -1331,6 +1335,105 @@ writes the line the store holds, no longer and no
 otherwise shaped. Editing speaks to the notes page
 only; the settings card is the settings window's, as
 it has been since Stone 20.
+
+### Stone 22 — Window dragging
+
+The windows move now: **a window is dragged by its
+title bar with the pointer.** A press of the pointer's
+first button on a window's title bar — anywhere on the
+bar except its close mark, which still closes, as it
+always has — takes hold of the window and brings it
+forward, as any press on a window has always brought
+it forward. While the button stands held, the window
+follows the pointer by the same hold (the place within
+the bar where it was taken is kept, so the window does
+not jump to the pointer); letting the button go sets
+it down. The drag is reckoned in letter cells, the
+measure every window's place is reckoned in, and a
+window is kept **whole on the desktop**, simply
+clamped at the edges: its left stands between the
+desktop's left edge and the place where its right edge
+meets the desktop's right edge, and its top between
+the top bar's underside and the place where its bottom
+meets the desktop's foot. As a window moves, the
+ground it stood on is filled back to the plain desktop
+and the windows are painted again, so a window that
+stood under the dragged one stands whole in its place
+— the same manners closing a window has always kept.
+
+The geometry discipline is the one the windows have
+kept since Stone 14, now made literal: **a window's
+place is one reckoned place, read by the painter and
+the pointer alike.** Each window's left and top live
+in the pixel face's desk — the welcome's at 140 and
+144, where they have always lived, and the feather's,
+files, settings, and editor windows' at 236 to 264,
+laid at the face's rising from the places their
+measures first reckon (centered, at the layout's rows
+14 and 17) — and a window's own left/top reckonings
+(the feather's `fwleft` and its kin) read that place,
+while its width and height are reckoned as before. The
+main loop's pressing — the drag's taking hold and
+following, the close marks, and every content press:
+the files window's rows, the settings window's
+choices, the editor window's rows, the feather's panel
+— reads a window's place only through one set of
+measures (`winleft` and its kin) standing on those
+same reckonings, so after a drag a click lands on the
+row that stands under it, because painter and pointer
+were never reading two places. When windows overlap, a
+press on a title bar takes the forward window first —
+its bar is the one standing visible. The pointer's
+save and laying back are untouched: the arrow is off
+the screen while a pass draws, as it always is, and is
+laid again at the pass's end over its kept patch, the
+whole sixteen-by-seventeen footprint (the pointer
+trail fix), so a drag — the pointer moving more than
+ever — leaves no trail of it. Tab, Escape, the close
+marks, and the typed words (`welcome`, `files`,
+`settings`, `editor`, `feather`) all work as before,
+from wherever a window now stands.
+
+One building note, recorded honestly: the desk's
+numbers are read back unsigned, so a dragged *offset*
+from a window's first place — which goes negative the
+moment a window moves up or to the left — came back as
+a number near four billion on the first bench build,
+and the painter wrote to wild addresses and the
+machine reset. That is why the places themselves, and
+never offsets, are what the desk holds: a place is
+never negative, by the clamping above.
+
+Proven by `prove-stone22.sh`: a keeping disk prepared
+with two known notes is booted with the shipped disc;
+the word `files` opens the files window at its first
+place and its rendered list is **decoded letter by
+letter** against the system's own letter shapes; the
+pointer is laid on its title bar, the button pressed,
+and the pointer carried — button held, in small steps
+— five cells across and ten rows up. On release the
+window renders at the new place: its title, heading,
+and list are decoded there, letter by letter. Every
+pixel of the ground it stood on that neither its new
+place nor the feather window behind it covers is
+checked plain black — no remnants, compared the way
+`prove-pointertrail.sh` compares the whole desktop. A
+press on the second note's row **in the dragged
+window** picks that note, its whole words standing at
+the window's foot, and a press on the close mark at
+the dragged place closes the window.
+
+Honest limits: a dragged window's new place **lasts
+only for the sitting** — nothing writes it to the disk
+or the disc, and the next boot lays every window where
+its measures first reckon it, as before. Dragging is
+the pointer's alone: no key moves a window, and the
+text face has no windows to move, as it never has. A
+window dragged over the desktop's own words (the
+invitation, the answers) covers them, and moving it
+away leaves the plain desktop there, not the words —
+the same manners opening and closing a window have
+always kept; `clear` draws the face whole again.
 
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 

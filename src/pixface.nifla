@@ -77,6 +77,20 @@
 //       the files window's copies at 196, 200 and 204 —
 //       the same facts. (180's forward reckoning grows
 //       again: 5 is the editor window.)
+//  236  the windows' places (Stone 22): each window's
+//       left column and top row, in letter cells — the
+//       feather's (236, 240), the files window's (244,
+//       248), the settings window's (252, 256), and the
+//       editor window's (260, 264). At the face's rising
+//       the main body lays each pair from the place the
+//       window's measures first reckon; dragging a
+//       window's title bar writes its pair, and the
+//       window's own left/top reckonings read the pair,
+//       so the painter and the pointer's pressing read
+//       the one dragged place alike. The welcome window
+//       needed no pair of its own: its place has always
+//       lived in this desk at 140 to 152, and dragging
+//       writes that place itself, the same way.
 //
 // A letter cell is sixteen pixels square: the font's eight
 // by eight, drawn at twice size. The face's layout is the

@@ -195,6 +195,19 @@
 //          With no keeping disk the note is kept only for
 //          the sitting, and the window says so plainly,
 //          as the answers have always said.
+// Stone 22: window dragging — a window is moved by
+//          dragging its title bar with the pointer: a
+//          press on the bar (not on its close mark) takes
+//          hold, the window follows the pointer while the
+//          button stands held, and letting go sets it
+//          down, clamped whole onto the desktop. Every
+//          window's place is read through one set of
+//          measures (winleft and its kin, below) standing
+//          on the same reckonings the painters use, so
+//          after a drag the painting, the close marks,
+//          and every content press still reckon from the
+//          window's one place. A dragged place lasts for
+//          the sitting; nothing keeps it past it.
 //
 // The arrangement of the screen:
 //   row 0      the bar — "Cardnull" at the left, the date
@@ -581,11 +594,11 @@ make fwwide(desk) {
 }
 
 make fwleft(desk) {
-    give (pget(desk, 28) - fwwide(desk)) / 2
+    give pget(desk, 236)
 }
 
 make fwtop(desk) {
-    give layrow(desk, 14)
+    give pget(desk, 240)
 }
 
 make fwhigh(desk) {
@@ -696,11 +709,11 @@ make fiwide(desk) {
 }
 
 make fileft(desk) {
-    give (pget(desk, 28) - fiwide(desk)) / 2
+    give pget(desk, 244)
 }
 
 make fitop(desk) {
-    give layrow(desk, 17)
+    give pget(desk, 248)
 }
 
 make fihigh(desk) {
@@ -837,11 +850,11 @@ make sewide(desk) {
 }
 
 make seleft(desk) {
-    give (pget(desk, 28) - sewide(desk)) / 2
+    give pget(desk, 252)
 }
 
 make setop(desk) {
-    give layrow(desk, 17)
+    give pget(desk, 256)
 }
 
 make sehigh(desk) {
@@ -952,11 +965,11 @@ make edwide(desk) {
 }
 
 make edleft(desk) {
-    give (pget(desk, 28) - edwide(desk)) / 2
+    give pget(desk, 260)
 }
 
 make edtop(desk) {
-    give layrow(desk, 17)
+    give pget(desk, 264)
 }
 
 make edhigh(desk) {
@@ -1122,6 +1135,118 @@ make paintwindows(desk, block, notes) {
         if pget(desk, 220) == 1 {
             oneeditor(desk, notes)
         }
+    }
+}
+
+// ---- window dragging (Stone 22) ----
+//
+// A window is moved by dragging its title bar with the
+// pointer: a press on the bar (not on its close mark)
+// takes hold of the window, the window follows the
+// pointer while the button stands held, and letting
+// the button go sets it down. A window's place stays
+// whole on the desktop: its left stands between the
+// desktop's left edge and the place where its right
+// edge meets the desktop's right edge, and its top
+// between the bar's underside (row 1) and the place
+// where its bottom meets the desktop's foot — simply
+// clamped at the edges, in letter cells, the measure
+// every window's place is reckoned in. The new place
+// lasts for the sitting; nothing writes it anywhere.
+//
+// The reckoning stays single-sourced, the discipline
+// every window has kept: a window's place is read
+// through the one set of measures below, which stand
+// on the same reckonings the painters use — each
+// window's place in the desk (the welcome's at 140 to
+// 152, the others' left and top at 236 to 264, laid at
+// the face's rising from the places their measures
+// first reckon), and their own wide/high reckonings.
+// The pointer's
+// pressing in the main loop — the drag's taking hold,
+// its following, and every content press after a drag
+// — reads a window's place only through these, so
+// painter and pointer can never disagree about where
+// a dragged window stands.
+
+// Whether window 'win' stands open (1 the welcome, 2
+// the feather, 3 the files, 4 the settings, 5 the
+// editor — the forward reckoning's own numbers).
+make winopen(desk, win) {
+    if win == 1 { give pget(desk, 172) }
+    if win == 2 { give pget(desk, 176) }
+    if win == 3 { give pget(desk, 188) }
+    if win == 4 { give pget(desk, 208) }
+    if win == 5 { give pget(desk, 220) }
+    give 0
+}
+
+// Window 'win''s left column, top row, width, and
+// height, in letter cells — each from the window's own
+// reckoning, dragged move and all.
+make winleft(desk, win) {
+    if win == 1 { give pget(desk, 140) }
+    if win == 2 { give fwleft(desk) }
+    if win == 3 { give fileft(desk) }
+    if win == 4 { give seleft(desk) }
+    if win == 5 { give edleft(desk) }
+    give 0
+}
+
+make wintop(desk, win) {
+    if win == 1 { give pget(desk, 144) }
+    if win == 2 { give fwtop(desk) }
+    if win == 3 { give fitop(desk) }
+    if win == 4 { give setop(desk) }
+    if win == 5 { give edtop(desk) }
+    give 0
+}
+
+make winwide(desk, win) {
+    if win == 1 { give pget(desk, 148) }
+    if win == 2 { give fwwide(desk) }
+    if win == 3 { give fiwide(desk) }
+    if win == 4 { give sewide(desk) }
+    if win == 5 { give edwide(desk) }
+    give 0
+}
+
+make winhigh(desk, win) {
+    if win == 1 { give pget(desk, 152) }
+    if win == 2 { give fwhigh(desk) }
+    if win == 3 { give fihigh(desk) }
+    if win == 4 { give sehigh(desk) }
+    if win == 5 { give edhigh(desk) }
+    give 0
+}
+
+// Sets window 'win' down at a new place (its left
+// column and top row, in letter cells): the window's
+// place in the desk is written — the welcome's at 140
+// and 144, where its painting has always read it, and
+// each other window's at its own pair (236 to 264),
+// where its left/top reckonings read it — so the one
+// place stands for painter and pointer alike.
+make winmove(desk, win, newleft, newtop) {
+    if win == 1 {
+        pset(desk, 140, newleft)
+        pset(desk, 144, newtop)
+    }
+    if win == 2 {
+        pset(desk, 236, newleft)
+        pset(desk, 240, newtop)
+    }
+    if win == 3 {
+        pset(desk, 244, newleft)
+        pset(desk, 248, newtop)
+    }
+    if win == 4 {
+        pset(desk, 252, newleft)
+        pset(desk, 256, newtop)
+    }
+    if win == 5 {
+        pset(desk, 260, newleft)
+        pset(desk, 264, newtop)
     }
 }
 
@@ -1324,7 +1449,7 @@ if fbflags - (fbflags / 8192) * 8192 >= 4096 {
     }
 }
 if pix == 1 {
-    pixdesk = makebytes(256)
+    pixdesk = makebytes(320)
     let fontblock = makebytes(1024)
     fontload(fontblock)
     // The pointer's shapes and its save block (Stone 13):
@@ -1376,7 +1501,27 @@ if pix == 1 {
     pset(pixdesk, 208, 0)
     pset(pixdesk, 212, chimeon)
     pset(pixdesk, 216, offset)
+    // (The editor window's standing at 220 to 232 starts
+    // at nothing, as the desk is taken cleared: closed,
+    // in its picking way.)
     pixbegin(pixdesk)
+    // The windows' places (Stone 22), at 236 to 264:
+    // each window's left and top are laid here, at the
+    // face's rising, from the place its measures first
+    // reckon — the feather centered at the layout's
+    // row 14, the files, settings, and editor windows
+    // centered at its row 17 — and dragging writes the
+    // pair from here on (see winmove above). The
+    // welcome's place was laid by pixbegin itself, at
+    // 140 to 152, as it always has been.
+    pset(pixdesk, 236, (pget(pixdesk, 28) - fwwide(pixdesk)) / 2)
+    pset(pixdesk, 240, layrow(pixdesk, 14))
+    pset(pixdesk, 244, (pget(pixdesk, 28) - fiwide(pixdesk)) / 2)
+    pset(pixdesk, 248, layrow(pixdesk, 17))
+    pset(pixdesk, 252, (pget(pixdesk, 28) - sewide(pixdesk)) / 2)
+    pset(pixdesk, 256, layrow(pixdesk, 17))
+    pset(pixdesk, 260, (pget(pixdesk, 28) - edwide(pixdesk)) / 2)
+    pset(pixdesk, 264, layrow(pixdesk, 17))
     // The feather's canvas on this face: a text screen's
     // worth of cells, laid out as the text screen's own
     // are — a letter byte and a color byte to a cell —
@@ -1417,6 +1562,16 @@ let my = 0
 let mbtn = 0
 let mshown = 0
 let featherask = 0
+// The drag's standing (Stone 22): which window the
+// pointer holds by its title bar (0 none, else the
+// window's own number, as winopen and its kin reckon),
+// and the hold's place within that window — the
+// pointer's cell less the window's corner cell, taken
+// when the drag begins, so the window follows the
+// pointer by the same hold all the way.
+let dragwin = 0
+let draggox = 0
+let draggoy = 0
 if pix == 1 {
     mouseup = mouseinit()
     mx = pget(pixdesk, 8) / 2 - 8
@@ -2311,7 +2466,11 @@ while true {
     // button speaks to the windows (Stone 14): a close
     // mark closes, a press on the feather's panel asks for
     // the feather as the word does, and a press on a window
-    // brings it forward. The place is kept on the screen,
+    // brings it forward. A press on a title bar takes hold
+    // of its window for a drag (Stone 22), and each packet
+    // while the button stands held moves the held window
+    // with the pointer, as the packet reckoning below
+    // tells. The place is kept on the screen,
     // the arrow's whole patch whole: sixteen wide, and
     // seventeen tall (the pointer trail fix — the white
     // edge's bottom row stands at my + 16, so the corner
@@ -2338,6 +2497,63 @@ while true {
                         my = maxy
                     }
                     let btn = mousedesk[5]
+                    // The drag follows (Stone 22): while a
+                    // window stands held by its title bar
+                    // and the button stands held with it,
+                    // the window is set where the pointer's
+                    // hold on it now stands — its new place
+                    // clamped whole onto the desktop, at the
+                    // edges simply — the place it stood is
+                    // filled back to the plain desktop, and
+                    // the windows are painted again, so the
+                    // vacated ground and any window that
+                    // stood under it stand whole. Letting
+                    // the button go sets the window down:
+                    // the hold simply ends, and its place
+                    // stands as it was left. The arrow is
+                    // off the screen for the whole of this
+                    // pass (it is laid again at the pass's
+                    // end, over the kept patch, as always),
+                    // so a drag leaves no trail of it.
+                    if dragwin != 0 {
+                        if andmask(btn, 1) == 0 {
+                            dragwin = 0
+                        } else {
+                            let dw = winwide(pixdesk, dragwin)
+                            let dh = winhigh(pixdesk, dragwin)
+                            let nl = (mx + 2) / 16 - draggox
+                            let nt = (my + 2) / 16 - draggoy
+                            if nl < 0 {
+                                nl = 0
+                            }
+                            if nt < 1 {
+                                nt = 1
+                            }
+                            let maxl = pget(pixdesk, 28) - dw
+                            let maxt = pget(pixdesk, 32) - dh
+                            if nl > maxl {
+                                nl = maxl
+                            }
+                            if nt > maxt {
+                                nt = maxt
+                            }
+                            let ol = winleft(pixdesk, dragwin)
+                            let ot = wintop(pixdesk, dragwin)
+                            let moved = 0
+                            if nl != ol {
+                                moved = 1
+                            }
+                            if nt != ot {
+                                moved = 1
+                            }
+                            if moved == 1 {
+                                winmove(pixdesk, dragwin, nl, nt)
+                                pixink(pixdesk, 0)
+                                pixfill(pixdesk, ol * 16, ot * 16, dw * 16, dh * 16)
+                                paintwindows(pixdesk, cellblock, notesblock)
+                            }
+                        }
+                    }
                     if btn != mbtn {
                         if andmask(btn, 1) == 1 {
                             if andmask(mbtn, 1) == 0 {
@@ -2702,6 +2918,76 @@ while true {
                                                     }
                                                 }
                                             }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    // A press on a window's title
+                                    // bar takes hold of it for a
+                                    // drag (Stone 22): a close
+                                    // mark's press has already
+                                    // been reckoned above — it
+                                    // closes, and never drags —
+                                    // and no content row stands
+                                    // in a title bar, so a press
+                                    // reaching here on a bar is
+                                    // the drag's alone. The
+                                    // forward window is tried
+                                    // first — its bar is the one
+                                    // standing visible where
+                                    // windows overlap — then each
+                                    // window in its turn. The
+                                    // window comes forward, as a
+                                    // press on it has always
+                                    // brought it, and the hold's
+                                    // place within the window is
+                                    // kept for the following in
+                                    // the packet reckoning above.
+                                    let fwd = pget(pixdesk, 180)
+                                    let cand = fwd
+                                    let tries = 0
+                                    while tries < 6 {
+                                        let took = 0
+                                        if cand >= 1 {
+                                            if cand <= 5 {
+                                                if winopen(pixdesk, cand) == 1 {
+                                                    let wl = winleft(pixdesk, cand)
+                                                    let wt = wintop(pixdesk, cand)
+                                                    let ww = winwide(pixdesk, cand)
+                                                    if cxp >= wl * 16 {
+                                                        if cxp < (wl + ww) * 16 {
+                                                            if cyp >= wt * 16 {
+                                                                if cyp < (wt + 1) * 16 {
+                                                                    if cxp < (wl + ww - 2) * 16 {
+                                                                        took = 1
+                                                                    }
+                                                                    if cxp >= (wl + ww - 1) * 16 {
+                                                                        took = 1
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                    if took == 1 {
+                                                        dragwin = cand
+                                                        draggox = cxp / 16 - wl
+                                                        draggoy = cyp / 16 - wt
+                                                        pset(pixdesk, 180, cand)
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if acted == 1 {
+                                            tries = 6
+                                        } else {
+                                            if tries == 0 {
+                                                cand = 1
+                                            } else {
+                                                cand = cand + 1
+                                            }
+                                            tries = tries + 1
                                         }
                                     }
                                 }
