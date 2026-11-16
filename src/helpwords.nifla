@@ -1,0 +1,98 @@
+// Cardnull OS 2's help-words library — the plain words
+// the help window shows (Stone 31).
+//
+// Like the other libraries, this file joins the system as
+// a prelude when it is built (build.sh names it); a prelude
+// may only make functions, and these keep no state of their
+// own: which page stands is kept in the pixel face's desk
+// by the main body, and the window's painting in the main
+// body asks here for the words.
+//
+// The words are plain and short, the way you would explain
+// the machine to a neighbor: what each window is, what each
+// typed word does, how to move windows, open the menu, and
+// rest the machine — shortened for a window from the
+// README's own telling, and every claim in them true of
+// the shipped system. They stand as five short pages of
+// eleven lines each, turned in the window (see the help
+// window's painting in the main body). Every line is at
+// most thirty-six letters, the help window's inner width
+// at the large print size (Stone 28), so no line is cut
+// at either print size: the window is fifty-four cells
+// wide at the usual size and forty at large, and its
+// words stand at its left + 2 with four cells of frame
+// and breathing room taken from the width.
+
+// How many pages of help words stand kept.
+make helppages() -> number {
+    give 5
+}
+
+// How many lines stand on one page.
+make helplines() -> number {
+    give 11
+}
+
+// One kept line's words, by its place in the whole set
+// (0 to 54: the page's place times eleven, plus the
+// line's place on its page). A place outside the set
+// gives an empty line, so a painter is never handed
+// nothing it cannot show.
+make helptext(idx: number) -> text {
+    if idx == 0 { give "The windows" }
+    if idx == 1 { give "Welcome greets you. It tells what" }
+    if idx == 2 { give "Cardnull is and its verse." }
+    if idx == 3 { give "Feather shows a small program" }
+    if idx == 4 { give "that visits. It is checked first." }
+    if idx == 5 { give "Files lists your kept notes," }
+    if idx == 6 { give "and a kept picture." }
+    if idx == 7 { give "Settings sets the time zone," }
+    if idx == 8 { give "the chime, and the word size." }
+    if idx == 9 { give "Editor is where a note is" }
+    if idx == 10 { give "written and changed." }
+    if idx == 11 { give "More windows" }
+    if idx == 12 { give "Paint is for drawing. Pick a" }
+    if idx == 13 { give "color, then draw on the canvas." }
+    if idx == 14 { give "Verse shows the verse for the" }
+    if idx == 15 { give "day, in the World English Bible." }
+    if idx == 16 { give "Calculator reckons sums. Press" }
+    if idx == 17 { give "its keys to reckon a sum." }
+    if idx == 18 { give "Help is this window. It tells" }
+    if idx == 19 { give "how Cardnull works, plainly." }
+    if idx == 20 { give "Press More below to turn the" }
+    if idx == 21 { give "page. Arrow keys turn it too." }
+    if idx == 22 { give "Words you can type" }
+    if idx == 23 { give "Type a word, then press Enter." }
+    if idx == 24 { give "hello says hello back." }
+    if idx == 25 { give "time tells the time and date." }
+    if idx == 26 { give "memory tells the memory size." }
+    if idx == 27 { give "clear clears the screen." }
+    if idx == 28 { give "welcome opens Welcome." }
+    if idx == 29 { give "feather asks the feather in." }
+    if idx == 30 { give "files opens Files." }
+    if idx == 31 { give "settings opens Settings." }
+    if idx == 32 { give "editor opens Editor." }
+    if idx == 33 { give "More words you can type" }
+    if idx == 34 { give "paint opens Paint." }
+    if idx == 35 { give "verse opens Verse." }
+    if idx == 36 { give "calculator opens Calculator." }
+    if idx == 37 { give "help opens this Help window." }
+    if idx == 38 { give "note, then words, keeps a note." }
+    if idx == 39 { give "notes shows the kept notes." }
+    if idx == 40 { give "setup lets a disk remember." }
+    if idx == 41 { give "eastern sets Eastern time." }
+    if idx == 42 { give "utc sets the standard time." }
+    if idx == 43 { give "chime sounds the welcome again." }
+    if idx == 44 { give "Moving and resting" }
+    if idx == 45 { give "usb tells if a USB keyboard" }
+    if idx == 46 { give "is plugged in and ready." }
+    if idx == 47 { give "Press the top bar for the menu." }
+    if idx == 48 { give "Tab brings the next window up." }
+    if idx == 49 { give "Escape closes the front window." }
+    if idx == 50 { give "The small x closes its window." }
+    if idx == 51 { give "Drag a title bar to move it." }
+    if idx == 52 { give "rest offers Shut down, Restart," }
+    if idx == 53 { give "and Stay. shutdown and restart" }
+    if idx == 54 { give "name those two choices at once." }
+    give ""
+}

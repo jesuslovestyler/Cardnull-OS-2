@@ -165,8 +165,19 @@
 //       (Stone 30): the block the calculator feather
 //       paints and the calculator window shows, found
 //       by its address as the paint cells' block is at
-//       288. The desk stands 368 bytes now; 360 to 367
-//       stand unused.
+//       288.
+//  360  the help window's standing (Stone 31): whether
+//       it stands open (360), which page of the help
+//       words stands in it (364: 0 to 4, laid by the
+//       main body when the window is opened and turned
+//       by its foot's press and the arrow keys), and
+//       its place (368 its left column, 372 its top
+//       row, in letter cells) — the ninth window's
+//       pair, laid at the face's rising and written by
+//       dragging, like the pairs at 236 to 352.
+//       (180's forward reckoning grows again: 9 is the
+//       help window.) The desk stands 384 bytes now;
+//       376 to 383 stand unused.
 //  320  the letter cell's size in pixels (Stone 28):
 //       sixteen at the words' usual size — the font's
 //       eight by eight drawn at twice size — and

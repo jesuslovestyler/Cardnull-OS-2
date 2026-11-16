@@ -52,6 +52,9 @@
 //                        verse window shows, in the
 //                        World English Bible's wording,
 //                        and the day's reckoning (Stone 29)
+//   src/helpwords.nifla  the plain words the help
+//                        window shows, in five short
+//                        pages (Stone 31)
 //   src/cardnull.nifla   this main body: the boot
 //                        sequence, the first-breath lift,
 //                        the state, the face, the typing
@@ -471,6 +474,27 @@
 //          it, Escape and its close mark close it), and the
 //          bar's menu grows by an eighth choice, Calculator
 //          — Rest stands under it now, eight rows in all.
+// Stone 31: a help window — a ninth window on the face
+//          of light, opened by the word 'help' and by a
+//          new choice, Help, in the bar's menu (the menu's
+//          eighth window choice; Rest stands under it now,
+//          nine rows in all). It tells, in plain words a
+//          neighbor could follow, how Cardnull works:
+//          what each window is, what each typed word does,
+//          how to move windows, open the menu, and rest
+//          the machine. The words stand in their own
+//          library (helpwords.nifla) as five short pages
+//          of eleven lines, each line at most thirty-six
+//          letters — the window's inner width at the
+//          large print size — so no line is cut at either
+//          size. The pages are turned by a press on the
+//          window's foot (its plain word More, or First
+//          page on the last page) and by the up and down
+//          arrow keys while the window stands forward.
+//          The window is a window like the others: it
+//          drags by its title bar, Tab reaches it, Escape
+//          and its close mark close it. Its standing lives
+//          in the desk at 360 to 372.
 //
 // The arrangement of the screen:
 //   row 0      the bar — "Cardnull" at the left, the date
@@ -1920,6 +1944,94 @@ make onecalc(desk) {
     }
 }
 
+// ---- the help window (Stone 31) ----
+//
+// A ninth window, standing where the files, settings,
+// and editor windows stand. It tells how Cardnull works
+// in plain words — what each window is, what each typed
+// word does, how to move windows, open the menu, and
+// rest the machine — in the kept words of
+// helpwords.nifla: five short pages of eleven lines,
+// each line at most thirty-six letters, the window's
+// inner width at the large print size, so every word
+// stands whole at both print sizes (Stone 28's measure,
+// read like every painter reads it) and no line is ever
+// cut at the window's edge. Which page stands is the
+// desk's 364, laid by the main body when the window is
+// opened and turned by a press on the window's foot
+// and by the arrow keys (the main loop's doing); the
+// painter simply shows the page that stands there. Its
+// standing lives in the desk at 360 to 372
+// (pixface.nifla's ledger): open, the page, and its
+// place. The window is fifty-four cells wide, like the
+// files window's, and sixteen high: its title row, a
+// breathing row, the page's eleven lines, a breathing
+// row, its foot — the page's own standing ("Page 1 of
+// 5") at its left and the turning word at its right,
+// More, or First page on the last page, standing white
+// on blue as a choice stands — and one row below.
+
+make hwide(desk) {
+    if pget(desk, 28) >= 56 {
+        give 54
+    }
+    give pget(desk, 28) - 2
+}
+
+make hleft(desk) {
+    give pget(desk, 368)
+}
+
+make htop(desk) {
+    give pget(desk, 372)
+}
+
+make hhigh(desk) {
+    give 16
+}
+
+// Paints the help window from the desk's standing:
+// closed, the plain desktop; open, its frame and title
+// bar, the standing page's eleven lines in the window's
+// light ground, and its foot — which page stands, and
+// the word that turns it.
+make onehelp(desk) {
+    let cs = pget(desk, 320)
+    let gx = hleft(desk)
+    let gy = htop(desk)
+    let gw = hwide(desk)
+    let gh = hhigh(desk)
+    if pget(desk, 360) == 0 {
+        pixink(desk, 0)
+        pixfill(desk, gx * cs, gy * cs, gw * cs, gh * cs)
+    } else {
+        let front = 0
+        if pget(desk, 180) == 9 {
+            front = 1
+        }
+        winframe(desk, gy * 256 + gx, gh * 256 + gw, front)
+        pixspan(desk, 0, 4, 15)
+        pixtext(desk, gy, gx + 1, "Help")
+        pixink(desk, 7)
+        pixfill(desk, gx * cs + 2, gy * cs + cs + 2, gw * cs - 4, gh * cs - cs - 4)
+        let page = pget(desk, 364)
+        let li = 0
+        while li < helplines() {
+            let line = helptext(page * helplines() + li)
+            if length(line) > 0 {
+                pixline(desk, (gy + 2 + li) * 256 + (gx + 2), line, 112)
+            }
+            li = li + 1
+        }
+        pixline(desk, (gy + 14) * 256 + (gx + 2), "Page " + (page + 1) + " of " + helppages(), 112)
+        let nav = "More"
+        if page + 1 >= helppages() {
+            nav = "First page"
+        }
+        pixline(desk, (gy + 14) * 256 + (gx + gw - 2 - length(nav)), nav, 31)
+    }
+}
+
 // ---- the bar's menu (Stone 23) ----
 //
 // A press of the pointer on the top bar — the Cardnull
@@ -1934,7 +2046,9 @@ make onecalc(desk) {
 // between Editor and Rest, and Rest stands last. Since
 // Stone 30 a seventh window choice, Calculator, stands
 // between Verse and Rest, and Rest stands last still.
-// A press
+// Since Stone 31 an eighth window choice, Help, stands
+// between Calculator and Rest, and Rest stands last
+// still. A press
 // on a window choice opens that window (or brings it
 // forward), exactly as the choice's typed word does —
 // the feather's choice asks for the feather, as the
@@ -1955,11 +2069,12 @@ make onecalc(desk) {
 // top is the bar's underside (row 1), it is twelve
 // cells wide — room for the longest name, Settings,
 // with the frame's breathing room the windows keep —
-// and eight cells high, one row to a choice (seven
+// and nine cells high, one row to a choice (eight
 // window choices, and Rest under them since Stone 25,
 // standing last since Stone 29, one row lower again
 // since Stone 30's Calculator choice took the seventh
-// row).
+// row, and one row lower again since Stone 31's Help
+// choice took the eighth row).
 
 make menuleft(desk) {
     give 0
@@ -1974,7 +2089,7 @@ make menuwide(desk) {
 }
 
 make menuhigh(desk) {
-    give 8
+    give 9
 }
 
 // Wipes the menu's place back to the plain desktop:
@@ -1988,7 +2103,7 @@ make menuwash(desk) {
 }
 
 // Paints the bar's menu from the desk's standing: open,
-// its gray edge and black body and the seven choices in
+// its gray edge and black body and the nine choices in
 // white, one to a row; closed, nothing — putting the
 // menu away is menuwash's and the windows' painting's
 // work.
@@ -2010,7 +2125,8 @@ make onemenu(desk) {
         pixline(desk, (mt + 4) * 256 + (ml + 1), "Editor", 15)
         pixline(desk, (mt + 5) * 256 + (ml + 1), "Verse", 15)
         pixline(desk, (mt + 6) * 256 + (ml + 1), "Calculator", 15)
-        pixline(desk, (mt + 7) * 256 + (ml + 1), "Rest", 15)
+        pixline(desk, (mt + 7) * 256 + (ml + 1), "Help", 15)
+        pixline(desk, (mt + 8) * 256 + (ml + 1), "Rest", 15)
     }
 }
 
@@ -2123,6 +2239,9 @@ make paintwindows(desk, block, notes) {
     if pget(desk, 340) == 0 {
         onecalc(desk)
     }
+    if pget(desk, 360) == 0 {
+        onehelp(desk)
+    }
     let f = pget(desk, 180)
     if f != 1 {
         if pget(desk, 172) == 1 {
@@ -2164,6 +2283,11 @@ make paintwindows(desk, block, notes) {
             onecalc(desk)
         }
     }
+    if f != 9 {
+        if pget(desk, 360) == 1 {
+            onehelp(desk)
+        }
+    }
     if f == 1 {
         if pget(desk, 172) == 1 {
             onewelcome(desk)
@@ -2202,6 +2326,11 @@ make paintwindows(desk, block, notes) {
     if f == 8 {
         if pget(desk, 340) == 1 {
             onecalc(desk)
+        }
+    }
+    if f == 9 {
+        if pget(desk, 360) == 1 {
+            onehelp(desk)
         }
     }
     // The bar's menu stands over everything (Stone 23):
@@ -2253,7 +2382,9 @@ make paintwindows(desk, block, notes) {
 
 // Whether window 'win' stands open (1 the welcome, 2
 // the feather, 3 the files, 4 the settings, 5 the
-// editor — the forward reckoning's own numbers).
+// editor, 6 the paint window, 7 the verse window, 8
+// the calculator window, 9 the help window — the
+// forward reckoning's own numbers).
 make winopen(desk, win) {
     if win == 1 { give pget(desk, 172) }
     if win == 2 { give pget(desk, 176) }
@@ -2263,6 +2394,7 @@ make winopen(desk, win) {
     if win == 6 { give pget(desk, 272) }
     if win == 7 { give pget(desk, 324) }
     if win == 8 { give pget(desk, 340) }
+    if win == 9 { give pget(desk, 360) }
     give 0
 }
 
@@ -2278,6 +2410,7 @@ make winleft(desk, win) {
     if win == 6 { give paleft(desk) }
     if win == 7 { give vleft(desk) }
     if win == 8 { give caleft(desk) }
+    if win == 9 { give hleft(desk) }
     give 0
 }
 
@@ -2290,6 +2423,7 @@ make wintop(desk, win) {
     if win == 6 { give patop(desk) }
     if win == 7 { give vtop(desk) }
     if win == 8 { give catop(desk) }
+    if win == 9 { give htop(desk) }
     give 0
 }
 
@@ -2302,6 +2436,7 @@ make winwide(desk, win) {
     if win == 6 { give pawide(desk) }
     if win == 7 { give vwide(desk) }
     if win == 8 { give cawide(desk) }
+    if win == 9 { give hwide(desk) }
     give 0
 }
 
@@ -2314,6 +2449,7 @@ make winhigh(desk, win) {
     if win == 6 { give pahigh(desk) }
     if win == 7 { give vhigh(desk) }
     if win == 8 { give cahigh(desk) }
+    if win == 9 { give hhigh(desk) }
     give 0
 }
 
@@ -2356,6 +2492,10 @@ make winmove(desk, win, newleft, newtop) {
     if win == 8 {
         pset(desk, 348, newleft)
         pset(desk, 352, newtop)
+    }
+    if win == 9 {
+        pset(desk, 368, newleft)
+        pset(desk, 372, newtop)
     }
 }
 
@@ -2436,6 +2576,15 @@ make layplaces(desk) {
         ct = 1
     }
     pset(desk, 352, ct)
+    pset(desk, 368, (pget(desk, 28) - hwide(desk)) / 2)
+    let ht = layrow(desk, 17)
+    if ht + hhigh(desk) > pget(desk, 32) {
+        ht = pget(desk, 32) - hhigh(desk)
+    }
+    if ht < 1 {
+        ht = 1
+    }
+    pset(desk, 372, ht)
 }
 
 // ---- the machine ----
@@ -2707,7 +2856,7 @@ if fbflags - (fbflags / 8192) * 8192 >= 4096 {
     }
 }
 if pix == 1 {
-    pixdesk = makebytes(368)
+    pixdesk = makebytes(384)
     let fontblock = makebytes(1024)
     fontload(fontblock)
     // The pointer's shapes and its save block (Stone 13):
@@ -2871,6 +3020,13 @@ if pix == 1 {
     // at 356, where the calculator window's painter
     // reads it (ccellbyte above).
     pset(pixdesk, 356, blockaddr(calcblock))
+    // The help window's standing (Stone 31), at 360 to
+    // 372: it starts closed — the word 'help' opens it —
+    // with its first page standing in it. Its place is
+    // laid with the other windows' places by layplaces
+    // above.
+    pset(pixdesk, 360, 0)
+    pset(pixdesk, 364, 0)
 }
 
 // Ears on the USB road (Stone 6): the driver's whole
@@ -3162,6 +3318,17 @@ while true {
                             }
                         }
                     }
+                    // The help window's pages (Stone 31):
+                    // while it stands forward, the up
+                    // arrow turns back a page, and stands
+                    // still on the first page.
+                    if pget(pixdesk, 180) == 9 {
+                        let hp = pget(pixdesk, 364)
+                        if hp > 0 {
+                            pset(pixdesk, 364, hp - 1)
+                            paintwindows(pixdesk, cellblock, notesblock)
+                        }
+                    }
                 }
             }
             if k == 80 {
@@ -3212,6 +3379,21 @@ while true {
                                 }
                             }
                         }
+                    }
+                    // The help window's pages (Stone 31):
+                    // while it stands forward, the down
+                    // arrow turns a page forward — the
+                    // foot's own turning (its More word,
+                    // and First page on the last page):
+                    // on the last page it returns to the
+                    // first page.
+                    if pget(pixdesk, 180) == 9 {
+                        let hp = pget(pixdesk, 364) + 1
+                        if hp >= helppages() {
+                            hp = 0
+                        }
+                        pset(pixdesk, 364, hp)
+                        paintwindows(pixdesk, cellblock, notesblock)
                     }
                 }
             }
@@ -3909,6 +4091,21 @@ while true {
                         ansrow = printline(ansrow, "This face has no windows to open.", pix, pixdesk)
                     }
                 }
+                if kind == 21 {
+                    // 'help': the help window is opened
+                    // and brought forward (Stone 31), with
+                    // its first page standing in it. The
+                    // text face has no windows, and says
+                    // so in plain words, as for 'welcome'.
+                    if pix == 1 {
+                        pset(pixdesk, 364, 0)
+                        pset(pixdesk, 360, 1)
+                        pset(pixdesk, 180, 9)
+                        paintwindows(pixdesk, cellblock, notesblock)
+                    } else {
+                        ansrow = printline(ansrow, "This face has no windows to open.", pix, pixdesk)
+                    }
+                }
                 if kind == 1 {
                     // A line of words answers it. A word
                     // the machine does not know is a
@@ -3929,10 +4126,11 @@ while true {
                     // to three windows, at Stone 20 to
                     // four, at Stone 21 to five, and at
                     // Stone 24 to six, and at Stone 29 to
-                    // seven, and at Stone 30 to eight:
+                    // seven, and at Stone 30 to eight, and
+                    // at Stone 31 to nine:
                     // welcome, feather, files, settings,
                     // editor, paint, verse, calculator,
-                    // and round again). The key types nothing,
+                    // help, and round again). The key types nothing,
                     // as it never has; on the text face,
                     // which has no windows, it simply passes.
                     if pix == 1 {
@@ -3940,9 +4138,9 @@ while true {
                         let nxt = 0
                         let cand = cur
                         let tries = 0
-                        while tries < 8 {
+                        while tries < 9 {
                             cand = cand + 1
-                            if cand > 8 {
+                            if cand > 9 {
                                 cand = 1
                             }
                             let open = 0
@@ -3970,9 +4168,12 @@ while true {
                             if cand == 8 {
                                 open = pget(pixdesk, 340)
                             }
+                            if cand == 9 {
+                                open = pget(pixdesk, 360)
+                            }
                             if open == 1 {
                                 nxt = cand
-                                tries = 8
+                                tries = 9
                             } else {
                                 tries = tries + 1
                             }
@@ -4160,6 +4361,18 @@ while true {
                                             paintwindows(pixdesk, cellblock, notesblock)
                                         }
                                     }
+                                    // The help window joins
+                                    // the same reckoning
+                                    // (Stone 31): when it
+                                    // alone stands open, it
+                                    // comes forward in the
+                                    // closed window's place.
+                                    if pget(pixdesk, 180) == 0 {
+                                        if pget(pixdesk, 360) == 1 {
+                                            pset(pixdesk, 180, 9)
+                                            paintwindows(pixdesk, cellblock, notesblock)
+                                        }
+                                    }
                                 }
                             }
                             if fr == 5 {
@@ -4291,7 +4504,58 @@ while true {
                                                         if pget(pixdesk, 324) == 1 {
                                                             pset(pixdesk, 180, 7)
                                                         } else {
-                                                            pset(pixdesk, 180, 0)
+                                                            if pget(pixdesk, 360) == 1 {
+                                                                pset(pixdesk, 180, 9)
+                                                            } else {
+                                                                pset(pixdesk, 180, 0)
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                paintwindows(pixdesk, cellblock, notesblock)
+                            }
+                            if fr == 9 {
+                                // The help window closes
+                                // (Stone 31): another window,
+                                // if one stands open, comes
+                                // forward in its place — the
+                                // welcome first, then the
+                                // feather, the files, the
+                                // settings, the editor, the
+                                // paint window, the verse
+                                // window, and the calculator
+                                // window.
+                                pset(pixdesk, 360, 0)
+                                if pget(pixdesk, 172) == 1 {
+                                    pset(pixdesk, 180, 1)
+                                } else {
+                                    if pget(pixdesk, 176) == 1 {
+                                        pset(pixdesk, 180, 2)
+                                    } else {
+                                        if pget(pixdesk, 188) == 1 {
+                                            pset(pixdesk, 180, 3)
+                                        } else {
+                                            if pget(pixdesk, 208) == 1 {
+                                                pset(pixdesk, 180, 4)
+                                            } else {
+                                                if pget(pixdesk, 220) == 1 {
+                                                    pset(pixdesk, 180, 5)
+                                                } else {
+                                                    if pget(pixdesk, 272) == 1 {
+                                                        pset(pixdesk, 180, 6)
+                                                    } else {
+                                                        if pget(pixdesk, 324) == 1 {
+                                                            pset(pixdesk, 180, 7)
+                                                        } else {
+                                                            if pget(pixdesk, 340) == 1 {
+                                                                pset(pixdesk, 180, 8)
+                                                            } else {
+                                                                pset(pixdesk, 180, 0)
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -4634,6 +4898,10 @@ while true {
                                 let ky = catop(pixdesk)
                                 let kw = cawide(pixdesk)
                                 let kh = cahigh(pixdesk)
+                                let hx = hleft(pixdesk)
+                                let hy = htop(pixdesk)
+                                let hw = hwide(pixdesk)
+                                let hh = hhigh(pixdesk)
                                 let acted = 0
                                 if acted == 0 {
                                     // The rest panel (Stone
@@ -4791,6 +5059,20 @@ while true {
                                                 calcask = 1
                                             }
                                             if pick == 7 {
+                                                // The menu's Help
+                                                // choice (Stone
+                                                // 31): the help
+                                                // window opens with
+                                                // its first page
+                                                // standing in it,
+                                                // exactly as the
+                                                // word 'help' opens
+                                                // it.
+                                                pset(pixdesk, 364, 0)
+                                                pset(pixdesk, 360, 1)
+                                                pset(pixdesk, 180, 9)
+                                            }
+                                            if pick == 8 {
                                                 // The menu's Rest
                                                 // choice (Stone
                                                 // 25): the menu is
@@ -5059,6 +5341,56 @@ while true {
                                     }
                                 }
                                 if acted == 0 {
+                                    if pget(pixdesk, 360) == 1 {
+                                        if cxp >= (hx + hw - 2) * cellpx {
+                                            if cxp < (hx + hw - 1) * cellpx {
+                                                if cyp >= hy * cellpx {
+                                                    if cyp < (hy + 1) * cellpx {
+                                                        pset(pixdesk, 360, 0)
+                                                        if pget(pixdesk, 180) == 9 {
+                                                            if pget(pixdesk, 172) == 1 {
+                                                                pset(pixdesk, 180, 1)
+                                                            } else {
+                                                                if pget(pixdesk, 176) == 1 {
+                                                                    pset(pixdesk, 180, 2)
+                                                                } else {
+                                                                    if pget(pixdesk, 188) == 1 {
+                                                                        pset(pixdesk, 180, 3)
+                                                                    } else {
+                                                                        if pget(pixdesk, 208) == 1 {
+                                                                            pset(pixdesk, 180, 4)
+                                                                        } else {
+                                                                            if pget(pixdesk, 220) == 1 {
+                                                                                pset(pixdesk, 180, 5)
+                                                                            } else {
+                                                                                if pget(pixdesk, 272) == 1 {
+                                                                                    pset(pixdesk, 180, 6)
+                                                                                } else {
+                                                                                    if pget(pixdesk, 324) == 1 {
+                                                                                        pset(pixdesk, 180, 7)
+                                                                                    } else {
+                                                                                        if pget(pixdesk, 340) == 1 {
+                                                                                            pset(pixdesk, 180, 8)
+                                                                                        } else {
+                                                                                            pset(pixdesk, 180, 0)
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
                                     if pget(pixdesk, 324) == 1 {
                                         if cxp >= (vx + vw - 2) * cellpx {
                                             if cxp < (vx + vw - 1) * cellpx {
@@ -5147,6 +5479,49 @@ while true {
                                         if pget(pixdesk, 340) == 1 {
                                             pset(pixdesk, 180, 8)
                                             paintwindows(pixdesk, cellblock, notesblock)
+                                        }
+                                    }
+                                    // The help window joins
+                                    // the same reckoning
+                                    // (Stone 31): when it alone
+                                    // stands open, it comes
+                                    // forward in the closed
+                                    // window's place.
+                                    if pget(pixdesk, 180) == 0 {
+                                        if pget(pixdesk, 360) == 1 {
+                                            pset(pixdesk, 180, 9)
+                                            paintwindows(pixdesk, cellblock, notesblock)
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    // A press on the help
+                                    // window's foot (Stone 31)
+                                    // turns its page: the foot
+                                    // stands on the window's
+                                    // row hy + 14, its turning
+                                    // word — More, or First
+                                    // page on the last page —
+                                    // at its right; a press
+                                    // anywhere on that row does
+                                    // the turning the word
+                                    // names, the down arrow's
+                                    // own turning, and the
+                                    // window comes forward.
+                                    if pget(pixdesk, 360) == 1 {
+                                        if cxp >= hx * cellpx {
+                                            if cxp < (hx + hw) * cellpx {
+                                                if cyp / cellpx == hy + 14 {
+                                                    let hp2 = pget(pixdesk, 364) + 1
+                                                    if hp2 >= helppages() {
+                                                        hp2 = 0
+                                                    }
+                                                    pset(pixdesk, 364, hp2)
+                                                    pset(pixdesk, 180, 9)
+                                                    paintwindows(pixdesk, cellblock, notesblock)
+                                                    acted = 1
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -5722,10 +6097,10 @@ while true {
                                     let fwd = pget(pixdesk, 180)
                                     let cand = fwd
                                     let tries = 0
-                                    while tries < 9 {
+                                    while tries < 10 {
                                         let took = 0
                                         if cand >= 1 {
-                                            if cand <= 8 {
+                                            if cand <= 9 {
                                                 if winopen(pixdesk, cand) == 1 {
                                                     let wl = winleft(pixdesk, cand)
                                                     let wt = wintop(pixdesk, cand)
@@ -5756,7 +6131,7 @@ while true {
                                             }
                                         }
                                         if acted == 1 {
-                                            tries = 9
+                                            tries = 10
                                         } else {
                                             if tries == 0 {
                                                 cand = 1
@@ -5907,6 +6282,21 @@ while true {
                                                 if cyp >= ky * cellpx {
                                                     if cyp < (ky + kh) * cellpx {
                                                         pset(pixdesk, 180, 8)
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    if pget(pixdesk, 360) == 1 {
+                                        if cxp >= hx * cellpx {
+                                            if cxp < (hx + hw) * cellpx {
+                                                if cyp >= hy * cellpx {
+                                                    if cyp < (hy + hh) * cellpx {
+                                                        pset(pixdesk, 180, 9)
                                                         paintwindows(pixdesk, cellblock, notesblock)
                                                         acted = 1
                                                     }

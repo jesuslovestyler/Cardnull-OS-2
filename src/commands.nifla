@@ -86,6 +86,9 @@
 //       presses inside the window are carried to the
 //       feather as further visits, as the paint
 //       feather's presses are)
+//  21 — the help window is opened and brought forward
+//       ('help'; the window is the face of light's,
+//       Stone 31, and the doing is the main body's)
 make wordkind(word) {
     if word == "" {
         give 0
@@ -149,6 +152,9 @@ make wordkind(word) {
     }
     if word == "calculator" {
         give 20
+    }
+    if word == "help" {
+        give 21
     }
     give 1
 }

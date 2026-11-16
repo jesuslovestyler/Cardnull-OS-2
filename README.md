@@ -130,6 +130,13 @@ To build the bootable witness disc (see "The witness disc" below):
                       # nothing, the remainder named, a
                       # clear, and a sharing out by 0
                       # answered in plain words (Stone 30)
+./prove-stone31.sh    # opens the help window by its
+                      # word and from the bar's menu,
+                      # DECODES every page of its plain
+                      # help words letter by letter at the
+                      # usual size and at large print,
+                      # turning its pages by its foot and
+                      # by the arrow keys (Stone 31)
 ./build-stick.sh      # makes dist/cardnull-stick.img (Stone 17)
 ```
 
@@ -2467,6 +2474,112 @@ the featherpaint proof, the ISO proof, and the
 no-witness proof, the loaders and the disc having
 changed under them all.
 
+### Stone 31 — A help window
+
+A **ninth window** stands on the desktop now, titled
+**Help** in plain words, opened by the typed word
+`help` and by a new choice in the bar's menu. It
+explains how Cardnull works — every window and every
+word, plainly, the way you would explain it to a
+neighbor: what each window is (Welcome, Feather,
+Files, Settings, Editor, Paint, Verse, Calculator,
+and Help itself), what the typed words do (`hello`,
+`time`, `memory`, `clear`, `feather`, `files`,
+`settings`, `editor`, `paint`, `verse`, `calculator`,
+`help`, `welcome`, `note`, `notes`, `setup`,
+`eastern`, `utc`, `chime`, `usb`, and `rest`, with
+`shutdown` and `restart` named under the resting),
+how to move windows, open the menu, and rest the
+machine. The window keeps the windows' discipline
+entire: framed, titled, its close mark closes it,
+Tab brings windows forward in their turn (nine now,
+the help window last before the round begins again),
+Escape closes it, and it drags by its title bar. The
+bar's menu grew by the one choice: its nine choices
+now stand Welcome, Feather, Files, Settings, Editor,
+Verse, Calculator, **Help**, and Rest — Rest moved
+down one row, and the proofs that decode the menu or
+press Rest by its row (Stones 25, 29, and 30) had
+their reckonings updated for that one moved measure,
+exactly as each earlier menu growth moved them.
+
+**The words themselves** stand in their own library,
+`src/helpwords.nifla`, in the pattern of
+`src/verses.nifla`: **five short pages of eleven
+lines each**, shortened for a window from this
+README's own telling, and every claim in them true
+of the shipped system — each line checked against
+the stones' sections above as it was written. The
+window is fifty-four cells wide at the usual size
+and forty at large, and **every line is at most
+thirty-six letters** — the window's inner width at
+the large size — so no line is cut at either print
+size, through Stone 28's one scale measure, as every
+window's painting reads it. **The pages are turned
+two ways:** a press on the window's foot — its plain
+turning word stands at the foot's right, **More**,
+or **First page** on the last page, which returns to
+the first page, with the foot's left naming the page
+that stands ("Page 1 of 5") — and the **up and down
+arrow keys** while the window stands forward (down
+turns forward, as the foot's word does; up turns
+back, and stands still on the first page). Opening
+the window always stands its first page in it. Its
+standing lives in the pixel face's desk at 360 to
+372, beside the others' — and the desk grew to 384
+bytes to hold it.
+
+**One building note, in the open:** this stone's
+growth carried the kernel's staged segment end from
+247,106 to **260,128 bytes** — the headroom under the
+BIOS doorman's 256 KiB claim (Stone 29) narrows from
+15,038 bytes to **2,016 bytes**. No stage moved: the
+claim still holds the whole system with room to
+spare, and the full proof set below was run on it as
+it stands. The next stone that grows the kernel by
+more than that headroom must move the stages again,
+the adoption's own remedy, and say so.
+
+Proven by `prove-stone31.sh` (120 checks across two
+boots): the disc is booted twice with no disk fitted.
+In the first boot the word `help` opens the window
+and **every page's eleven lines are decoded letter
+by letter** against the system's own letter shapes
+and compared against the kept help words — the pages
+turned by the down arrow and by presses on the
+window's foot, the foot's standing and turning word
+decoded as they change, First page returning to the
+first page, and the up arrow on the first page
+turning nothing; Tab brings the welcome window
+forward, the word brings the help window forward
+again, Escape closes it; the bar's menu is opened,
+its **nine choices decoded**, a press on the Help
+choice opens the window again, and a press on its
+close mark closes it. In the second boot the
+settings window's Large row is pressed, and the
+first two pages stand whole in the window at the
+**large size**, decoded letter by letter at the
+large scale, the second reached by the down arrow.
+The neighbouring proofs pass with it — Stones 14,
+23, 25 (with its moved Rest reckoning), 28, 29 and
+30 (with their grown menus), the feather start fix,
+and the ISO proof.
+
+Honest limits: the help window lives on the **face
+of light only**, as every window does: on the text
+face the word `help` is answered in plain words —
+"This face has no windows to open." The words are
+**five fixed pages**: there is no searching them and
+no asking them questions — they tell the system's
+working as it stands at this stone, and a future
+stone that changes a window or a word must change
+these words with it, as the menu's growths have
+changed the proofs. And the telling is shortened
+for a window, as its heading here says: the full
+account of each window and word stands in the
+stones' sections above, and the window's plain
+lines point a neighbor truly, not exhaustively.
+
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 
 This is not one of this system's own stones; it is the
@@ -2960,6 +3073,13 @@ was split by duty, without changing its behavior:
   English Bible wording, each with its reference, and
   the day reckoning that chooses among them
   (versecount, versetext, verseref, verseday).
+- `src/helpwords.nifla` — the help window's words
+  (Stone 31): five short pages of eleven plain lines
+  telling how Cardnull works — every window, every
+  typed word, moving windows, the menu, and resting —
+  each line at most thirty-six letters, so none is
+  cut at either print size (helppages, helplines,
+  helptext).
 
 The libraries join the main body as preludes at build (build.sh
 names them all): files of pure functions — values in as arguments,

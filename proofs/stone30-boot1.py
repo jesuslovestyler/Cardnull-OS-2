@@ -19,7 +19,7 @@
 #     share out 0 answered "Cannot share out by 0." —
 #     plainly, and the machine still standing;
 #   - Escape closes the window, the bar's menu — its
-#     eight choices decoded, Calculator the seventh —
+#     nine choices decoded, Calculator the seventh —
 #     opens it again by a press on the Calculator
 #     choice, and a press on its close mark closes it.
 #
@@ -266,7 +266,7 @@ d = waitdump(lambda d: d is not None
 expect(d is not None, "Escape closed the calculator window")
 
 # The bar's menu: a press on the bar opens it, its
-# eight choices decoded — the seven windows' names and
+# nine choices decoded — the eight windows' names and
 # Rest last. The point stands parked at (60, 60).
 move_to(200, 8)
 mousebutton(1)
@@ -276,7 +276,7 @@ d = waitdump(lambda d: d is not None
 expect(d is not None, "a press on the bar opened the menu, with Calculator standing in it")
 if d:
     for i, word in enumerate(("Welcome", "Feather", "Files", "Settings",
-                              "Editor", "Verse", "Calculator", "Rest")):
+                              "Editor", "Verse", "Calculator", "Help", "Rest")):
         said = decode(d, 1 + i, 1, word, WHITE)
         expect(said == word,
                f"the menu's choice {i + 1} reads {word!r} (read: {said!r})")

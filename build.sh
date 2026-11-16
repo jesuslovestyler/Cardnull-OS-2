@@ -58,7 +58,9 @@ mkdir -p build
 #              reset doors, and the final halt (Stone 25)
 #   verses     the kept set of verses the verse window
 #              shows, and the day's reckoning (Stone 29)
-LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/featherdoor.nifla src/commands.nifla src/usbkey.nifla src/rtclock.nifla src/diskkeep.nifla src/font.nifla src/pixface.nifla src/mouse.nifla src/speaker.nifla src/rest.nifla src/verses.nifla"
+#   helpwords  the plain words the help window shows,
+#              in five short pages (Stone 31)
+LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/featherdoor.nifla src/commands.nifla src/usbkey.nifla src/rtclock.nifla src/diskkeep.nifla src/font.nifla src/pixface.nifla src/mouse.nifla src/speaker.nifla src/rest.nifla src/verses.nifla src/helpwords.nifla"
 PRELUDE=""
 for lib in $LIBRARIES; do
     # Word splitting is intended: one --prelude pair per file.
