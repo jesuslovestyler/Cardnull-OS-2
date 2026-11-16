@@ -59,6 +59,9 @@ To build the bootable witness disc (see "The witness disc" below):
                       # and watches the face paint (the witness fix)
 ./prove-featherpaint.sh  # receives the feather and DECODES its painted
                       # window letter by letter (the feather paint fix)
+./prove-featherstart.sh  # boots with NO input and DECODES the word
+                      # "feather" wherever the startup view shows it
+                      # (the feather start fix)
 ./prove-pointertrail.sh  # drags the pointer across the desktop and
                       # requires the desktop pixel for pixel as it was
                       # (the pointer trail fix)
@@ -2091,6 +2094,79 @@ full standing regression passes with it (the
 founding Stones 1 and 2 proofs fail on the fixed
 build exactly as they failed before it — their
 staleness, unchanged).
+
+## The feather start fix (November 16, 2026)
+
+Booting the delivered disc of that day, Tyler
+witnessed a plainer fault, in his own words:
+"feather still say feath by the way when the
+operating system starts." When the operating
+system starts, the feather window's title read
+"Feath" — the word "Feather" losing its last two
+letters, "er", in the first view a person meets:
+at the desktop's rising both windows stand open,
+the feather's behind the welcome's, its title bar
+in plain sight before any word is typed.
+
+**This is a different defect from the feather
+paint fix above, and the bench proved it so.** The
+paint fix was in the showing of the feather's own
+cells — cells scaled from the text grid onto the
+face of light, letters overwritten inside the
+visit's panel. This fault is in the system's own
+chrome, in a different routine entirely: a window's
+title is drawn by naming a span — where the text
+begins and how many letters of it stand — and the
+feather window's painter (`onefeather`, in the
+main body) named a span of **five** letters for
+"Feather", the Files window's measure, where
+"Welcome" names seven, "Settings" eight, and
+"Paint" five for its five. `pixtext` draws exactly
+the span it is named, no more: five letters stood,
+and the last two were never drawn at all — not
+clipped by the window's edge (the window is
+fifty-four cells wide, the title seven), not
+overwritten by a later painting, and not scaled.
+Every other place the word stands at startup was
+read on the same boot and stood whole: the
+window's own body ("No feather has visited yet.")
+and the invitation's "feather" are drawn by
+`pixline`, which names its span from the text's
+own length, and they never lost a letter. An audit
+of every title span in the main body found this
+one alone short of its word.
+
+Reproduced on the bench before the fix, from the
+startup path exactly as a person meets it: the
+shipped disc booted with **no input at all**, and
+the startup pixels decoded against the system's
+own letter shapes read the title as `'Feath  '` —
+five letters and two blank cells — while the body
+and the invitation read whole on the same screen.
+
+The fix is the span itself: `onefeather` now names
+all seven letters of "Feather", with the reason
+written beside it in the source. Nothing else
+changed — no geometry, no paint order, no other
+window's title.
+
+**The proofs changed, so this class cannot hide
+again.** The feather-paint proof types `feather`
+first and decodes the visit; the no-input witness
+proof watches the startup face but counts colors
+in bands, and five whole letters carry the same
+colors as seven. `prove-featherstart.sh` joins the
+standing set: it boots the shipped disc, sends no
+key and moves no mouse, and DECODES every place
+the word "feather" stands in the startup view —
+the feather window's title, its body's sentence
+before any visit, and the word in the invitation
+line. On the pre-fix build (a pristine worktree of
+Stone 25) it fails one check, reading `'Feath  '`;
+on the fixed build it passes all four, and the
+neighboring proofs pass with it — the feather-paint
+proof (8 of 8), the no-input witness proof (five
+boots), the ISO proof, and Stones 14, 23, and 24.
 
 ## The kernel's files
 

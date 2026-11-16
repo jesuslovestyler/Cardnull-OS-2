@@ -748,7 +748,13 @@ make onefeather(desk, block) {
             front = 1
         }
         winframe(desk, gy * 256 + gx, gh * 256 + gw, front)
-        pixspan(desk, 0, 5, 15)
+        // The title's span names all seven letters of
+        // "Feather": a span of five (the Files window's
+        // measure, copied here) drew only "Feath" — the
+        // word losing its last two letters at the
+        // desktop's rising, where both windows stand
+        // open (the feather start fix).
+        pixspan(desk, 0, 7, 15)
         pixtext(desk, gy, gx + 1, "Feather")
         pixink(desk, 0)
         pixfill(desk, gx * 16 + 2, gy * 16 + 18, gw * 16 - 4, gh * 16 - 20)
