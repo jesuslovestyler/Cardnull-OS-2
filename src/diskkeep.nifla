@@ -196,6 +196,62 @@ make notesave(block: bytes, count: number) -> number {
     give 0
 }
 
+// The disk's standing word (its door at 0x1F7, which is
+// also its command door): the busy mark stands in its
+// high bit (128) while the drive is at work.
+make diskstatus() -> number {
+    give floor() {
+        xor eax, eax
+        in al, 0x1F7
+    }
+}
+
+// A command word to the disk (the same door, written).
+make diskcmd(v: number) {
+    floor(v) {
+        mov rax, [r10]
+        out 0x1F7, al
+    }
+}
+
+// Flushes the disk (Stone 25): the device's own flush
+// word (0xE7, the ATA flush-cache command) is sent, so
+// anything the drive itself still holds in its own cache
+// is committed to its platters before the machine rests.
+// This is a device flush, and it is the only cache there
+// is to flush: the system's own writings are not cached
+// anywhere — every diskwrite above is a completed
+// writing at the moment it is made, and the main body's
+// rest doing writes the kept card and the notes page
+// through once more before calling this. Both waits are
+// bounded, so a strange drive cannot hold the resting.
+// Gives back 1 when the flush word was sent to a fitted
+// disk, 0 when there is no disk to flush.
+make ataflush() -> number {
+    selectdrive()
+    if disksectors() > 0 {
+        let guard = 0
+        while guard < 100000 {
+            if andmask(diskstatus(), 128) == 0 {
+                guard = 100000
+            } else {
+                guard = guard + 1
+            }
+        }
+        diskcmd(231)
+        guard = 0
+        while guard < 100000 {
+            if andmask(diskstatus(), 128) == 0 {
+                guard = 100000
+            } else {
+                guard = guard + 1
+            }
+        }
+        give 1
+    }
+    give 0
+}
+
 // Gives the disk over to the system's keeping: the
 // clearing the gate at the door promised, then the card.
 // The disk's first sixty-four sectors — where a disk's own

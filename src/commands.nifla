@@ -62,6 +62,19 @@
 //       asks for the feather's opening visit, and the
 //       pointer's presses inside the window are carried
 //       to the feather as further visits)
+//  16 — rest is offered ('rest'; Stone 25 — the resting
+//       is the main body's: on the face of light a small
+//       panel of plain-words choices opens, and on the
+//       text face the choices are offered in words for
+//       the next typed line)
+//  17 — the machine shuts down ('shutdown'; Stone 25 —
+//       the doing is the main body's: the disk is
+//       flushed, a kind goodbye is said, and the power
+//       doors in rest.nifla are tried)
+//  18 — the machine starts again ('restart'; Stone 25 —
+//       the doing is the main body's: the disk is
+//       flushed, and the reset doors in rest.nifla are
+//       tried)
 make wordkind(word) {
     if word == "" {
         give 0
@@ -110,6 +123,15 @@ make wordkind(word) {
     }
     if word == "paint" {
         give 15
+    }
+    if word == "rest" {
+        give 16
+    }
+    if word == "shutdown" {
+        give 17
+    }
+    if word == "restart" {
+        give 18
     }
     give 1
 }

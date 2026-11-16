@@ -115,6 +115,12 @@
 //       paint window shows, found by its address because
 //       paintwindows' hands are already full — the shape
 //       the letter shapes (36) and the arrow (44) take.
+//  292  the rest panel's standing (Stone 25): whether
+//       the small panel of rest choices — Shut down,
+//       Restart, Stay — stands open (1) or not (0). The
+//       panel's place is reckoned in the main body
+//       (restleft and its kin), the same discipline as
+//       the menu's at 268; only its standing lives here.
 //
 // A letter cell is sixteen pixels square: the font's eight
 // by eight, drawn at twice size. The face's layout is the

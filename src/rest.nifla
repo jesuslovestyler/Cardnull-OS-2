@@ -1,0 +1,127 @@
+// Cardnull OS 2's rest library — the machine's own
+// resting (Stone 25): turning itself off, and starting
+// itself again.
+//
+// Like the other libraries, this file joins the system as
+// a prelude when it is built (build.sh names it); a prelude
+// may only make functions, and these keep no state of their
+// own: WHEN the machine rests is the main body's decision
+// (the word 'rest' and its two plain-words choices, and the
+// bar menu's Rest choice), and the disk is flushed by the
+// main body through diskkeep.nifla before either doing
+// here is called. This file holds only the machine doors
+// themselves: the ACPI power-off word, the reset doors,
+// and the final halt.
+//
+// The doors, in the bare-kernel way this system already
+// speaks to its machine (the speaker's and the mouse's
+// floors are the pattern):
+//
+//   Shut down — the ACPI power-management control word.
+//   A machine's firmware names its ACPI power door in its
+//   own tables; the doors personal computers have carried
+//   for decades stand at known places, and each is tried
+//   in turn with the sleep word for turning off whole
+//   (the enable bit standing, with that door's own sleep
+//   kind): first the door at 0x0604 with the word
+//   0x2000 — the bench's own door, MEASURED at this
+//   stone from the machine's own ACPI tables, read
+//   back through the bench monitor: its FACP names
+//   PM1a_CNT_BLK as 0x0604 and its DSDT's \_S5 package
+//   gives the sleep kind 0, so the word is the enable
+//   bit alone (0x2000). (Two wider doors were tried
+//   first on the bench and the machine stayed on —
+//   0x6004 is a different door entirely; the bench's
+//   power base is 0x0600, not 0x6000.) Then the doors
+//   other machines carry: 0x6004 with 0x2000 and with
+//   the ICH9 sleep kind (0x3C00), the older Bochs and
+//   QEMU door at 0xB004 with 0x2000, and the door at
+//   0x4004 with 0x3400. A door a machine
+//   does not have simply takes the word into the empty
+//   air of an unclaimed port and nothing happens, so the
+//   trying is harmless where it is not the door. If every
+//   door leaves the machine on, powerofftry gives back
+//   and the main body says so in plain words and halts
+//   the machine where it stands (haltmachine below): the
+//   screen keeps its goodbye, the processor sleeps, and
+//   a person may turn the machine off — which the
+//   fallback words say, plainly.
+//
+//   Restart — the keyboard controller's reset word
+//   first (the word 0xFE at its door 0x64 pulses the
+//   machine's reset line; the controller is the very one
+//   mouse.nifla speaks to, and its own bounded wait and
+//   writing are used), then the reset control door at
+//   0xCF9 (the PCI reset door that stands beside the
+//   configuration door at 0xCF8): its hard-reset word
+//   laid, then its system-reset word. Either door, on a
+//   machine that has it, starts the machine again at
+//   once and this function never gives back. If neither
+//   answers, it gives back after a short wait and the
+//   main body says so in plain words and carries on —
+//   no triple fault is ever provoked here, on purpose.
+
+// A sixteen-bit word to an I/O door: the door's number
+// and the word, both plain numbers.
+make powout(port: number, value: number) {
+    floor(port, value) {
+        mov rax, [r10]
+        mov rdx, rax
+        mov rax, [r10 + 8]
+        out dx, ax
+        mov al, 0
+        out 0x80, al
+    }
+}
+
+// Tries the ACPI power doors in turn, as the heading
+// tells. Gives back only when the machine is still on
+// after every door — the main body's fallback then
+// stands.
+make powerofftry() {
+    powout(1540, 8192)
+    powout(24580, 8192)
+    powout(24580, 15360)
+    powout(45060, 8192)
+    powout(16388, 13312)
+}
+
+// The machine halted where it stands: interrupts off,
+// the processor sleeping in a loop it never leaves.
+// The screen keeps whatever was last drawn on it — the
+// goodbye and the fallback words, on the shutdown road.
+make haltmachine() {
+    floor() {
+        cli
+    hm_halt:
+        hlt
+        jmp hm_halt
+    }
+}
+
+// One byte to the reset control door (0xCF9).
+make cf9out(v: number) {
+    floor(v) {
+        mov rax, [r10]
+        out 0xCF9, al
+    }
+}
+
+// Starts the machine again, as the heading tells: the
+// keyboard controller's reset word first, through the
+// mouse library's own bounded wait and door, a short
+// wait for the reset to take, then the reset control
+// door's two words and another short wait. Gives back
+// only when the machine is still running after both —
+// the main body's fallback then stands. (The waits are
+// the speaker library's bounded timer waits, so no
+// machine can be held here forever either.)
+make machinerestart() {
+    if mwaitwrite() == 1 {
+        mwrite64(254)
+    }
+    waitclocks(300000)
+    cf9out(2)
+    cf9out(6)
+    waitclocks(300000)
+}

@@ -78,6 +78,13 @@ To build the bootable witness disc (see "The witness disc" below):
                       # with the pointer in its canvas, changes color
                       # at its swatches, and CLEARS the canvas —
                       # every mark read back as pixels (Stone 24)
+./prove-stone25.sh    # keeps a note, chooses Rest (by the menu and
+                      # by the word), SHUTS DOWN — the machine
+                      # actually powers off under QEMU — and, in a
+                      # second boot, RESTARTS: the desktop falls
+                      # and rises a second time in the same run,
+                      # and the kept note is read back after it
+                      # (Stone 25)
 ./build-stick.sh      # makes dist/cardnull-stick.img (Stone 17)
 ```
 
@@ -1506,6 +1513,11 @@ the windows are — the text face has no pointer and no
 bar to press, as it never has. The menu holds no
 standing of its own beyond open or closed: it is not
 kept anywhere, and each boot starts with it closed.
+(Stone 25 grows the menu by a sixth choice, Rest,
+beneath these five — the menu six rows high, its
+reckoned place unchanged in kind; see Stone 25's
+section. This stone's proof still checks the five it
+always checked.)
 
 ### Stone 24 — A paint feather
 
@@ -1602,6 +1614,150 @@ the door's standing honesty is unchanged: host and
 feather share one privilege level and one memory, the
 card proves the bytes match it and nothing more, and
 a faulting feather stops the whole machine.
+
+### Stone 25 — A kind shutdown, with restart
+
+The machine can rest now, kindly. The word **`rest`**
+offers the resting, and so does the bar's menu, which
+gains a sixth choice, **Rest**, under Stone 23's five
+window choices (the menu is six rows high now, its
+place still reckoned once and read by painter and
+pointer alike; Stone 23's proof still checks its five,
+and this stone's proof checks all six). Choosing Rest
+offers **two plain-words choices**: on the face of
+light a small panel stands at the desktop's middle —
+its place reckoned once, like the menu's — headed
+**Rest**, with **Shut down** and **Restart** one to a
+row, and a third row, **Stay**, which simply puts the
+panel away; a press anywhere else, or Escape, puts it
+away too. On the text face, which has no pointer, the
+word offers the choices in words and the next typed
+line names one. The words **`shutdown`** and
+**`restart`** name the two choices directly as well.
+The panel's standing lives in the pixel face's desk
+at 292, beside the menu's. The doors themselves —
+the ACPI power word, the reset words, the final
+halt — live in a new library, `src/rest.nifla`; the
+kernel is still several files, never one big one.
+
+**The flush, said truthfully.** Either choice first
+flushes the disk — and what "flush" honestly means
+here is narrow, because this system keeps no cache of
+its own: every keeping (a note, a settings choice, a
+time-choice word) is a completed disk writing at the
+moment it is made, through `diskwrite`, and nothing
+is held back anywhere in the system. So the resting's
+flush is a **final writing-through**: when a disk is
+keeping things, the kept settings card and the whole
+notes page are written once more, whole, through the
+same `rememberall` and `notesave` every keeping has
+always used — and then the drive is sent **its own
+flush word** (the ATA flush-cache command, 0xE7, in
+`diskkeep.nifla`'s `ataflush`, its waits bounded), so
+anything the drive itself still holds in its own
+cache is committed too. That is all the flushing
+there honestly is, and it is done before either
+resting, whichever was chosen.
+
+**Shut down** then says its goodbye in plain words —
+"Goodbye for now. Thank you for using this
+computer.", and, when a disk is keeping things, "Your
+notes and choices are kept on the disk." — and tries
+the ACPI power doors (`powerofftry` in
+`src/rest.nifla`): a sixteen-bit word to the ACPI
+power-management control door, the sleep-enable bit
+standing with that door's sleep kind for turning off
+whole. The doors are tried in turn — a door a machine
+does not have takes the word into unclaimed air and
+nothing happens. **The bench's own door was measured,
+not guessed**: read back through the bench monitor
+from the machine's own ACPI tables, its FACP names
+the control door as **0x0604** and its DSDT's \_S5
+package gives sleep kind 0, so the bench's word is
+0x2000 to 0x0604, and that door stands first. The
+wider doors other machines carry stand after it
+(0x6004 with both sleep kinds, the older 0xB004, and
+0x4004). Recorded honestly, as this house keeps its
+corrections: **the first building of this stone tried
+the wider doors first and the bench stayed on** — the
+machine said its goodbye, printed the fallback below,
+and halted, and the stone's proof passed on the
+fallback ending until the tables were read and the
+bench's true door (its power base is 0x0600, not
+0x6000) stood first. If every door leaves a machine
+on, the fallback stands: plain words say "The machine
+is still on. It is now safe to turn it off.", and the
+machine **halts where it stands** — interrupts off,
+the processor sleeping in its halt loop, the goodbye
+standing on the screen. On the shipped build the
+bench does not reach it: the machine powers off.
+
+**Restart** flushes the same way, says "The machine
+will start again now." (and the kept-on-the-disk line,
+when it is true), and resets the machine through the
+reset doors (`machinerestart` in `src/rest.nifla`):
+first the **keyboard controller's reset word** (0xFE
+at its door 0x64, through the mouse library's own
+bounded wait and writing — the same controller the
+pointer speaks to), then the **reset control door at
+0xCF9** (the PCI reset door beside the configuration
+door at 0xCF8): its hard-reset word, then its
+system-reset word. No triple fault is provoked, on
+purpose. The machine boots again fresh, and what was
+kept before the rest is read back from the disk as it
+rises, as at every boot — a note kept before a restart
+is there after it, and the settings choices with it.
+If neither reset door answered, the machine would say
+so in plain words and carry on; on the bench the
+controller's word answers at once.
+
+Proven by `prove-stone25.sh`, both halves exercised
+for real on the real roads. **Shutdown:** a keeping
+disk is fitted; a note is kept by the word `note` and
+seen in the files window; the bar's menu is opened
+and its **six** choices **decoded letter by letter**;
+a press on Rest opens the panel and its four rows are
+decoded; a press on Shut down rests the machine —
+and the bench's ending is the true one: **the machine
+actually powers off under QEMU** (it was gone before
+the harness could even send the press's release; the
+monitor's door closed under its hand, and the
+scenario records the ending in a file the script
+reads back, since after any ending the harness's own
+quit makes the process gone either way). The disk's
+bytes are then read: the CNN3 header counts the note
+and its sector carries its words, and the settings
+card stands — nothing kept was lost. **Restart:** a
+note is kept, the word `rest` opens the panel, a
+press on Restart resets the machine, and the scenario
+watches the desktop **fall** and **rise a second time
+in the same QEMU run** — the drawn desktop standing
+again, the welcome window's title decoded again — and
+then opens the files window and reads the note kept
+before the restart standing in its list, read back
+from the disk by the second rising. The whole earlier
+proof set passes unchanged — Stone 23's included, its
+five window choices standing where they always stood,
+with Rest beneath them now.
+
+Honest limits: the power doors are the known doors
+named above, tried in turn — a machine whose firmware
+names some other door in its tables would stay on and
+reach the fallback, which is exactly what the
+fallback is for; the tables themselves are not parsed
+by the system (the bench's were read by the bench's
+own monitor, by hand, and the door the tables named
+stands first in the trying). The rest panel and the
+menu's Rest choice are the face of light's, as every
+window and the menu are; the text face's resting is
+the typed gate, whole and plain. A draft being
+written in the editor window when Rest is chosen is
+a sitting's draft, as it always was — what was *kept*
+is what the flush writes through, and the panel's
+choosing is a person's own act, like closing a window
+on a draft. And the drawing in the paint window lives
+for the sitting, as Stone 24 said: a restart starts
+with an empty canvas, as a reboot always has.
 
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 
@@ -2009,6 +2165,15 @@ was split by duty, without changing its behavior:
   gate, and the waits read off the timer's falling
   count, bounded twice over (noteon, noteoff, playnote,
   welcomechime, refusenote, and the door helpers).
+- `src/rest.nifla` — the resting (Stone 25): the ACPI
+  power doors tried in turn (the bench's own first,
+  measured from its ACPI tables: the word 0x2000 to
+  the door at 0x0604), the reset doors (the keyboard
+  controller's reset word, then the reset control door
+  at 0xCF9), and the final halt the shutdown fallback
+  stands on (powout, powerofftry, cf9out,
+  machinerestart, haltmachine). The disk's own flush
+  word stands in diskkeep.nifla (ataflush, Stone 25).
 
 The libraries join the main body as preludes at build (build.sh
 names them all): files of pure functions — values in as arguments,

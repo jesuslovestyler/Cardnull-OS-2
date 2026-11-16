@@ -51,7 +51,9 @@ mkdir -p build
 #              its packets (Stone 13)
 #   speaker    the voice: the PC speaker's notes, timed
 #              off the timer's count (Stone 18)
-LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/featherdoor.nifla src/commands.nifla src/usbkey.nifla src/rtclock.nifla src/diskkeep.nifla src/font.nifla src/pixface.nifla src/mouse.nifla src/speaker.nifla"
+#   rest       the resting: the ACPI power doors, the
+#              reset doors, and the final halt (Stone 25)
+LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/featherdoor.nifla src/commands.nifla src/usbkey.nifla src/rtclock.nifla src/diskkeep.nifla src/font.nifla src/pixface.nifla src/mouse.nifla src/speaker.nifla src/rest.nifla"
 PRELUDE=""
 for lib in $LIBRARIES; do
     # Word splitting is intended: one --prelude pair per file.

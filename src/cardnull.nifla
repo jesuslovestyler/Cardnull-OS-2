@@ -45,6 +45,9 @@
 //                        notes — the welcome chime and
 //                        the refusal's low note — timed
 //                        off the timer's count (Stone 18)
+//   src/rest.nifla       the resting: the ACPI power
+//                        doors, the reset doors, and the
+//                        final halt (Stone 25)
 //   src/cardnull.nifla   this main body: the boot
 //                        sequence, the first-breath lift,
 //                        the state, the face, the typing
@@ -267,6 +270,39 @@
 //          close it), and the bar's menu keeps its five
 //          choices — 'paint' is a typed word, as the
 //          feather's own word has always been a word.
+//          (Stone 25 grows the menu by a sixth choice,
+//          Rest, below — the next paragraph tells it.)
+// Stone 25: a kind shutdown, with restart — the word
+//          'rest' offers the machine's resting, and so
+//          does a sixth choice in the bar's menu, Rest
+//          (the menu is six rows high now; Stone 23's
+//          five window choices stand above it, unchanged).
+//          Choosing Rest offers two plain-words choices:
+//          on the face of light a small panel stands at
+//          the desktop's middle — Shut down, Restart,
+//          and Stay, which simply puts the panel away —
+//          and on the text face the choices are offered
+//          in words, for the next typed line to name.
+//          The words 'shutdown' and 'restart' name the
+//          two choices directly, too. Either choice first
+//          flushes the disk, honestly: the system's own
+//          writings are never cached — every keeping is
+//          a completed writing when it is made — so the
+//          flush writes the kept settings card and the
+//          notes page through once more, whole, and then
+//          sends the drive its own flush word, so what
+//          the drive itself holds is committed too
+//          (diskkeep.nifla's ataflush). Shut down then
+//          says a short, kind goodbye and tries the ACPI
+//          power doors (rest.nifla); if the machine stays
+//          on, plain words say it is now safe to turn it
+//          off, and the machine halts where it stands.
+//          Restart flushes the same way and resets the
+//          machine through the keyboard controller's
+//          reset word, then the reset control door — the
+//          machine boots again fresh, and what was kept
+//          before the rest is there when it rises, read
+//          back from the disk as at every boot.
 //
 // The arrangement of the screen:
 //   row 0      the bar — "Cardnull" at the left, the date
@@ -1238,13 +1274,16 @@ make onepaint(desk) {
 // the bar, at the desktop's left: the five windows'
 // names, one to a row — Welcome, Feather, Files,
 // Settings, Editor, the names the desktop already
-// gives them. A press on a choice opens that window
-// (or brings it forward), exactly as the choice's
-// typed word does — the feather's choice asks for the
-// feather, as the word 'feather' does — and a press
-// anywhere else, or the Escape key, puts the menu away
-// without opening anything. The menu is desktop
-// chrome: plain words in the pixel face, and no codes.
+// gives them — and, since Stone 25, a sixth choice
+// under them: Rest, which offers the machine's
+// resting, exactly as the word 'rest' does. A press
+// on a window choice opens that window (or brings it
+// forward), exactly as the choice's typed word does —
+// the feather's choice asks for the feather, as the
+// word 'feather' does — and a press anywhere else, or
+// the Escape key, puts the menu away without opening
+// anything. The menu is desktop chrome: plain words
+// in the pixel face, and no codes.
 //
 // The menu's place is reckoned once, here — its left,
 // top, width, and height in letter cells — and the
@@ -1258,7 +1297,8 @@ make onepaint(desk) {
 // top is the bar's underside (row 1), it is twelve
 // cells wide — room for the longest name, Settings,
 // with the frame's breathing room the windows keep —
-// and five cells high, one row to a choice.
+// and six cells high, one row to a choice (five window
+// choices, and Rest under them since Stone 25).
 
 make menuleft(desk) {
     give 0
@@ -1273,7 +1313,7 @@ make menuwide(desk) {
 }
 
 make menuhigh(desk) {
-    give 5
+    give 6
 }
 
 // Wipes the menu's place back to the plain desktop:
@@ -1286,7 +1326,7 @@ make menuwash(desk) {
 }
 
 // Paints the bar's menu from the desk's standing: open,
-// its gray edge and black body and the five choices in
+// its gray edge and black body and the six choices in
 // white, one to a row; closed, nothing — putting the
 // menu away is menuwash's and the windows' painting's
 // work.
@@ -1305,6 +1345,82 @@ make onemenu(desk) {
         pixline(desk, (mt + 2) * 256 + (ml + 1), "Files", 15)
         pixline(desk, (mt + 3) * 256 + (ml + 1), "Settings", 15)
         pixline(desk, (mt + 4) * 256 + (ml + 1), "Editor", 15)
+        pixline(desk, (mt + 5) * 256 + (ml + 1), "Rest", 15)
+    }
+}
+
+// ---- the rest panel (Stone 25) ----
+//
+// Choosing Rest — by the word 'rest', or by the bar
+// menu's Rest choice — opens a small panel of plain
+// words at the desktop's middle, offering the resting's
+// two choices, one to a row under its plain heading:
+// Shut down, and Restart, and a third row, Stay, which
+// simply puts the panel away and rests nothing. A press
+// on a choice's row does that choice (through the one
+// resting doing in the main loop, where the disk is
+// flushed first); a press anywhere else, or the Escape
+// key, puts the panel away, as the menu is put away.
+// The panel is desktop chrome: plain words in the pixel
+// face, and no codes.
+//
+// The panel's place is reckoned once, here — its left,
+// top, width, and height in letter cells, centered on
+// the desktop the face's grid names — and the painter
+// below and the pointer's pressing in the main loop
+// both read those reckonings, the discipline the menu
+// and the windows have kept: painter and pointer can
+// never disagree about where the panel stands. Its
+// standing lives in the pixel face's desk at 292
+// (pixface.nifla's ledger): 1 while it stands open.
+// The panel is sixteen cells wide — room for the
+// longest choice, Shut down, with the frame's breathing
+// room — and four cells high: its heading, its two
+// choices, and Stay.
+
+make restleft(desk) {
+    give (pget(desk, 28) - restwide(desk)) / 2
+}
+
+make resttop(desk) {
+    give (pget(desk, 32) - resthigh(desk)) / 2
+}
+
+make restwide(desk) {
+    give 16
+}
+
+make resthigh(desk) {
+    give 4
+}
+
+// Wipes the panel's place back to the plain desktop:
+// the ground it covered is filled black, and the caller
+// paints the windows again over it, so whatever stood
+// under the panel stands whole once more.
+make restwash(desk) {
+    pixink(desk, 0)
+    pixfill(desk, restleft(desk) * 16, resttop(desk) * 16, restwide(desk) * 16, resthigh(desk) * 16)
+}
+
+// Paints the rest panel from the desk's standing: open,
+// its gray edge and black body and its plain words in
+// white — the heading Rest, then Shut down, Restart,
+// and Stay, one to a row; closed, nothing.
+make onerest(desk) {
+    if pget(desk, 292) == 1 {
+        let rl = restleft(desk)
+        let rt = resttop(desk)
+        let rw = restwide(desk)
+        let rh = resthigh(desk)
+        pixink(desk, 8)
+        pixfill(desk, rl * 16, rt * 16, rw * 16, rh * 16)
+        pixink(desk, 0)
+        pixfill(desk, rl * 16 + 2, rt * 16 + 2, rw * 16 - 4, rh * 16 - 4)
+        pixline(desk, (rt + 0) * 256 + (rl + 1), "Rest", 15)
+        pixline(desk, (rt + 1) * 256 + (rl + 1), "Shut down", 15)
+        pixline(desk, (rt + 2) * 256 + (rl + 1), "Restart", 15)
+        pixline(desk, (rt + 3) * 256 + (rl + 1), "Stay", 15)
     }
 }
 
@@ -1400,6 +1516,14 @@ make paintwindows(desk, block, notes) {
     // window's painting can cover it.
     if pget(desk, 268) == 1 {
         onemenu(desk)
+    }
+    // The rest panel stands over everything too (Stone
+    // 25), painted after the menu: the two never stand
+    // open together — the menu's Rest choice closes the
+    // menu as it opens the panel — and the panel is the
+    // newer asking, so it stands on top.
+    if pget(desk, 292) == 1 {
+        onerest(desk)
     }
 }
 
@@ -1800,6 +1924,10 @@ if pix == 1 {
     // The bar menu's standing (Stone 23), at 268: it
     // starts closed — a press on the bar opens it.
     pset(pixdesk, 268, 0)
+    // The rest panel's standing (Stone 25), at 292: it
+    // starts closed — the word 'rest' or the menu's
+    // Rest choice opens it.
+    pset(pixdesk, 292, 0)
     pixbegin(pixdesk)
     // The windows' places (Stone 22), at 236 to 264:
     // each window's left and top are laid here, at the
@@ -1999,6 +2127,20 @@ if pix == 1 {
 // word is that answer, and only the exact word 'yes' lets
 // the clearing begin.
 let awaiting = 0
+
+// The resting's standing (Stone 25): 'restdo' carries a
+// chosen resting to the one doing at the loop's end, as
+// featherask carries the feather's asking — 0 no resting
+// is owed, 1 shut down, 2 restart — however it was chosen:
+// the words 'shutdown' and 'restart' themselves, the
+// rest panel's rows on the face of light, or the text
+// face's offered answer below. 'awaitingrest' is the
+// text face's gate: 1 while the system waits for the
+// line that answers the word 'rest' there — the exact
+// words 'shutdown' and 'restart' name the choices, and
+// anything else rests nothing.
+let restdo = 0
+let awaitingrest = 0
 
 // The shift standing of the two roads together (Stone
 // 12): both roads speak the same key numbers, the shifts
@@ -2302,6 +2444,28 @@ while true {
                         ansrow = printline(ansrow, "The disk was left as it was.", pix, pixdesk)
                     }
                 }
+                if awaitingrest == 1 {
+                    // The text face's rest answer (Stone
+                    // 25): this line answers the word
+                    // 'rest', not the command library —
+                    // the exact words 'shutdown' and
+                    // 'restart' name its two choices and
+                    // carry them to the resting doing
+                    // below, and anything else rests
+                    // nothing. The kind is set aside so
+                    // no kind's doing fires for this line.
+                    awaitingrest = 0
+                    kind = 0 - 1
+                    if line == "shutdown" {
+                        restdo = 1
+                    } else {
+                        if line == "restart" {
+                            restdo = 2
+                        } else {
+                            ansrow = printline(ansrow, "The machine stays on. Type rest when you want to rest.", pix, pixdesk)
+                        }
+                    }
+                }
                 if kind == 2 {
                     // 'clear': the face is drawn again, empty.
                     drawface(offset, utcnow, pix, pixdesk)
@@ -2309,8 +2473,11 @@ while true {
                         // The bar's menu is put away by a
                         // clearing too (Stone 23): the face
                         // stands drawn whole, and no menu
-                        // stands on the new face.
+                        // stands on the new face. The rest
+                        // panel is put away the same way
+                        // (Stone 25).
                         pset(pixdesk, 268, 0)
+                        pset(pixdesk, 292, 0)
                         paintwindows(pixdesk, cellblock, notesblock)
                     }
                     ansrow = 13
@@ -2551,6 +2718,38 @@ while true {
                         ansrow = printline(ansrow, "This face has no windows to open.", pix, pixdesk)
                     }
                 }
+                if kind == 16 {
+                    // 'rest': the resting is offered
+                    // (Stone 25). On the face of light the
+                    // rest panel opens at the desktop's
+                    // middle — its two choices, Shut down
+                    // and Restart, and Stay — and the bar's
+                    // menu, if it stood open, is put away.
+                    // On the text face, which has no
+                    // pointer, the choices are offered in
+                    // words and the next typed line names
+                    // one (awaitingrest above).
+                    if pix == 1 {
+                        pset(pixdesk, 268, 0)
+                        pset(pixdesk, 292, 1)
+                        paintwindows(pixdesk, cellblock, notesblock)
+                    } else {
+                        ansrow = printline(ansrow, "Rest. Type shutdown to shut down, or restart to start again.", pix, pixdesk)
+                        awaitingrest = 1
+                    }
+                }
+                if kind == 17 {
+                    // 'shutdown': the choice is carried to
+                    // the one resting doing at the loop's
+                    // end (Stone 25), where the disk is
+                    // flushed before the goodbye.
+                    restdo = 1
+                }
+                if kind == 18 {
+                    // 'restart': the same carrying, for the
+                    // starting again (Stone 25).
+                    restdo = 2
+                }
                 if kind == 1 {
                     // A line of words answers it. A word
                     // the machine does not know is a
@@ -2644,8 +2843,23 @@ while true {
                                 menuwash(pixdesk)
                                 paintwindows(pixdesk, cellblock, notesblock)
                             }
+                            // The rest panel stands in
+                            // Escape's way the same way
+                            // (Stone 25): while it stands
+                            // open, Escape puts the panel
+                            // away and closes no window.
+                            let resthad = 0
+                            if pget(pixdesk, 292) == 1 {
+                                pset(pixdesk, 292, 0)
+                                resthad = 1
+                                restwash(pixdesk)
+                                paintwindows(pixdesk, cellblock, notesblock)
+                            }
                             let fr = pget(pixdesk, 180)
                             if menuhad == 1 {
+                                fr = 0 - 1
+                            }
+                            if resthad == 1 {
                                 fr = 0 - 1
                             }
                             if fr == 1 {
@@ -3010,6 +3224,7 @@ while true {
                     // press is carried while a drag stands.
                     if dragwin == 0 {
                         if andmask(btn, 1) == 1 {
+                            if pget(pixdesk, 292) == 0 {
                             if pget(pixdesk, 272) == 1 {
                                 if pget(pixdesk, 276) == 1 {
                                     let qx = paleft(pixdesk)
@@ -3026,6 +3241,7 @@ while true {
                                         }
                                     }
                                 }
+                            }
                             }
                         }
                     }
@@ -3071,6 +3287,53 @@ while true {
                                 let qw = pawide(pixdesk)
                                 let qh = pahigh(pixdesk)
                                 let acted = 0
+                                if acted == 0 {
+                                    // The rest panel (Stone
+                                    // 25): while it stands
+                                    // open, a press is the
+                                    // panel's alone — a press
+                                    // on Shut down's row or
+                                    // Restart's row carries
+                                    // that choice to the one
+                                    // resting doing at the
+                                    // loop's end, a press on
+                                    // Stay's row or anywhere
+                                    // else puts the panel
+                                    // away and rests nothing —
+                                    // and no press that meets
+                                    // the panel ever takes
+                                    // hold of a window for a
+                                    // drag. The panel's place
+                                    // is read through its own
+                                    // reckonings (restleft
+                                    // and its kin), the ones
+                                    // its painter reads.
+                                    if pget(pixdesk, 292) == 1 {
+                                        let rl = restleft(pixdesk)
+                                        let rt = resttop(pixdesk)
+                                        let rw = restwide(pixdesk)
+                                        let rh = resthigh(pixdesk)
+                                        pset(pixdesk, 292, 0)
+                                        restwash(pixdesk)
+                                        if cxp >= rl * 16 {
+                                            if cxp < (rl + rw) * 16 {
+                                                if cyp >= rt * 16 {
+                                                    if cyp < (rt + rh) * 16 {
+                                                        let rpick = cyp / 16 - rt
+                                                        if rpick == 1 {
+                                                            restdo = 1
+                                                        }
+                                                        if rpick == 2 {
+                                                            restdo = 2
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        paintwindows(pixdesk, cellblock, notesblock)
+                                        acted = 1
+                                    }
+                                }
                                 if acted == 0 {
                                     // The bar and its menu
                                     // (Stone 23): while the
@@ -3146,6 +3409,18 @@ while true {
                                                 pset(pixdesk, 224, 0)
                                                 pset(pixdesk, 228, 0)
                                                 pset(pixdesk, 180, 5)
+                                            }
+                                            if pick == 5 {
+                                                // The menu's Rest
+                                                // choice (Stone
+                                                // 25): the menu is
+                                                // already put away
+                                                // above, and the
+                                                // rest panel opens,
+                                                // exactly as the
+                                                // word 'rest' opens
+                                                // it.
+                                                pset(pixdesk, 292, 1)
                                             }
                                         }
                                         paintwindows(pixdesk, cellblock, notesblock)
@@ -3845,6 +4120,82 @@ while true {
                     ansrow = printline(ansrow, "The paint feather visited. Pick a color, then draw.", pix, pixdesk)
                 }
             }
+        }
+    }
+
+    // A resting chosen — by the words 'shutdown' or
+    // 'restart', by the rest panel's rows, or by the text
+    // face's offered answer — is done here, the one doing
+    // for every choosing (Stone 25), as the feather's
+    // receiving above serves both its askings.
+    //
+    // First the disk is flushed, honestly, whichever
+    // resting was chosen: when a disk is keeping things,
+    // the kept settings card and the notes page are
+    // written through once more, whole — the same
+    // rememberall and notesave every keeping has always
+    // used — and the drive is then sent its own flush
+    // word (diskkeep.nifla's ataflush), so anything the
+    // drive itself still holds is committed too. There
+    // is no other cache to flush: the system's writings
+    // were never held anywhere — each keeping was a
+    // completed writing at the moment it was made — and
+    // this final writing-through is exactly what it
+    // says: the last state, written once more, and the
+    // device told to commit its own.
+    if restdo != 0 {
+        let resting = restdo
+        restdo = 0
+        if pix == 1 {
+            if pget(pixdesk, 292) == 1 {
+                pset(pixdesk, 292, 0)
+                restwash(pixdesk)
+                paintwindows(pixdesk, cellblock, notesblock)
+            }
+        }
+        if diskset == 1 {
+            let chbyte = 2
+            if chimeon == 1 {
+                chbyte = 1
+            }
+            let keptcard = rememberall(offset, chbyte)
+            let keptnotes = notesave(notesblock, notecount)
+        }
+        if diskup == 1 {
+            let flushed = ataflush()
+        }
+        if resting == 1 {
+            // Shut down: a short, kind goodbye in plain
+            // words, then the ACPI power doors are tried
+            // (rest.nifla). If the machine powers off,
+            // nothing below is ever reached. If it stays
+            // on, plain words say so — it is now safe to
+            // turn the machine off — and the machine
+            // halts where it stands, its goodbye standing
+            // on the screen, the processor sleeping.
+            ansrow = printline(ansrow, "Goodbye for now. Thank you for using this computer.", pix, pixdesk)
+            if diskset == 1 {
+                ansrow = printline(ansrow, "Your notes and choices are kept on the disk.", pix, pixdesk)
+            }
+            powerofftry()
+            ansrow = printline(ansrow, "The machine is still on. It is now safe to turn it off.", pix, pixdesk)
+            haltmachine()
+        }
+        if resting == 2 {
+            // Restart: the same flush above, a plain word
+            // that the machine will start again, and the
+            // reset doors are tried (rest.nifla) — the
+            // machine boots again fresh, and what was
+            // kept is read back from the disk as it rises,
+            // as at every boot. If neither door answers,
+            // the machine is still on and says so, and
+            // carries on.
+            ansrow = printline(ansrow, "The machine will start again now.", pix, pixdesk)
+            if diskset == 1 {
+                ansrow = printline(ansrow, "Your notes and choices are kept on the disk.", pix, pixdesk)
+            }
+            machinerestart()
+            ansrow = printline(ansrow, "The machine could not start again, so it is still on.", pix, pixdesk)
         }
     }
 
