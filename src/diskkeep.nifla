@@ -11,18 +11,26 @@
 // work to wake the drive — lives here.
 //
 // What is kept: the clock's time choice, and — since
-// Stone 20 — whether the welcome chime sounds, on sector
-// 8 of the disk, in a small card of the system's own: the
-// letters C and N, then one byte holding the offset with
-// 64 added (so -5 is kept as 59 and 0 as 64; a stored byte
-// of 0 can only mean nothing was ever saved), then one
-// byte for the chime: 1 when it stands on, 2 when it
-// stands off, and 0 when no choice was ever kept there —
-// a card laid before Stone 20, whose chime byte stands 0,
-// keeps the chime on, as it always sounded. The card's
-// shape is the one the first disk keeping was proven
-// with, earlier on the founding day, grown by that one
-// byte at its end; nothing already kept moves.
+// Stone 20 — whether the welcome chime sounds, and —
+// since Stone 28 — whether the desktop's words stand at
+// their usual size or large, on sector 8 of the disk, in
+// a small card of the system's own: the letters C and N,
+// then one byte holding the offset with 64 added (so -5
+// is kept as 59 and 0 as 64; a stored byte of 0 can only
+// mean nothing was ever saved), then one byte for the
+// chime: 1 when it stands on, 2 when it stands off, and
+// 0 when no choice was ever kept there — a card laid
+// before Stone 20, whose chime byte stands 0, keeps the
+// chime on, as it always sounded — and then one byte
+// for the word size (Stone 28), in the chime byte's own
+// shape: 1 when the words stand at their usual size, 2
+// when they stand large, and 0 when no choice was ever
+// kept there — a card laid before Stone 28, whose size
+// byte stands 0, keeps the usual size, as the words
+// always stood. The card's shape is the one the first
+// disk keeping was proven with, earlier on the founding
+// day, grown by one byte at its end at Stone 20 and by
+// one more at Stone 28; nothing already kept moves.
 //
 // The notes page (Stone 15) is kept further out, beyond
 // the card and beyond the setup clearing's reach: a
@@ -119,11 +127,33 @@ make savedchime() -> number {
     give 0
 }
 
-// Writes the card whole: the given offset and the given
-// chime byte (1 on, 2 off, 0 never chosen). Gives back 1
-// when the choices were truly written to a disk, 0 when
-// there is no disk to remember them on.
-make rememberall(offset: number, chime: number) -> number {
+// Gives back the card's size byte (Stone 28): 1 when
+// the words stand at their usual size, 2 when they
+// stand large, and 0 when there is no card — or no
+// disk — to read, or the card was laid before the size
+// had a byte of its own (the words then stand at their
+// usual size, as they always have).
+make savedsize() -> number {
+    selectdrive()
+    if disksectors() > 0 {
+        let block = makebytes(512)
+        let n = diskread(8, block)
+        if block[0] == 67 {
+            if block[1] == 78 {
+                give block[4]
+            }
+        }
+    }
+    give 0
+}
+
+// Writes the card whole: the given offset, the given
+// chime byte (1 on, 2 off, 0 never chosen), and the
+// given size byte (1 usual size, 2 large, 0 never
+// chosen). Gives back 1 when the choices were truly
+// written to a disk, 0 when there is no disk to remember
+// them on.
+make rememberall(offset: number, chime: number, size: number) -> number {
     selectdrive()
     if disksectors() > 0 {
         let block = makebytes(512)
@@ -131,6 +161,7 @@ make rememberall(offset: number, chime: number) -> number {
         block[1] = 78
         block[2] = offset + 64
         block[3] = chime
+        block[4] = size
         let w = diskwrite(8, block)
         give 1
     }
@@ -138,11 +169,12 @@ make rememberall(offset: number, chime: number) -> number {
 }
 
 // Writes the card for the given offset, keeping whatever
-// chime choice the card already carries (Stone 20).
-// Gives back 1 when the choice was truly written to a
-// disk, 0 when there is no disk to remember it on.
+// chime and size choices the card already carries
+// (Stones 20 and 28). Gives back 1 when the choice was
+// truly written to a disk, 0 when there is no disk to
+// remember it on.
 make remember(offset: number) -> number {
-    give rememberall(offset, savedchime())
+    give rememberall(offset, savedchime(), savedsize())
 }
 
 // Reads the kept notes into the main body's notes block
@@ -365,7 +397,7 @@ make ataflush() -> number {
 // earning. The card is then read back, and only a card
 // that truly stands earns a 1; anything else is a 0, and
 // the main body says so plainly.
-make disksetup(offset: number, chime: number) -> number {
+make disksetup(offset: number, chime: number, size: number) -> number {
     selectdrive()
     if disksectors() > 0 {
         let block = makebytes(512)
@@ -378,6 +410,7 @@ make disksetup(offset: number, chime: number) -> number {
         block[1] = 78
         block[2] = offset + 64
         block[3] = chime
+        block[4] = size
         let w = diskwrite(8, block)
         let back = makebytes(512)
         let n = diskread(8, back)

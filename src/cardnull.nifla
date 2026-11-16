@@ -379,6 +379,41 @@
 //          there as the editor has always shown them.
 //          The windows' asking standings live in the
 //          desk at 300 to 316 (pixface.nifla's ledger).
+// Stone 28: large print — the settings window gains a
+//          third choice, the size of the desktop's
+//          words: "Usual size" or "Large", under the
+//          plain label "Words:", set by clicking like
+//          the other choices. Large print is a scale
+//          reckoning in the face's own text path, not a
+//          second font: the letter cell's size stands in
+//          the desk at 320 (sixteen pixels at the usual
+//          size, twenty-four at large), pixbegin reckons
+//          the face's grid from it, pixglyph draws the
+//          one hand-drawn font at twice or three times
+//          size by it, and every painter and every
+//          pointer reckoning reads that one measure, so
+//          painter and pointer agree at either size.
+//          The feather windows' carried cells are the
+//          one exception, by their own standing rule:
+//          a feather's cells are carried 1:1, never
+//          scaled (Stone 14), so they stand at sixteen
+//          pixels inside their windows at either size,
+//          while the windows' frames and titles grow.
+//          The choice is kept on the settings card
+//          exactly as Stone 20's chime byte is kept: a
+//          new byte at the card's end (sector 8, its
+//          fifth byte): 1 usual size, 2 large, and 0
+//          when no choice was ever kept there, so a card
+//          laid before this stone keeps the usual size.
+//          It is read at boot in preference order like
+//          the other choices; with no keeping disk it
+//          lasts for the sitting, and the window says so
+//          the way it already does for the others.
+//          Switching size re-lays the windows at their
+//          first places on the new grid and repaints the
+//          desktop whole at once. The text face stays as
+//          it is: large print lives on the face of light
+//          only, as the windows do.
 //
 // The arrangement of the screen:
 //   row 0      the bar — "Cardnull" at the left, the date
@@ -494,9 +529,10 @@ make buildline(buf, mods, start, count) {
 // Draws the typing line on the screen's last row.
 make drawtyping(text, pix, pixdesk) {
     if pix == 1 {
+        let cs = pget(pixdesk, 320)
         let trow = pget(pixdesk, 136)
         pixink(pixdesk, 0)
-        pixfill(pixdesk, 0, trow * 16, pget(pixdesk, 8), 16)
+        pixfill(pixdesk, 0, trow * cs, pget(pixdesk, 8), cs)
         pixline(pixdesk, (trow) * 256 + (0), ">", 7)
         pixline(pixdesk, (trow) * 256 + (2), text, 7)
     } else {
@@ -542,9 +578,27 @@ make drawtyping(text, pix, pixdesk) {
 // which face is up, and 'pixdesk' is the pixel face's desk.
 make drawclock(offset, utcnow, pix, pixdesk) {
     if pix == 1 {
+        let cs = pget(pixdesk, 320)
         let cols = pget(pixdesk, 28)
+        if cols < 48 {
+            // A narrow grid (large print, Stone 28): the
+            // bar holds the clock alone — the date and
+            // the title cannot both stand beside it at
+            // this size — and the word 'time' still tells
+            // the date in full, as it always has.
+            pixink(pixdesk, 1)
+            pixfill(pixdesk, (cols - 10) * cs, 0, 10 * cs, cs)
+            if utcnow < 0 {
+                pixline(pixdesk, (0) * 256 + (cols - 8), clocktext(ticks() / 100, offset), 31)
+            } else {
+                let local2 = utcnow + offset * 3600
+                let days2 = local2 / 86400
+                let daysec2 = local2 - days2 * 86400
+                pixline(pixdesk, (0) * 256 + (cols - 8), clocktext(daysec2, 0), 31)
+            }
+        } else {
         pixink(pixdesk, 1)
-        pixfill(pixdesk, (cols - 40) * 16, 0, 40 * 16, 16)
+        pixfill(pixdesk, (cols - 40) * cs, 0, 40 * cs, cs)
         if utcnow < 0 {
             pixline(pixdesk, (0) * 256 + (cols - 8), clocktext(ticks() / 100, offset), 31)
         } else {
@@ -554,6 +608,7 @@ make drawclock(offset, utcnow, pix, pixdesk) {
             let dt = datetext(days)
             pixline(pixdesk, (0) * 256 + (cols - 10 - length(dt)), dt, 31)
             pixline(pixdesk, (0) * 256 + (cols - 8), clocktext(daysec, 0), 31)
+        }
         }
     } else {
         if utcnow < 0 {
@@ -581,14 +636,24 @@ make drawclock(offset, utcnow, pix, pixdesk) {
 // below, which the main body calls after this drawing.
 make drawface(offset, utcnow, pix, pixdesk) {
     if pix == 1 {
+        let cs = pget(pixdesk, 320)
         pixink(pixdesk, 0)
         pixfill(pixdesk, 0, 0, pget(pixdesk, 8), pget(pixdesk, 12))
         pixink(pixdesk, 1)
-        pixfill(pixdesk, 0, 0, pget(pixdesk, 8), 16)
+        pixfill(pixdesk, 0, 0, pget(pixdesk, 8), cs)
         pixline(pixdesk, (0) * 256 + (1), "Cardnull", 31)
         drawclock(offset, utcnow, pix, pixdesk)
         pixline(pixdesk, (layrow(pixdesk, 11)) * 256 + (2), "Type a word, then press Enter:", 7)
-        pixline(pixdesk, (layrow(pixdesk, 12)) * 256 + (2), "hello time memory eastern utc feather welcome usb setup clear", 7)
+        if pget(pixdesk, 28) >= 56 {
+            pixline(pixdesk, (layrow(pixdesk, 12)) * 256 + (2), "hello time memory eastern utc feather welcome usb setup clear", 7)
+        } else {
+            // A narrow grid (large print, Stone 28): the
+            // invitation names the words that fit, as it
+            // has always left words it has no room for
+            // unnamed (Stone 15) — every word still
+            // answers to its name all the same.
+            pixline(pixdesk, (layrow(pixdesk, 12)) * 256 + (2), "hello time memory feather welcome clear", 7)
+        }
     } else {
     clearscreen()
     paintrow(0, 31)
@@ -693,18 +758,19 @@ make printnote(row, block, slotpix, pixdesk) {
 // the width. The bar's paper is left set for the caller,
 // which draws the window's name next.
 make winframe(desk, pos, size, front) {
+    let cs = pget(desk, 320)
     let y = pos / 256
     let x = pos - y * 256
     let h = size / 256
     let w = size - h * 256
     pixink(desk, 8)
-    pixfill(desk, x * 16, y * 16, w * 16, h * 16)
+    pixfill(desk, x * cs, y * cs, w * cs, h * cs)
     if front == 1 {
         pixink(desk, 1)
     } else {
         pixink(desk, 8)
     }
-    pixfill(desk, x * 16 + 2, y * 16 + 2, w * 16 - 4, 16)
+    pixfill(desk, x * cs + 2, y * cs + 2, w * cs - 4, cs)
     if front == 1 {
         pixpaper(desk, 1)
     } else {
@@ -719,13 +785,14 @@ make winframe(desk, pos, size, front) {
 // bar and the welcome's own words on their light ground,
 // exactly where they have always stood.
 make onewelcome(desk) {
+    let cs = pget(desk, 320)
     let pl = pget(desk, 140)
     let pt = pget(desk, 144)
     let pw = pget(desk, 148)
     let ph = pget(desk, 152)
     if pget(desk, 172) == 0 {
         pixink(desk, 0)
-        pixfill(desk, pl * 16, pt * 16, pw * 16, ph * 16)
+        pixfill(desk, pl * cs, pt * cs, pw * cs, ph * cs)
     } else {
         let front = 0
         if pget(desk, 180) == 1 {
@@ -735,7 +802,7 @@ make onewelcome(desk) {
         pixspan(desk, 0, 7, 15)
         pixtext(desk, pt, pl + 1, "Welcome")
         pixink(desk, 7)
-        pixfill(desk, pl * 16 + 2, pt * 16 + 18, pw * 16 - 4, ph * 16 - 20)
+        pixfill(desk, pl * cs + 2, pt * cs + cs + 2, pw * cs - 4, ph * cs - cs - 4)
         pixline(desk, (pt + (ph * 1) / 7) * 256 + (pl + 2), "Welcome to Cardnull", 112)
         pixline(desk, (pt + (ph * 2) / 7) * 256 + (pl + 2), "This computer is public domain:", 112)
         pixline(desk, (pt + (ph * 3) / 7) * 256 + (pl + 2), "free for everyone, forever.", 112)
@@ -758,6 +825,19 @@ make onewelcome(desk) {
 // pressing in the main loop both take the window's
 // place from them, so the two can never disagree.
 make fwwide(desk) {
+    if pget(desk, 320) > 16 {
+        // Large print (Stone 28): the window's frame
+        // grows with the words, but the feather's cells
+        // inside it are carried 1:1 at sixteen pixels, as
+        // they always have been — so the window is as
+        // many large cells as the carried panel (fifty-
+        // two cells of sixteen pixels, with its margins)
+        // needs: thirty-six, when the grid holds them.
+        if pget(desk, 28) >= 38 {
+            give 36
+        }
+        give pget(desk, 28) - 2
+    }
     if pget(desk, 28) >= 56 {
         give 54
     }
@@ -811,13 +891,14 @@ make fwhigh(desk) {
 // face's own grid to begin with, and only this showing
 // ever scaled.
 make onefeather(desk, block) {
+    let cs = pget(desk, 320)
     let gx = fwleft(desk)
     let gy = fwtop(desk)
     let gw = fwwide(desk)
     let gh = fwhigh(desk)
     if pget(desk, 176) == 0 {
         pixink(desk, 0)
-        pixfill(desk, gx * 16, gy * 16, gw * 16, gh * 16)
+        pixfill(desk, gx * cs, gy * cs, gw * cs, gh * cs)
     } else {
         let front = 0
         if pget(desk, 180) == 2 {
@@ -833,8 +914,15 @@ make onefeather(desk, block) {
         pixspan(desk, 0, 7, 15)
         pixtext(desk, gy, gx + 1, "Feather")
         pixink(desk, 0)
-        pixfill(desk, gx * 16 + 2, gy * 16 + 18, gw * 16 - 4, gh * 16 - 20)
+        pixfill(desk, gx * cs + 2, gy * cs + cs + 2, gw * cs - 4, gh * cs - cs - 4)
         if pget(desk, 184) == 1 {
+            // The feather's cells are carried 1:1, never
+            // scaled (the discipline above), at sixteen
+            // pixels a cell at either word size (Stone
+            // 28): their first cell stands one face cell
+            // in from the window's left and two down —
+            // the very place the cell reckoning has
+            // always named, in pixels.
             let gr = 15
             while gr < 20 {
                 let gc = 14
@@ -843,13 +931,13 @@ make onefeather(desk, block) {
                     let at = cellbyte(block, (gr * 80 + gc) * 2 + 1)
                     let fg = at - (at / 16) * 16
                     let bgv = (at / 16) - (at / 128) * 8
-                    let lr = gy + 2 + (gr - 15)
-                    let lc = gx + 1 + (gc - 14)
+                    let ly = gy * cs + 2 * cs + (gr - 15) * 16
+                    let lx = gx * cs + cs + (gc - 14) * 16
                     pset(desk, 56, pget(desk, 64 + bgv * 4))
-                    pixfill(desk, lc * 16, lr * 16, 16, 16)
+                    pixfill(desk, lx, ly, 16, 16)
                     if ch != 32 {
                         pset(desk, 56, pget(desk, 64 + fg * 4))
-                        pixglyph(desk, lc * 16, lr * 16, ch)
+                        pixglyph(desk, lx, ly, ch, 2)
                     }
                     gc = gc + 1
                 }
@@ -927,6 +1015,7 @@ make fihigh(desk) {
 // filled with the paper, then its shape drawn with
 // the ink.
 make filenotetext(desk, block, place, attr) {
+    let cs = pget(desk, 320)
     let slot = place / 65536
     let cell = place - slot * 65536
     let row = cell / 256
@@ -938,10 +1027,10 @@ make filenotetext(desk, block, place, attr) {
     while i < n {
         let code = cellbyte(block, slot * 64 + 1 + i)
         pset(desk, 56, pget(desk, 64 + bg * 4))
-        pixfill(desk, (col + i) * 16, row * 16, 16, 16)
+        pixfill(desk, (col + i) * cs, row * cs, cs, cs)
         if code != 32 {
             pset(desk, 56, pget(desk, 64 + fg * 4))
-            pixglyph(desk, (col + i) * 16, row * 16, code)
+            pixglyph(desk, (col + i) * cs, row * cs, code, cs / 8)
         }
         i = i + 1
     }
@@ -963,13 +1052,14 @@ make filenotetext(desk, block, place, attr) {
 // would live, as it always has, and no entry is ever
 // shown that is not kept.
 make onefiles(desk, notes) {
+    let cs = pget(desk, 320)
     let gx = fileft(desk)
     let gy = fitop(desk)
     let gw = fiwide(desk)
     let gh = fihigh(desk)
     if pget(desk, 188) == 0 {
         pixink(desk, 0)
-        pixfill(desk, gx * 16, gy * 16, gw * 16, gh * 16)
+        pixfill(desk, gx * cs, gy * cs, gw * cs, gh * cs)
     } else {
         let front = 0
         if pget(desk, 180) == 3 {
@@ -979,7 +1069,7 @@ make onefiles(desk, notes) {
         pixspan(desk, 0, 5, 15)
         pixtext(desk, gy, gx + 1, "Files")
         pixink(desk, 0)
-        pixfill(desk, gx * 16 + 2, gy * 16 + 18, gw * 16 - 4, gh * 16 - 20)
+        pixfill(desk, gx * cs + 2, gy * cs + cs + 2, gw * cs - 4, gh * cs - cs - 4)
         let keeping = pget(desk, 200)
         let count = pget(desk, 196)
         let haspic = pget(desk, 296)
@@ -998,14 +1088,14 @@ make onefiles(desk, notes) {
             filenotetext(desk, notes, asel * 65536 + (gy + 3) * 256 + (gx + 2), 15)
             if pget(desk, 304) == 0 {
                 pixink(desk, 1)
-                pixfill(desk, gx * 16 + 2, (gy + 5) * 16, gw * 16 - 4, 16)
+                pixfill(desk, gx * cs + 2, (gy + 5) * cs, gw * cs - 4, cs)
                 pixline(desk, (gy + 5) * 256 + (gx + 2), ">", 31)
                 pixline(desk, (gy + 5) * 256 + (gx + 4), "Yes, let it go", 31)
                 pixline(desk, (gy + 6) * 256 + (gx + 4), "Keep it", 7)
             } else {
                 pixline(desk, (gy + 5) * 256 + (gx + 4), "Yes, let it go", 7)
                 pixink(desk, 1)
-                pixfill(desk, gx * 16 + 2, (gy + 6) * 16, gw * 16 - 4, 16)
+                pixfill(desk, gx * cs + 2, (gy + 6) * cs, gw * cs - 4, cs)
                 pixline(desk, (gy + 6) * 256 + (gx + 2), ">", 31)
                 pixline(desk, (gy + 6) * 256 + (gx + 4), "Keep it", 31)
             }
@@ -1063,7 +1153,7 @@ make onefiles(desk, notes) {
                     let row = gy + 3 + i
                     if i == sel {
                         pixink(desk, 1)
-                        pixfill(desk, gx * 16 + 2, row * 16, gw * 16 - 4, 16)
+                        pixfill(desk, gx * cs + 2, row * cs, gw * cs - 4, cs)
                         pixline(desk, row * 256 + (gx + 2), ">", 31)
                         filenotetext(desk, notes, i * 65536 + row * 256 + (gx + 4), 31)
                     } else {
@@ -1089,7 +1179,7 @@ make onefiles(desk, notes) {
                     let prow = gy + 13
                     if sel == count {
                         pixink(desk, 1)
-                        pixfill(desk, gx * 16 + 2, prow * 16, gw * 16 - 4, 16)
+                        pixfill(desk, gx * cs + 2, prow * cs, gw * cs - 4, cs)
                         pixline(desk, prow * 256 + (gx + 2), ">", 31)
                         pixline(desk, prow * 256 + (gx + 4), "A picture you painted", 31)
                     } else {
@@ -1106,23 +1196,26 @@ make onefiles(desk, notes) {
 //
 // A fourth window, standing where the files window
 // stands — the two are never forward at once, and the
-// painting order below keeps each whole. Two choices
-// are set here by clicking: the time zone and whether
-// the welcome chime sounds. Each choice stands as its
-// own row; the one that truly stands is shown white on
-// blue with the pick mark, exactly as the files window
-// shows its pick, and a press of the pointer on a
-// choice's row sets that choice (the pressing is the
-// main loop's, reckoned from these same four measures).
-// The window's standing lives in the desk at 208 to 216
-// (pixface.nifla's ledger): open, and the main body's
-// facts copied in whenever they change — whether the
-// chime stands on, and the clock's offset as the bar
-// truly reckons it — with the keeping and the fitted
-// standing shared from the files window's copy at 200
-// and 204, the same facts. When no disk is keeping the
-// choices, the window says plainly that they last only
-// for this sitting.
+// painting order below keeps each whole. Three choices
+// are set here by clicking (Stone 28 grew it by one):
+// the time zone, whether the welcome chime sounds, and
+// the size of the desktop's words. Each choice stands
+// as its own row; the one that truly stands is shown
+// white on blue with the pick mark, exactly as the
+// files window shows its pick, and a press of the
+// pointer on a choice's row sets that choice (the
+// pressing is the main loop's, reckoned from these same
+// four measures). The window's standing lives in the
+// desk at 208 to 216 (pixface.nifla's ledger): open, and
+// the main body's facts copied in whenever they change
+// — whether the chime stands on, and the clock's offset
+// as the bar truly reckons it — with the keeping and the
+// fitted standing shared from the files window's copy at
+// 200 and 204, the same facts; the words' size is read
+// from the desk's own cell measure at 320, which is the
+// standing. When no disk is keeping the choices, the
+// window says plainly that they last only for this
+// sitting.
 
 make sewide(desk) {
     if pget(desk, 28) >= 56 {
@@ -1140,7 +1233,15 @@ make setop(desk) {
 }
 
 make sehigh(desk) {
-    give 13
+    // Thirteen rows through Stone 27; sixteen since
+    // Stone 28 — the words' size choice (its label and
+    // its two rows) stands below the chime's rows, and
+    // the keeping word moved down by the same rows, so
+    // nothing above it moved: the keeping word stands
+    // at gy + 14 and its second line at gy + 15, the
+    // window's last row, exactly filling the taller
+    // window at its standing place.
+    give 16
 }
 
 // Draws one of the settings window's choice rows: the
@@ -1150,11 +1251,12 @@ make sehigh(desk) {
 // named by 'place' — the row times 256 plus the column
 // the words start at — as pixline packs its cell.
 make sechoice(desk, place, text, picked) {
+    let cs = pget(desk, 320)
     let row = place / 256
     let col = place - row * 256
     if picked == 1 {
         pixink(desk, 1)
-        pixfill(desk, (col - 4) * 16 + 2, row * 16, sewide(desk) * 16 - 4, 16)
+        pixfill(desk, (col - 4) * cs + 2, row * cs, sewide(desk) * cs - 4, cs)
         pixline(desk, row * 256 + (col - 2), ">", 31)
         pixline(desk, row * 256 + col, text, 31)
     } else {
@@ -1164,19 +1266,21 @@ make sechoice(desk, place, text, picked) {
 
 // Paints the settings window from the desk's standing:
 // closed, the plain desktop; open, its frame and title
-// bar, the two choices with the standing one picked —
+// bar, the three choices with the standing one picked —
 // the time zone from the offset the bar's clock truly
-// reckons by, the chime from whether it truly sounds —
+// reckons by, the chime from whether it truly sounds,
+// and the words' size from the desk's cell measure —
 // and at its foot the plain word of where the choices
 // live: kept on the disk, or only for this sitting.
 make onesettings(desk) {
+    let cs = pget(desk, 320)
     let gx = seleft(desk)
     let gy = setop(desk)
     let gw = sewide(desk)
     let gh = sehigh(desk)
     if pget(desk, 208) == 0 {
         pixink(desk, 0)
-        pixfill(desk, gx * 16, gy * 16, gw * 16, gh * 16)
+        pixfill(desk, gx * cs, gy * cs, gw * cs, gh * cs)
     } else {
         let front = 0
         if pget(desk, 180) == 4 {
@@ -1186,7 +1290,7 @@ make onesettings(desk) {
         pixspan(desk, 0, 8, 15)
         pixtext(desk, gy, gx + 1, "Settings")
         pixink(desk, 0)
-        pixfill(desk, gx * 16 + 2, gy * 16 + 18, gw * 16 - 4, gh * 16 - 20)
+        pixfill(desk, gx * cs + 2, gy * cs + cs + 2, gw * cs - 4, gh * cs - cs - 4)
         pixline(desk, (gy + 2) * 256 + (gx + 2), "Time zone:", 7)
         let eastern = 0
         if pget(desk, 216) != 0 {
@@ -1198,14 +1302,21 @@ make onesettings(desk) {
         let chon = pget(desk, 212)
         sechoice(desk, (gy + 7) * 256 + (gx + 4), "Chime on", chon)
         sechoice(desk, (gy + 8) * 256 + (gx + 4), "Chime off", 1 - chon)
+        pixline(desk, (gy + 10) * 256 + (gx + 2), "Words:", 7)
+        let large = 0
+        if pget(desk, 320) > 16 {
+            large = 1
+        }
+        sechoice(desk, (gy + 11) * 256 + (gx + 4), "Usual size", 1 - large)
+        sechoice(desk, (gy + 12) * 256 + (gx + 4), "Large", large)
         if pget(desk, 200) == 1 {
-            pixline(desk, (gy + 10) * 256 + (gx + 2), "Your choices are kept on the disk.", 7)
+            pixline(desk, (gy + 14) * 256 + (gx + 2), "Your choices are kept on the disk.", 7)
         } else {
-            pixline(desk, (gy + 10) * 256 + (gx + 2), "Your choices last only for this sitting.", 7)
+            pixline(desk, (gy + 14) * 256 + (gx + 2), "Your choices last only for this sitting.", 7)
             if pget(desk, 204) == 0 {
-                pixline(desk, (gy + 11) * 256 + (gx + 2), "There is no disk fitted.", 7)
+                pixline(desk, (gy + 15) * 256 + (gx + 2), "There is no disk fitted.", 7)
             } else {
-                pixline(desk, (gy + 11) * 256 + (gx + 2), "This disk is not keeping them yet.", 7)
+                pixline(desk, (gy + 15) * 256 + (gx + 2), "This disk is not keeping them yet.", 7)
             }
         }
     }
@@ -1268,13 +1379,14 @@ make edhigh(desk) {
 // plainly, and the word of where the kept note will
 // live — on the disk, or only for this sitting.
 make oneeditor(desk, notes) {
+    let cs = pget(desk, 320)
     let gx = edleft(desk)
     let gy = edtop(desk)
     let gw = edwide(desk)
     let gh = edhigh(desk)
     if pget(desk, 220) == 0 {
         pixink(desk, 0)
-        pixfill(desk, gx * 16, gy * 16, gw * 16, gh * 16)
+        pixfill(desk, gx * cs, gy * cs, gw * cs, gh * cs)
     } else {
         let front = 0
         if pget(desk, 180) == 5 {
@@ -1284,7 +1396,7 @@ make oneeditor(desk, notes) {
         pixspan(desk, 0, 8, 15)
         pixtext(desk, gy, gx + 1, "Editor")
         pixink(desk, 0)
-        pixfill(desk, gx * 16 + 2, gy * 16 + 18, gw * 16 - 4, gh * 16 - 20)
+        pixfill(desk, gx * cs + 2, gy * cs + cs + 2, gw * cs - 4, gh * cs - cs - 4)
         let count = pget(desk, 196)
         if pget(desk, 308) == 1 {
             // The asking (Stone 27): the same asking
@@ -1298,14 +1410,14 @@ make oneeditor(desk, notes) {
             filenotetext(desk, notes, tgt * 65536 + (gy + 3) * 256 + (gx + 2), 15)
             if pget(desk, 312) == 0 {
                 pixink(desk, 1)
-                pixfill(desk, gx * 16 + 2, (gy + 5) * 16, gw * 16 - 4, 16)
+                pixfill(desk, gx * cs + 2, (gy + 5) * cs, gw * cs - 4, cs)
                 pixline(desk, (gy + 5) * 256 + (gx + 2), ">", 31)
                 pixline(desk, (gy + 5) * 256 + (gx + 4), "Yes, let it go", 31)
                 pixline(desk, (gy + 6) * 256 + (gx + 4), "Keep it", 7)
             } else {
                 pixline(desk, (gy + 5) * 256 + (gx + 4), "Yes, let it go", 7)
                 pixink(desk, 1)
-                pixfill(desk, gx * 16 + 2, (gy + 6) * 16, gw * 16 - 4, 16)
+                pixfill(desk, gx * cs + 2, (gy + 6) * cs, gw * cs - 4, cs)
                 pixline(desk, (gy + 6) * 256 + (gx + 2), ">", 31)
                 pixline(desk, (gy + 6) * 256 + (gx + 4), "Keep it", 31)
             }
@@ -1345,7 +1457,7 @@ make oneeditor(desk, notes) {
             }
             if sel == 0 {
                 pixink(desk, 1)
-                pixfill(desk, gx * 16 + 2, (gy + 3) * 16, gw * 16 - 4, 16)
+                pixfill(desk, gx * cs + 2, (gy + 3) * cs, gw * cs - 4, cs)
                 pixline(desk, (gy + 3) * 256 + (gx + 2), ">", 31)
                 pixline(desk, (gy + 3) * 256 + (gx + 4), "Write a new note", 31)
             } else {
@@ -1356,7 +1468,7 @@ make oneeditor(desk, notes) {
                 let row = gy + 4 + i
                 if i + 1 == sel {
                     pixink(desk, 1)
-                    pixfill(desk, gx * 16 + 2, row * 16, gw * 16 - 4, 16)
+                    pixfill(desk, gx * cs + 2, row * cs, gw * cs - 4, cs)
                     pixline(desk, row * 256 + (gx + 2), ">", 31)
                     filenotetext(desk, notes, i * 65536 + row * 256 + (gx + 4), 31)
                 } else {
@@ -1412,6 +1524,15 @@ make oneeditor(desk, notes) {
 // feather has visited, and its place.
 
 make pawide(desk) {
+    if pget(desk, 320) > 16 {
+        // Large print (Stone 28): the feather window's
+        // own reckoning (fwwide) — the frame grows with
+        // the words, the carried cells inside it do not.
+        if pget(desk, 28) >= 38 {
+            give 36
+        }
+        give pget(desk, 28) - 2
+    }
     if pget(desk, 28) >= 56 {
         give 54
     }
@@ -1453,13 +1574,14 @@ make pcellbyte(desk: bytes, off: number) -> number {
 // swatches, its named color, its Clear word, and its
 // canvas with every mark the feather has laid in it.
 make onepaint(desk) {
+    let cs = pget(desk, 320)
     let gx = paleft(desk)
     let gy = patop(desk)
     let gw = pawide(desk)
     let gh = pahigh(desk)
     if pget(desk, 272) == 0 {
         pixink(desk, 0)
-        pixfill(desk, gx * 16, gy * 16, gw * 16, gh * 16)
+        pixfill(desk, gx * cs, gy * cs, gw * cs, gh * cs)
     } else {
         let front = 0
         if pget(desk, 180) == 6 {
@@ -1469,8 +1591,11 @@ make onepaint(desk) {
         pixspan(desk, 0, 5, 15)
         pixtext(desk, gy, gx + 1, "Paint")
         pixink(desk, 0)
-        pixfill(desk, gx * 16 + 2, gy * 16 + 18, gw * 16 - 4, gh * 16 - 20)
+        pixfill(desk, gx * cs + 2, gy * cs + cs + 2, gw * cs - 4, gh * cs - cs - 4)
         if pget(desk, 276) == 1 {
+            // The feather's cells, carried 1:1 at sixteen
+            // pixels at either word size, as the feather
+            // window's are (see onefeather, Stone 28).
             let gr = 10
             while gr < 21 {
                 let gc = 14
@@ -1479,13 +1604,13 @@ make onepaint(desk) {
                     let at = pcellbyte(desk, (gr * 80 + gc) * 2 + 1)
                     let fg = at - (at / 16) * 16
                     let bgv = (at / 16) - (at / 128) * 8
-                    let lr = gy + 2 + (gr - 10)
-                    let lc = gx + 1 + (gc - 14)
+                    let ly = gy * cs + 2 * cs + (gr - 10) * 16
+                    let lx = gx * cs + cs + (gc - 14) * 16
                     pset(desk, 56, pget(desk, 64 + bgv * 4))
-                    pixfill(desk, lc * 16, lr * 16, 16, 16)
+                    pixfill(desk, lx, ly, 16, 16)
                     if ch != 32 {
                         pset(desk, 56, pget(desk, 64 + fg * 4))
-                        pixglyph(desk, lc * 16, lr * 16, ch)
+                        pixglyph(desk, lx, ly, ch, 2)
                     }
                     gc = gc + 1
                 }
@@ -1551,8 +1676,9 @@ make menuhigh(desk) {
 // caller paints the windows again over it, so whatever
 // stood under the menu stands whole once more.
 make menuwash(desk) {
+    let cs = pget(desk, 320)
     pixink(desk, 0)
-    pixfill(desk, menuleft(desk) * 16, menutop(desk) * 16, menuwide(desk) * 16, menuhigh(desk) * 16)
+    pixfill(desk, menuleft(desk) * cs, menutop(desk) * cs, menuwide(desk) * cs, menuhigh(desk) * cs)
 }
 
 // Paints the bar's menu from the desk's standing: open,
@@ -1566,10 +1692,11 @@ make onemenu(desk) {
         let mt = menutop(desk)
         let mw = menuwide(desk)
         let mh = menuhigh(desk)
+        let cs = pget(desk, 320)
         pixink(desk, 8)
-        pixfill(desk, ml * 16, mt * 16, mw * 16, mh * 16)
+        pixfill(desk, ml * cs, mt * cs, mw * cs, mh * cs)
         pixink(desk, 0)
-        pixfill(desk, ml * 16 + 2, mt * 16 + 2, mw * 16 - 4, mh * 16 - 4)
+        pixfill(desk, ml * cs + 2, mt * cs + 2, mw * cs - 4, mh * cs - 4)
         pixline(desk, (mt + 0) * 256 + (ml + 1), "Welcome", 15)
         pixline(desk, (mt + 1) * 256 + (ml + 1), "Feather", 15)
         pixline(desk, (mt + 2) * 256 + (ml + 1), "Files", 15)
@@ -1629,8 +1756,9 @@ make resthigh(desk) {
 // paints the windows again over it, so whatever stood
 // under the panel stands whole once more.
 make restwash(desk) {
+    let cs = pget(desk, 320)
     pixink(desk, 0)
-    pixfill(desk, restleft(desk) * 16, resttop(desk) * 16, restwide(desk) * 16, resthigh(desk) * 16)
+    pixfill(desk, restleft(desk) * cs, resttop(desk) * cs, restwide(desk) * cs, resthigh(desk) * cs)
 }
 
 // Paints the rest panel from the desk's standing: open,
@@ -1643,10 +1771,11 @@ make onerest(desk) {
         let rt = resttop(desk)
         let rw = restwide(desk)
         let rh = resthigh(desk)
+        let cs = pget(desk, 320)
         pixink(desk, 8)
-        pixfill(desk, rl * 16, rt * 16, rw * 16, rh * 16)
+        pixfill(desk, rl * cs, rt * cs, rw * cs, rh * cs)
         pixink(desk, 0)
-        pixfill(desk, rl * 16 + 2, rt * 16 + 2, rw * 16 - 4, rh * 16 - 4)
+        pixfill(desk, rl * cs + 2, rt * cs + 2, rw * cs - 4, rh * cs - 4)
         pixline(desk, (rt + 0) * 256 + (rl + 1), "Rest", 15)
         pixline(desk, (rt + 1) * 256 + (rl + 1), "Shut down", 15)
         pixline(desk, (rt + 2) * 256 + (rl + 1), "Restart", 15)
@@ -1878,6 +2007,67 @@ make winmove(desk, win, newleft, newtop) {
     }
 }
 
+// Lays every window's first place on the face's grid, as
+// the face's rising lays them: each window centered, the
+// feather at the layout's row 14 and the files, settings,
+// editor, and paint windows at its row 17 — each top
+// clamped so the window stands whole on the grid, which
+// a narrower grid (large print, Stone 28) can require of
+// the taller windows. The welcome's place is pixbegin's
+// own, laid there from the layout at every beginning.
+// The main body calls this at the face's rising, and
+// again whenever the words' size is switched in the
+// settings window, when the whole desktop is re-laid on
+// the new grid and the windows return to their first
+// places.
+make layplaces(desk) {
+    pset(desk, 236, (pget(desk, 28) - fwwide(desk)) / 2)
+    let ft = layrow(desk, 14)
+    if ft + fwhigh(desk) > pget(desk, 32) {
+        ft = pget(desk, 32) - fwhigh(desk)
+    }
+    if ft < 1 {
+        ft = 1
+    }
+    pset(desk, 240, ft)
+    pset(desk, 244, (pget(desk, 28) - fiwide(desk)) / 2)
+    let it = layrow(desk, 17)
+    if it + fihigh(desk) > pget(desk, 32) {
+        it = pget(desk, 32) - fihigh(desk)
+    }
+    if it < 1 {
+        it = 1
+    }
+    pset(desk, 248, it)
+    pset(desk, 252, (pget(desk, 28) - sewide(desk)) / 2)
+    let st = layrow(desk, 17)
+    if st + sehigh(desk) > pget(desk, 32) {
+        st = pget(desk, 32) - sehigh(desk)
+    }
+    if st < 1 {
+        st = 1
+    }
+    pset(desk, 256, st)
+    pset(desk, 260, (pget(desk, 28) - edwide(desk)) / 2)
+    let et = layrow(desk, 17)
+    if et + edhigh(desk) > pget(desk, 32) {
+        et = pget(desk, 32) - edhigh(desk)
+    }
+    if et < 1 {
+        et = 1
+    }
+    pset(desk, 264, et)
+    pset(desk, 280, (pget(desk, 28) - pawide(desk)) / 2)
+    let pt2 = layrow(desk, 17)
+    if pt2 + pahigh(desk) > pget(desk, 32) {
+        pt2 = pget(desk, 32) - pahigh(desk)
+    }
+    if pt2 < 1 {
+        pt2 = 1
+    }
+    pset(desk, 284, pt2)
+}
+
 // ---- the machine ----
 
 // The first breath: lift what the loader brought into the
@@ -2055,6 +2245,24 @@ if diskset == 1 {
         chimeon = 0
     }
 }
+// The words' size standing (Stone 28): usual size,
+// unless a keeping disk's card says the words stand
+// large — the card's size byte (diskkeep.nifla) is read
+// with the offset and the chime above, from the same
+// card, in the same preference order. A card laid
+// before the size had a byte of its own carries 0
+// there, and the words stand at their usual size, as
+// they always have. 'wordsize' is 0 for usual size and
+// 1 for large; the face's cell measure is laid from it
+// when the face rises below (sixteen pixels, or
+// twenty-four), and the settings window's clicks move
+// it from there.
+let wordsize = 0
+if diskset == 1 {
+    if savedsize() == 2 {
+        wordsize = 1
+    }
+}
 if diskset == 1 {
     // A keeping disk's notes are read back at boot, so
     // they stay (Stone 15).
@@ -2120,7 +2328,7 @@ if fbflags - (fbflags / 8192) * 8192 >= 4096 {
     }
 }
 if pix == 1 {
-    pixdesk = makebytes(320)
+    pixdesk = makebytes(352)
     let fontblock = makebytes(1024)
     fontload(fontblock)
     // The pointer's shapes and its save block (Stone 13):
@@ -2196,29 +2404,22 @@ if pix == 1 {
     pset(pixdesk, 308, 0)
     pset(pixdesk, 312, 1)
     pset(pixdesk, 316, 0)
+    // The letter cell's size (Stone 28), at 320: sixteen
+    // pixels at the words' usual size, twenty-four when
+    // large print stands — laid from the size standing
+    // read from the card above, before pixbegin reckons
+    // the grid from it.
+    pset(pixdesk, 320, 16 + wordsize * 8)
     pixbegin(pixdesk)
-    // The windows' places (Stone 22), at 236 to 264:
-    // each window's left and top are laid here, at the
-    // face's rising, from the place its measures first
-    // reckon — the feather centered at the layout's
-    // row 14, the files, settings, and editor windows
-    // centered at its row 17 — and dragging writes the
-    // pair from here on (see winmove above). The
-    // welcome's place was laid by pixbegin itself, at
-    // 140 to 152, as it always has been.
-    pset(pixdesk, 236, (pget(pixdesk, 28) - fwwide(pixdesk)) / 2)
-    pset(pixdesk, 240, layrow(pixdesk, 14))
-    pset(pixdesk, 244, (pget(pixdesk, 28) - fiwide(pixdesk)) / 2)
-    pset(pixdesk, 248, layrow(pixdesk, 17))
-    pset(pixdesk, 252, (pget(pixdesk, 28) - sewide(pixdesk)) / 2)
-    pset(pixdesk, 256, layrow(pixdesk, 17))
-    pset(pixdesk, 260, (pget(pixdesk, 28) - edwide(pixdesk)) / 2)
-    pset(pixdesk, 264, layrow(pixdesk, 17))
-    // The paint window's place (Stone 24), at 280 and
-    // 284: centered at the layout's row 17, with the
-    // files, settings, and editor windows' places.
-    pset(pixdesk, 280, (pget(pixdesk, 28) - pawide(pixdesk)) / 2)
-    pset(pixdesk, 284, layrow(pixdesk, 17))
+    // The windows' places (Stone 22), at 236 to 264 and
+    // the paint window's at 280 and 284: laid here, at
+    // the face's rising, by layplaces — each window
+    // centered at the place its measures first reckon —
+    // and dragging writes the pairs from here on (see
+    // winmove above). The welcome's place was laid by
+    // pixbegin itself, at 140 to 152, as it always has
+    // been.
+    layplaces(pixdesk)
     // The feather's canvas on this face: a text screen's
     // worth of cells, laid out as the text screen's own
     // are — a letter byte and a color byte to a cell —
@@ -2917,7 +3118,7 @@ while true {
                         if chimeon == 1 {
                             chbyte = 1
                         }
-                        if disksetup(offset, chbyte) == 1 {
+                        if disksetup(offset, chbyte, wordsize + 1) == 1 {
                             diskset = 1
                             if pix == 1 {
                                 // The files window's copy of
@@ -3666,6 +3867,12 @@ while true {
                         my = maxy
                     }
                     let btn = mousedesk[5]
+                    // The cell's size in pixels (Stone 28):
+                    // the one measure every reckoning below
+                    // reads, as every painter reads it — so
+                    // the pointer lands where the words
+                    // stand, at either size.
+                    let cellpx = pget(pixdesk, 320)
                     // The drag follows (Stone 22): while a
                     // window stands held by its title bar
                     // and the button stands held with it,
@@ -3690,8 +3897,8 @@ while true {
                         } else {
                             let dw = winwide(pixdesk, dragwin)
                             let dh = winhigh(pixdesk, dragwin)
-                            let nl = (mx + 2) / 16 - draggox
-                            let nt = (my + 2) / 16 - draggoy
+                            let nl = (mx + 2) / cellpx - draggox
+                            let nt = (my + 2) / cellpx - draggoy
                             if nl < 0 {
                                 nl = 0
                             }
@@ -3718,7 +3925,7 @@ while true {
                             if moved == 1 {
                                 winmove(pixdesk, dragwin, nl, nt)
                                 pixink(pixdesk, 0)
-                                pixfill(pixdesk, ol * 16, ot * 16, dw * 16, dh * 16)
+                                pixfill(pixdesk, ol * cellpx, ot * cellpx, dw * cellpx, dh * cellpx)
                                 paintwindows(pixdesk, cellblock, notesblock)
                             }
                         }
@@ -3754,8 +3961,16 @@ while true {
                                 if pget(pixdesk, 276) == 1 {
                                     let qx = paleft(pixdesk)
                                     let qy = patop(pixdesk)
-                                    let prow = (my + 2) / 16 - qy - 2 + 10
-                                    let pcol = (mx + 2) / 16 - qx - 1 + 14
+                                    // The shown cells stand
+                                    // at sixteen pixels at
+                                    // either word size
+                                    // (onepaint's reckoning):
+                                    // the press's cell is
+                                    // counted from the shown
+                                    // region's own corner, in
+                                    // pixels.
+                                    let prow = (my + 2 - qy * cellpx - 2 * cellpx) / 16 + 10
+                                    let pcol = (mx + 2 - qx * cellpx - cellpx) / 16 + 14
                                     if prow >= 10 {
                                         if prow <= 20 {
                                             if pcol >= 14 {
@@ -3840,11 +4055,11 @@ while true {
                                         let rh = resthigh(pixdesk)
                                         pset(pixdesk, 292, 0)
                                         restwash(pixdesk)
-                                        if cxp >= rl * 16 {
-                                            if cxp < (rl + rw) * 16 {
-                                                if cyp >= rt * 16 {
-                                                    if cyp < (rt + rh) * 16 {
-                                                        let rpick = cyp / 16 - rt
+                                        if cxp >= rl * cellpx {
+                                            if cxp < (rl + rw) * cellpx {
+                                                if cyp >= rt * cellpx {
+                                                    if cyp < (rt + rh) * cellpx {
+                                                        let rpick = cyp / cellpx - rt
                                                         if rpick == 1 {
                                                             restdo = 1
                                                         }
@@ -3901,10 +4116,10 @@ while true {
                                         let mw = menuwide(pixdesk)
                                         let mh = menuhigh(pixdesk)
                                         let inmenu = 0
-                                        if cxp >= ml * 16 {
-                                            if cxp < (ml + mw) * 16 {
-                                                if cyp >= mt * 16 {
-                                                    if cyp < (mt + mh) * 16 {
+                                        if cxp >= ml * cellpx {
+                                            if cxp < (ml + mw) * cellpx {
+                                                if cyp >= mt * cellpx {
+                                                    if cyp < (mt + mh) * cellpx {
                                                         inmenu = 1
                                                     }
                                                 }
@@ -3913,7 +4128,7 @@ while true {
                                         pset(pixdesk, 268, 0)
                                         menuwash(pixdesk)
                                         if inmenu == 1 {
-                                            let pick = cyp / 16 - mt
+                                            let pick = cyp / cellpx - mt
                                             if pick == 0 {
                                                 pset(pixdesk, 172, 1)
                                                 pset(pixdesk, 180, 1)
@@ -3953,7 +4168,7 @@ while true {
                                         paintwindows(pixdesk, cellblock, notesblock)
                                         acted = 1
                                     } else {
-                                        if cyp < 16 {
+                                        if cyp < cellpx {
                                             pset(pixdesk, 268, 1)
                                             onemenu(pixdesk)
                                             acted = 1
@@ -3962,10 +4177,10 @@ while true {
                                 }
                                 if acted == 0 {
                                     if pget(pixdesk, 172) == 1 {
-                                        if cxp >= (pl + pw - 2) * 16 {
-                                            if cxp < (pl + pw - 1) * 16 {
-                                                if cyp >= pt * 16 {
-                                                    if cyp < (pt + 1) * 16 {
+                                        if cxp >= (pl + pw - 2) * cellpx {
+                                            if cxp < (pl + pw - 1) * cellpx {
+                                                if cyp >= pt * cellpx {
+                                                    if cyp < (pt + 1) * cellpx {
                                                         pset(pixdesk, 172, 0)
                                                         if pget(pixdesk, 180) == 1 {
                                                             if pget(pixdesk, 176) == 1 {
@@ -3992,10 +4207,10 @@ while true {
                                 }
                                 if acted == 0 {
                                     if pget(pixdesk, 176) == 1 {
-                                        if cxp >= (gx + gw - 2) * 16 {
-                                            if cxp < (gx + gw - 1) * 16 {
-                                                if cyp >= gy * 16 {
-                                                    if cyp < (gy + 1) * 16 {
+                                        if cxp >= (gx + gw - 2) * cellpx {
+                                            if cxp < (gx + gw - 1) * cellpx {
+                                                if cyp >= gy * cellpx {
+                                                    if cyp < (gy + 1) * cellpx {
                                                         pset(pixdesk, 176, 0)
                                                         if pget(pixdesk, 180) == 2 {
                                                             if pget(pixdesk, 172) == 1 {
@@ -4022,10 +4237,10 @@ while true {
                                 }
                                 if acted == 0 {
                                     if pget(pixdesk, 188) == 1 {
-                                        if cxp >= (fx + fw - 2) * 16 {
-                                            if cxp < (fx + fw - 1) * 16 {
-                                                if cyp >= fy * 16 {
-                                                    if cyp < (fy + 1) * 16 {
+                                        if cxp >= (fx + fw - 2) * cellpx {
+                                            if cxp < (fx + fw - 1) * cellpx {
+                                                if cyp >= fy * cellpx {
+                                                    if cyp < (fy + 1) * cellpx {
                                                         pset(pixdesk, 188, 0)
                                                         pset(pixdesk, 300, 0)
                                                         if pget(pixdesk, 180) == 3 {
@@ -4057,10 +4272,10 @@ while true {
                                 }
                                 if acted == 0 {
                                     if pget(pixdesk, 208) == 1 {
-                                        if cxp >= (sx + sw - 2) * 16 {
-                                            if cxp < (sx + sw - 1) * 16 {
-                                                if cyp >= sy * 16 {
-                                                    if cyp < (sy + 1) * 16 {
+                                        if cxp >= (sx + sw - 2) * cellpx {
+                                            if cxp < (sx + sw - 1) * cellpx {
+                                                if cyp >= sy * cellpx {
+                                                    if cyp < (sy + 1) * cellpx {
                                                         pset(pixdesk, 208, 0)
                                                         if pget(pixdesk, 180) == 4 {
                                                             if pget(pixdesk, 172) == 1 {
@@ -4087,10 +4302,10 @@ while true {
                                 }
                                 if acted == 0 {
                                     if pget(pixdesk, 220) == 1 {
-                                        if cxp >= (ex + ew - 2) * 16 {
-                                            if cxp < (ex + ew - 1) * 16 {
-                                                if cyp >= ey * 16 {
-                                                    if cyp < (ey + 1) * 16 {
+                                        if cxp >= (ex + ew - 2) * cellpx {
+                                            if cxp < (ex + ew - 1) * cellpx {
+                                                if cyp >= ey * cellpx {
+                                                    if cyp < (ey + 1) * cellpx {
                                                         pset(pixdesk, 220, 0)
                                                         pset(pixdesk, 224, 0)
                                                         pset(pixdesk, 308, 0)
@@ -4123,10 +4338,10 @@ while true {
                                 }
                                 if acted == 0 {
                                     if pget(pixdesk, 272) == 1 {
-                                        if cxp >= (qx + qw - 2) * 16 {
-                                            if cxp < (qx + qw - 1) * 16 {
-                                                if cyp >= qy * 16 {
-                                                    if cyp < (qy + 1) * 16 {
+                                        if cxp >= (qx + qw - 2) * cellpx {
+                                            if cxp < (qx + qw - 1) * cellpx {
+                                                if cyp >= qy * cellpx {
+                                                    if cyp < (qy + 1) * cellpx {
                                                         pset(pixdesk, 272, 0)
                                                         if pget(pixdesk, 180) == 6 {
                                                             if pget(pixdesk, 172) == 1 {
@@ -4204,9 +4419,9 @@ while true {
                                     if pget(pixdesk, 188) == 1 {
                                         if pget(pixdesk, 300) == 1 {
                                             if pget(pixdesk, 180) == 3 {
-                                                if cxp >= fx * 16 {
-                                                    if cxp < (fx + fw) * 16 {
-                                                        let arow = cyp / 16
+                                                if cxp >= fx * cellpx {
+                                                    if cxp < (fx + fw) * cellpx {
+                                                        let arow = cyp / cellpx
                                                         if arow == fy + 6 {
                                                             pset(pixdesk, 300, 0)
                                                             pset(pixdesk, 180, 3)
@@ -4285,9 +4500,9 @@ while true {
                                     if pget(pixdesk, 220) == 1 {
                                         if pget(pixdesk, 308) == 1 {
                                             if pget(pixdesk, 180) == 5 {
-                                                if cxp >= ex * 16 {
-                                                    if cxp < (ex + ew) * 16 {
-                                                        let arow = cyp / 16
+                                                if cxp >= ex * cellpx {
+                                                    if cxp < (ex + ew) * cellpx {
+                                                        let arow = cyp / cellpx
                                                         if arow == ey + 6 {
                                                             pset(pixdesk, 308, 0)
                                                             pset(pixdesk, 180, 5)
@@ -4359,9 +4574,9 @@ while true {
                                     if pget(pixdesk, 188) == 1 {
                                         if pget(pixdesk, 300) == 0 {
                                             if pget(pixdesk, 196) > 0 {
-                                                if cxp >= fx * 16 {
-                                                    if cxp < (fx + fw) * 16 {
-                                                        let row = cyp / 16
+                                                if cxp >= fx * cellpx {
+                                                    if cxp < (fx + fw) * cellpx {
+                                                        let row = cyp / cellpx
                                                         if row >= fy + 3 {
                                                             if row < fy + 3 + pget(pixdesk, 196) {
                                                                 pset(pixdesk, 192, row - fy - 3)
@@ -4399,9 +4614,9 @@ while true {
                                         if pget(pixdesk, 200) == 1 {
                                             if pget(pixdesk, 300) == 0 {
                                                 if pichas == 1 {
-                                                if cxp >= fx * 16 {
-                                                    if cxp < (fx + fw) * 16 {
-                                                        if cyp / 16 == fy + 13 {
+                                                if cxp >= fx * cellpx {
+                                                    if cxp < (fx + fw) * cellpx {
+                                                        if cyp / cellpx == fy + 13 {
                                                             pset(pixdesk, 192, notecount)
                                                             pset(pixdesk, 272, 1)
                                                             pset(pixdesk, 180, 6)
@@ -4430,9 +4645,9 @@ while true {
                                         if pget(pixdesk, 300) == 0 {
                                             if pget(pixdesk, 180) == 3 {
                                                 if pget(pixdesk, 192) < notecount {
-                                                    if cyp / 16 == fy + 11 {
-                                                        if cxp >= (fx + 36) * 16 {
-                                                            if cxp < (fx + 52) * 16 {
+                                                    if cyp / cellpx == fy + 11 {
+                                                        if cxp >= (fx + 36) * cellpx {
+                                                            if cxp < (fx + 52) * cellpx {
                                                                 pset(pixdesk, 304, 1)
                                                                 pset(pixdesk, 300, 1)
                                                                 pset(pixdesk, 180, 3)
@@ -4455,19 +4670,33 @@ while true {
                                     // offset — and the bar is
                                     // drawn again at once — and
                                     // the chime rows set whether
-                                    // the chime sounds. When a
-                                    // disk is keeping the
-                                    // choices, both are written
-                                    // through to its card at
-                                    // once, so they stay; the
-                                    // window is painted again
-                                    // and comes forward either
-                                    // way.
+                                    // the chime sounds. The
+                                    // words' size rows (Stone
+                                    // 28) set the size the
+                                    // desktop's words stand at:
+                                    // the cell measure is laid
+                                    // in the desk, the face is
+                                    // begun again on the new
+                                    // grid, the windows are
+                                    // laid at their first
+                                    // places there, and the
+                                    // desktop is drawn whole at
+                                    // the new size at once, the
+                                    // way the time rows move
+                                    // the bar clock at once.
+                                    // When a disk is keeping
+                                    // the choices, all are
+                                    // written through to its
+                                    // card at once, so they
+                                    // stay; the window is
+                                    // painted again and comes
+                                    // forward either way.
                                     if pget(pixdesk, 208) == 1 {
-                                        if cxp >= sx * 16 {
-                                            if cxp < (sx + sw) * 16 {
-                                                let row = cyp / 16
+                                        if cxp >= sx * cellpx {
+                                            if cxp < (sx + sw) * cellpx {
+                                                let row = cyp / cellpx
                                                 let chose = 0
+                                                let sizechose = 0
                                                 if row == sy + 3 {
                                                     offset = 0 - 5
                                                     chose = 1
@@ -4484,6 +4713,16 @@ while true {
                                                     chimeon = 0
                                                     chose = 1
                                                 }
+                                                if row == sy + 11 {
+                                                    wordsize = 0
+                                                    chose = 1
+                                                    sizechose = 1
+                                                }
+                                                if row == sy + 12 {
+                                                    wordsize = 1
+                                                    chose = 1
+                                                    sizechose = 1
+                                                }
                                                 if chose == 1 {
                                                     pset(pixdesk, 216, offset)
                                                     pset(pixdesk, 212, chimeon)
@@ -4493,10 +4732,20 @@ while true {
                                                         if chimeon == 1 {
                                                             chbyte = 1
                                                         }
-                                                        let kept = rememberall(offset, chbyte)
+                                                        let kept = rememberall(offset, chbyte, wordsize + 1)
                                                     }
                                                     pset(pixdesk, 180, 4)
-                                                    paintwindows(pixdesk, cellblock, notesblock)
+                                                    if sizechose == 1 {
+                                                        pset(pixdesk, 320, 16 + wordsize * 8)
+                                                        pixbegin(pixdesk)
+                                                        layplaces(pixdesk)
+                                                        drawface(offset, utcnow, pix, pixdesk)
+                                                        ansrow = pget(pixdesk, 128)
+                                                        drawtyping(buildline(keys, keymod, 0, klen), pix, pixdesk)
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                    } else {
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                    }
                                                     acted = 1
                                                 }
                                             }
@@ -4525,9 +4774,9 @@ while true {
                                                     let epick2 = pget(pixdesk, 228)
                                                     if epick2 >= 1 {
                                                         if epick2 <= notecount {
-                                                            if cyp / 16 == ey + 12 {
-                                                                if cxp >= (ex + 36) * 16 {
-                                                                    if cxp < (ex + 52) * 16 {
+                                                            if cyp / cellpx == ey + 12 {
+                                                                if cxp >= (ex + 36) * cellpx {
+                                                                    if cxp < (ex + 52) * cellpx {
                                                                         pset(pixdesk, 316, epick2 - 1)
                                                                         pset(pixdesk, 312, 1)
                                                                         pset(pixdesk, 308, 1)
@@ -4541,9 +4790,9 @@ while true {
                                                     }
                                                 } else {
                                                     if pget(pixdesk, 232) != 8 {
-                                                        if cyp / 16 == ey + 7 {
-                                                            if cxp >= ex * 16 {
-                                                                if cxp < (ex + ew) * 16 {
+                                                        if cyp / cellpx == ey + 7 {
+                                                            if cxp >= ex * cellpx {
+                                                                if cxp < (ex + ew) * cellpx {
                                                                     pset(pixdesk, 316, pget(pixdesk, 232))
                                                                     pset(pixdesk, 312, 1)
                                                                     pset(pixdesk, 308, 1)
@@ -4576,9 +4825,9 @@ while true {
                                     // comes forward.
                                     if pget(pixdesk, 220) == 1 {
                                         if pget(pixdesk, 308) == 0 {
-                                        if cxp >= ex * 16 {
-                                            if cxp < (ex + ew) * 16 {
-                                                let erow = cyp / 16
+                                        if cxp >= ex * cellpx {
+                                            if cxp < (ex + ew) * cellpx {
+                                                let erow = cyp / cellpx
                                                 if pget(pixdesk, 224) == 0 {
                                                     if erow >= ey + 3 {
                                                         if erow < ey + 4 + pget(pixdesk, 196) {
@@ -4647,8 +4896,13 @@ while true {
                                     // on any window brings it.
                                     if pget(pixdesk, 272) == 1 {
                                         if pget(pixdesk, 276) == 1 {
-                                            let prow = cyp / 16 - qy - 2 + 10
-                                            let pcol = cxp / 16 - qx - 1 + 14
+                                            // The shown cells'
+                                            // own reckoning, in
+                                            // pixels, as the
+                                            // packet reckoning
+                                            // above counts it.
+                                            let prow = (cyp - qy * cellpx - 2 * cellpx) / 16 + 10
+                                            let pcol = (cxp - qx * cellpx - cellpx) / 16 + 14
                                             if prow >= 10 {
                                                 if prow <= 20 {
                                                     if pcol >= 14 {
@@ -4696,14 +4950,14 @@ while true {
                                                     let wl = winleft(pixdesk, cand)
                                                     let wt = wintop(pixdesk, cand)
                                                     let ww = winwide(pixdesk, cand)
-                                                    if cxp >= wl * 16 {
-                                                        if cxp < (wl + ww) * 16 {
-                                                            if cyp >= wt * 16 {
-                                                                if cyp < (wt + 1) * 16 {
-                                                                    if cxp < (wl + ww - 2) * 16 {
+                                                    if cxp >= wl * cellpx {
+                                                        if cxp < (wl + ww) * cellpx {
+                                                            if cyp >= wt * cellpx {
+                                                                if cyp < (wt + 1) * cellpx {
+                                                                    if cxp < (wl + ww - 2) * cellpx {
                                                                         took = 1
                                                                     }
-                                                                    if cxp >= (wl + ww - 1) * 16 {
+                                                                    if cxp >= (wl + ww - 1) * cellpx {
                                                                         took = 1
                                                                     }
                                                                 }
@@ -4712,8 +4966,8 @@ while true {
                                                     }
                                                     if took == 1 {
                                                         dragwin = cand
-                                                        draggox = cxp / 16 - wl
-                                                        draggoy = cyp / 16 - wt
+                                                        draggox = cxp / cellpx - wl
+                                                        draggoy = cyp / cellpx - wt
                                                         pset(pixdesk, 180, cand)
                                                         paintwindows(pixdesk, cellblock, notesblock)
                                                         acted = 1
@@ -4734,11 +4988,24 @@ while true {
                                     }
                                 }
                                 if acted == 0 {
+                                    // A press on the feather's
+                                    // panel (Stone 13): the
+                                    // panel's cells stand at
+                                    // sixteen pixels at either
+                                    // word size (onefeather's
+                                    // reckoning), so the
+                                    // panel's bounds are counted
+                                    // in pixels from the
+                                    // window's corner — the
+                                    // same bounds the cell
+                                    // reckoning has always
+                                    // named, at the usual size
+                                    // exactly as they stood.
                                     if pget(pixdesk, 176) == 1 {
-                                        if cxp >= (gx + 1) * 16 {
-                                            if cxp < (gx + 53) * 16 {
-                                                if cyp >= (gy + 2) * 16 {
-                                                    if cyp < (gy + 7) * 16 {
+                                        if cxp >= gx * cellpx + cellpx {
+                                            if cxp < gx * cellpx + cellpx + 832 {
+                                                if cyp >= gy * cellpx + 2 * cellpx {
+                                                    if cyp < gy * cellpx + 2 * cellpx + 80 {
                                                         pset(pixdesk, 180, 2)
                                                         featherask = 1
                                                         acted = 1
@@ -4750,10 +5017,10 @@ while true {
                                 }
                                 if acted == 0 {
                                     if pget(pixdesk, 172) == 1 {
-                                        if cxp >= pl * 16 {
-                                            if cxp < (pl + pw) * 16 {
-                                                if cyp >= pt * 16 {
-                                                    if cyp < (pt + ph) * 16 {
+                                        if cxp >= pl * cellpx {
+                                            if cxp < (pl + pw) * cellpx {
+                                                if cyp >= pt * cellpx {
+                                                    if cyp < (pt + ph) * cellpx {
                                                         pset(pixdesk, 180, 1)
                                                         paintwindows(pixdesk, cellblock, notesblock)
                                                         acted = 1
@@ -4765,10 +5032,10 @@ while true {
                                 }
                                 if acted == 0 {
                                     if pget(pixdesk, 176) == 1 {
-                                        if cxp >= gx * 16 {
-                                            if cxp < (gx + gw) * 16 {
-                                                if cyp >= gy * 16 {
-                                                    if cyp < (gy + gh) * 16 {
+                                        if cxp >= gx * cellpx {
+                                            if cxp < (gx + gw) * cellpx {
+                                                if cyp >= gy * cellpx {
+                                                    if cyp < (gy + gh) * cellpx {
                                                         pset(pixdesk, 180, 2)
                                                         paintwindows(pixdesk, cellblock, notesblock)
                                                         acted = 1
@@ -4780,10 +5047,10 @@ while true {
                                 }
                                 if acted == 0 {
                                     if pget(pixdesk, 188) == 1 {
-                                        if cxp >= fx * 16 {
-                                            if cxp < (fx + fw) * 16 {
-                                                if cyp >= fy * 16 {
-                                                    if cyp < (fy + fh) * 16 {
+                                        if cxp >= fx * cellpx {
+                                            if cxp < (fx + fw) * cellpx {
+                                                if cyp >= fy * cellpx {
+                                                    if cyp < (fy + fh) * cellpx {
                                                         pset(pixdesk, 180, 3)
                                                         paintwindows(pixdesk, cellblock, notesblock)
                                                         acted = 1
@@ -4795,10 +5062,10 @@ while true {
                                 }
                                 if acted == 0 {
                                     if pget(pixdesk, 208) == 1 {
-                                        if cxp >= sx * 16 {
-                                            if cxp < (sx + sw) * 16 {
-                                                if cyp >= sy * 16 {
-                                                    if cyp < (sy + sh) * 16 {
+                                        if cxp >= sx * cellpx {
+                                            if cxp < (sx + sw) * cellpx {
+                                                if cyp >= sy * cellpx {
+                                                    if cyp < (sy + sh) * cellpx {
                                                         pset(pixdesk, 180, 4)
                                                         paintwindows(pixdesk, cellblock, notesblock)
                                                         acted = 1
@@ -4810,10 +5077,10 @@ while true {
                                 }
                                 if acted == 0 {
                                     if pget(pixdesk, 220) == 1 {
-                                        if cxp >= ex * 16 {
-                                            if cxp < (ex + ew) * 16 {
-                                                if cyp >= ey * 16 {
-                                                    if cyp < (ey + eh) * 16 {
+                                        if cxp >= ex * cellpx {
+                                            if cxp < (ex + ew) * cellpx {
+                                                if cyp >= ey * cellpx {
+                                                    if cyp < (ey + eh) * cellpx {
                                                         pset(pixdesk, 180, 5)
                                                         paintwindows(pixdesk, cellblock, notesblock)
                                                         acted = 1
@@ -4825,10 +5092,10 @@ while true {
                                 }
                                 if acted == 0 {
                                     if pget(pixdesk, 272) == 1 {
-                                        if cxp >= qx * 16 {
-                                            if cxp < (qx + qw) * 16 {
-                                                if cyp >= qy * 16 {
-                                                    if cyp < (qy + qh) * 16 {
+                                        if cxp >= qx * cellpx {
+                                            if cxp < (qx + qw) * cellpx {
+                                                if cyp >= qy * cellpx {
+                                                    if cyp < (qy + qh) * cellpx {
                                                         pset(pixdesk, 180, 6)
                                                         paintwindows(pixdesk, cellblock, notesblock)
                                                         acted = 1
@@ -5076,7 +5343,7 @@ while true {
             if chimeon == 1 {
                 chbyte = 1
             }
-            let keptcard = rememberall(offset, chbyte)
+            let keptcard = rememberall(offset, chbyte, wordsize + 1)
             let keptnotes = notesave(notesblock, notecount)
         }
         if diskup == 1 {

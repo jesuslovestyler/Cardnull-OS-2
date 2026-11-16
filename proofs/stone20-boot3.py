@@ -58,11 +58,11 @@ expect(d is not None, "the desktop is drawn")
 typewrite("settings")
 enter()
 d = waitdump(lambda d: d is not None
-             and decode(d, GY + 10, GX + 2, "Your choices last only for this sitting.", GRAY)
+             and decode(d, GY + 14, GX + 2, "Your choices last only for this sitting.", GRAY)
              == "Your choices last only for this sitting.", 25)
 expect(d is not None, "with no disk fitted, the window says the choices last only for this sitting")
 if d:
-    said = decode(d, GY + 11, GX + 2, "There is no disk fitted.", GRAY)
+    said = decode(d, GY + 15, GX + 2, "There is no disk fitted.", GRAY)
     expect(said == "There is no disk fitted.",
            f"and it says there is no disk fitted (read: {said!r})")
     said = decode(d, GY + 3, GX + 4, "Eastern time", WHITE)

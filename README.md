@@ -105,6 +105,16 @@ To build the bootable witness disc (see "The witness disc" below):
                       # and finds only the remaining note —
                       # and lets a sitting's note go with no
                       # disk fitted at all (Stone 27)
+./prove-stone28.sh    # opens the settings window on an
+                      # old-shape card, CLICKS 'Large',
+                      # DECODES the whole desktop at the
+                      # large size (the bar standing 24
+                      # pixels tall), DRAGS a window and
+                      # clicks a choice at that size,
+                      # REBOOTS on the same disk and finds
+                      # large print standing from the card,
+                      # and proves an old-shape card and a
+                      # sitting with no disk (Stone 28)
 ./build-stick.sh      # makes dist/cardnull-stick.img (Stone 17)
 ```
 
@@ -2065,6 +2075,155 @@ stands in front of it and opens on "Keep it". The
 picture in the files window is not a note and cannot
 be let go here — clearing the paint canvas lets its
 keeping go, as Stone 26 said.
+
+### Stone 28 — Large print
+
+The desktop's words can stand **larger** now, by a
+choice in the settings window: a third choice stands
+there, in plain words, set by clicking like the other
+two — **"Words:"**, with **"Usual size"** and
+**"Large"** one to a row, the standing one white on
+blue with the pick mark, the window's own way. The
+window grew by the rows the choice takes (sixteen
+high now; its keeping word moved down by the same
+rows, and nothing above it moved).
+
+**How the scaling is done: a scale reckoning in the
+face's own text path, not a second font.** The letter
+cell's size in pixels stands in the pixel face's desk
+at 320 — sixteen at the usual size, twenty-four at
+large — and everything reads that one measure:
+`pixbegin` reckons the face's grid from it (1024×768
+holds sixty-four by forty-eight cells at the usual
+size, forty-two by thirty-two at large), `pixglyph`
+draws the one hand-drawn 8×8 font (`src/font.nifla`)
+at twice size or three times size by it, every
+window's painting lays its cells out by it, and every
+pointer reckoning in the main loop — the settings
+window's choice rows, every window's rows and close
+marks, the menu, the rest panel, the drag's taking
+hold and following — divides and multiplies by it, so
+painter and pointer agree everywhere at either size,
+the discipline the windows have kept since Stone 14,
+now kept across a change of size itself. Switching
+size in the window lays the new measure in the desk,
+begins the face again on the new grid, lays the
+windows at their first places there, and repaints the
+desktop whole at once — the way switching time moves
+the bar clock at once.
+
+**The one exception, by its own standing rule: a
+feather's cells are carried 1:1, never scaled** (the
+feather window's discipline since Stone 14, the paint
+window's since Stone 24). At large print the feather
+and paint windows' frames and titles grow with the
+words, and the windows stand as many large cells wide
+as the carried panel needs — but the cells a feather
+painted stand at sixteen pixels inside them at either
+size, counted in pixels from the window's corner by
+both the painters and the pointer's carried presses,
+exactly where the cell reckoning has always put them.
+
+**The choice is kept the way the chime is kept:**
+on the fitted keeping disk's settings card (sector
+8), which grows by one byte at its end — the size
+byte, fifth on the card: 1 when the words stand at
+their usual size, 2 when they stand large, and 0 when
+no choice was ever kept there, so **a card laid
+before this stone keeps the usual size**, as the
+words always stood — Stone 20's chime-byte pattern,
+followed exactly. It is read at boot in preference
+order like the other choices (the disk's card over
+the disc's standing), a click on a keeping disk
+writes all three choices through at once, and the
+typed time words and the resting's final
+writing-through keep the size byte as they keep the
+chime's. With no keeping disk the choice lasts for
+the sitting, and the window says so the way it
+already does for the other choices.
+
+**One building note, in the open:** this stone's
+growth carried the kernel's staged segment end from
+219,902 to **224,274 bytes** — the headroom under the
+BIOS doorman's 224 KiB claim (Stone 26) narrows from
+9,474 bytes to **5,102 bytes**. No stage moved: the
+claim still holds the whole system with room to
+spare, and the full proof set below was run on it as
+it stands. The next stone that grows the kernel by
+more than that headroom must move the stages again,
+the adoption's own remedy, and say so.
+
+Proven by `prove-stone28.sh`: a keeping disk prepared
+with an **old-shape card** (its size byte 0, as a card
+laid before this stone carries) is booted; the word
+`settings` opens the window and its new choice is
+**decoded letter by letter** against the system's own
+letter shapes ("Words:", "Usual size" picked, "Large"
+unpicked); a press on the Large row repaints the
+desktop at the large size, and the bar's title and
+clock, the window's title, labels, choices, and
+keeping word are **decoded letter by letter at the
+new scale** — the decode is itself the measure of the
+bigger words, and the bar stands **twenty-four pixels
+tall** where it stood sixteen, its frame spanning
+forty large cells. The welcome window is then
+**dragged at the large size** and decoded at its new
+place with its ground left plain; a press on the
+chime-off row at the large size stands the chime off;
+and the typing line's echo and an answer are decoded
+at the large size. The disk's bytes are then read:
+the card carries offset 59, chime byte 2, **size byte
+2**. A **second boot on the same disk**, choosing
+nothing, rises **large from the card** — title and
+clock decoded at the large scale, both choices as
+they were left — and a press on "Usual size" there
+brings the usual size back at once (the card then
+carries size byte 1, the chime byte still 2). A
+**third boot on a fresh old-shape disk** rises at the
+usual size, "Usual size" picked and the chime on, as
+such a card has always behaved. A **fourth boot with
+no disk at all** reads the plain sitting-only words
+back at both sizes and clicks the words large for the
+sitting. The neighbouring proofs pass with it —
+Stones 8, 9, 12, 13, 14, 15, 16, 18, 19, 20, 21, 22,
+23, 24, 25, 26, and 27, the feather start fix, the
+feather paint fix, the pointer trail fix, the
+no-witness proof, and the ISO proof. (One bench note,
+kept honestly: in this stone's regression run
+`prove-stone8.sh` once failed a single check in one
+boot and passed whole, every check, on each of two
+re-runs — the bench's timing, of the kind the earlier
+stones' notes record, not the system's; and Stone
+20's own proof had its settings reckoning updated for
+the one measure this stone changed — the keeping
+word's row, which moved down with the taller window —
+exactly as Stone 26 updated Stone 22's proof for the
+files window's new height.)
+
+Honest limits: large print lives on the **face of
+light only** — the text face (fallback) stays exactly
+as it is, as the windows themselves have always been
+the face of light's. On the narrower grid the bar
+holds the **clock alone** — the date and the title
+cannot both stand beside it at this size, and the
+word `time` still tells the date in full, as it
+always has — and the invitation names the words that
+fit, leaving the rest unnamed as it has always left
+words it has no room for; every word still answers to
+its name. The longest fixed lines (the welcome
+window's verse among them) reach the grid's edge at
+large size and are cut there, as any line is at the
+face's edge; answers wrap at the narrower width, as
+they always have at the grid they are given. A
+dragged window's place is forgotten at a size switch,
+as it is at a reboot: the windows return to their
+first places on the new grid. And the settings window
+at its standing place now reaches the desktop's foot
+at either size — its keeping word stands on the
+typing line's own row, and paints over it while the
+window stands open, as the files window's foot has
+always done at its place; typing paints the line
+again, as it always has.
 
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 

@@ -78,7 +78,7 @@ if d:
     said = decode(d, GY + 7, GX + 4, "Chime on", GRAY)
     expect(said == "Chime on",
            f"the chime-on row stands unpicked (read: {said!r})")
-    said = decode(d, GY + 10, GX + 2, "Your choices are kept on the disk.", GRAY)
+    said = decode(d, GY + 14, GX + 2, "Your choices are kept on the disk.", GRAY)
     expect(said == "Your choices are kept on the disk.",
            f"the window still says the choices are kept (read: {said!r})")
 

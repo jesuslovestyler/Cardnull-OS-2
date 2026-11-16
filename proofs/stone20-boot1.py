@@ -70,7 +70,9 @@ def decode(d, prow, pcol, text, ink):
 # "Time zone:" at 34, the Eastern choice at 35 and the
 # world's standard at 36 (their words at column 9),
 # "Welcome chime:" at 38, the chime choices at 39 and
-# 40, and the keeping word at 42 (column 7). The bar
+# 40, and the keeping word at 46 (column 7) — it stood at 42
+# until Stone 28 grew the window by the words' size
+# choice, and the word moved down with the window. The bar
 # clock stands at row 0, column 56.
 GX, GY = 5, 32
 
@@ -99,7 +101,7 @@ if d:
     expect(said == "Welcome chime:", f"the chime is labelled in plain words (read: {said!r})")
     said = decode(d, GY + 7, GX + 4, "Chime on", WHITE)
     expect(said == "Chime on", f"the chime stands on, as the old card left it (read: {said!r})")
-    said = decode(d, GY + 10, GX + 2, "Your choices are kept on the disk.", GRAY)
+    said = decode(d, GY + 14, GX + 2, "Your choices are kept on the disk.", GRAY)
     expect(said == "Your choices are kept on the disk.",
            f"the window says the choices are kept on the disk (read: {said!r})")
 

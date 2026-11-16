@@ -141,9 +141,23 @@
 //       which note it is about (316: the note's place
 //       on the page — the pick's note from the picking
 //       way, or the open note from the writing way).
+//  320  the letter cell's size in pixels (Stone 28):
+//       sixteen at the words' usual size — the font's
+//       eight by eight drawn at twice size — and
+//       twenty-four when large print stands chosen in
+//       the settings window, the same font drawn at
+//       three times size. The face's grid (28 and 32)
+//       is reckoned from this measure in pixbegin, and
+//       every drawing and every pointer reckoning in
+//       the system reads this one measure, so painter
+//       and pointer agree at either size. The main body
+//       lays it before pixbegin is called, at the face's
+//       rising and again whenever the size is switched.
 //
-// A letter cell is sixteen pixels square: the font's eight
-// by eight, drawn at twice size. The face's layout is the
+// A letter cell is sixteen pixels square at the usual
+// size: the font's eight by eight, drawn at twice size
+// (twenty-four pixels, at three times size, when large
+// print stands — Stone 28). The face's layout is the
 // text face's own, reckoned onto whatever grid the granted
 // screen makes (layrow and laycol below), so a bigger or
 // smaller screen draws the same desktop, larger or smaller.
@@ -328,8 +342,18 @@ make laycol(desk: bytes, c: number) -> number {
 // fields (offsets 0-24) and the two addresses (36, 40) are
 // the main body's to have filled first. Gives back 1.
 make pixbegin(desk: bytes) -> number {
-    pset(desk, 28, pget(desk, 8) / 16)
-    pset(desk, 32, pget(desk, 12) / 16)
+    // The grid is reckoned from the cell's size (the
+    // desk's 320, Stone 28): sixteen pixels a cell at
+    // the usual size, twenty-four at large print — so
+    // the same screen holds fewer, bigger cells when
+    // the words stand large, and the layout below is
+    // laid onto that grid exactly as it always has been.
+    let cellpx = pget(desk, 320)
+    if cellpx < 16 {
+        cellpx = 16
+    }
+    pset(desk, 28, pget(desk, 8) / cellpx)
+    pset(desk, 32, pget(desk, 12) / cellpx)
     let idx = 0
     while idx < 16 {
         pixcompose(desk, idx, vgargb(idx))
@@ -389,10 +413,16 @@ make pixfill(desk: bytes, x: number, y: number, w: number, h: number) {
 
 // Draws one letter at a pixel corner with the pen's color:
 // its shape read from the letter block the desk names, its
-// eight rows laid at twice size. Letters outside the
-// font's set (the codes 32 to 126) draw as a space.
-make pixglyph(desk: bytes, x: number, y: number, code: number) {
-    floor(desk, x, y, code) {
+// eight rows laid at 'sc' times size — twice at the words'
+// usual size, three times at large print (Stone 28: the
+// scale is a reckoning in this one drawing path, not a
+// second font; the feather cells' showing passes 2 always,
+// for its cells are carried 1:1 as they always have been).
+// Letters outside the font's set (the codes 32 to 126)
+// draw as a space.
+make pixglyph(desk: bytes, x: number, y: number, code: number, sc: number) {
+    floor(desk, x, y, code, sc) {
+        mov r13, [r10 + 24]
         mov rax, [r10 + 16]
         sub rax, 32
         cmp rax, 94
@@ -420,37 +450,35 @@ make pixglyph(desk: bytes, x: number, y: number, code: number) {
         cmp esi, 8
         jae pg_done
         mov eax, esi
-        shl eax, 1
+        imul eax, r13d
         imul eax, r11d
         lea rdi, [r10 + rax]
         movzx eax, byte ptr [r9 + rsi]
+        xor r14, r14
+    pg_rep:
+        cmp r14, r13
+        jae pg_rowdone
         mov edx, eax
         shl edx, 24
         mov rcx, rdi
         mov r15d, 8
-    pg_ca:
+    pg_col:
         shl edx, 1
-        jnc pg_sa
+        jnc pg_skip
         mov dword ptr [rcx], r8d
         mov dword ptr [rcx + 4], r8d
-    pg_sa:
-        add rcx, 8
+        cmp r13, 3
+        jne pg_skip
+        mov dword ptr [rcx + 8], r8d
+    pg_skip:
+        lea rcx, [rcx + r13 * 4]
+    pg_next:
         dec r15d
-        jnz pg_ca
+        jnz pg_col
         add rdi, r11
-        mov edx, eax
-        shl edx, 24
-        mov rcx, rdi
-        mov r15d, 8
-    pg_cb:
-        shl edx, 1
-        jnc pg_sb
-        mov dword ptr [rcx], r8d
-        mov dword ptr [rcx + 4], r8d
-    pg_sb:
-        add rcx, 8
-        dec r15d
-        jnz pg_cb
+        inc r14
+        jmp pg_rep
+    pg_rowdone:
         inc esi
         jmp pg_row
     pg_done:
@@ -464,6 +492,7 @@ make pixglyph(desk: bytes, x: number, y: number, code: number) {
 // drawn, and letters past the grid's edge are let go.
 make pixtext(desk: bytes, row: number, col: number, text: text) {
     let cols = pget(desk, 28)
+    let cellpx = pget(desk, 320)
     let from = pget(desk, 160)
     let count = pget(desk, 164)
     let n = length(text)
@@ -474,11 +503,11 @@ make pixtext(desk: bytes, row: number, col: number, text: text) {
             let c = col + i
             if c < cols {
                 pset(desk, 56, pget(desk, 60))
-                pixfill(desk, c * 16, row * 16, 16, 16)
+                pixfill(desk, c * cellpx, row * cellpx, cellpx, cellpx)
                 let code = textbyte(text, at)
                 if code != 32 {
                     pixink(desk, pget(desk, 168))
-                    pixglyph(desk, c * 16, row * 16, code)
+                    pixglyph(desk, c * cellpx, row * cellpx, code, cellpx / 8)
                 }
             }
         }
@@ -518,18 +547,18 @@ make pixline(desk: bytes, cell: number, text: text, attr: number) {
 make pixscroll(desk: bytes) {
     floor(desk) {
         mov eax, dword ptr [rbx + 128]
-        shl eax, 4
+        imul eax, dword ptr [rbx + 320]
         mov ecx, dword ptr [rbx + 4]
         mul rcx
         mov ecx, dword ptr [rbx]
         add rax, rcx
         mov rdi, rax
         mov eax, dword ptr [rbx + 4]
-        shl eax, 4
+        imul eax, dword ptr [rbx + 320]
         lea rsi, [rdi + rax]
         mov eax, dword ptr [rbx + 132]
         sub eax, dword ptr [rbx + 128]
-        shl eax, 4
+        imul eax, dword ptr [rbx + 320]
         mov r8d, eax
         mov eax, dword ptr [rbx + 8]
         shl eax, 2
@@ -547,7 +576,7 @@ make pixscroll(desk: bytes) {
         jmp ps_row
     ps_wipe:
         mov eax, dword ptr [rbx + 4]
-        mov ecx, 16
+        mov ecx, dword ptr [rbx + 320]
         mul rcx
         mov rcx, rax
         xor eax, eax
@@ -637,15 +666,16 @@ make pixnoteline(desk: bytes, block: bytes, row: number, off: number) -> number 
         r = bot
     }
     let n = cellbyte(block, off)
+    let cellpx = pget(desk, 320)
     pixpaper(desk, 0)
     let i = 0
     while i < n {
         let code = cellbyte(block, off + 1 + i)
         pset(desk, 56, pget(desk, 60))
-        pixfill(desk, (2 + i) * 16, r * 16, 16, 16)
+        pixfill(desk, (2 + i) * cellpx, r * cellpx, cellpx, cellpx)
         if code != 32 {
             pset(desk, 56, pget(desk, 64 + 7 * 4))
-            pixglyph(desk, (2 + i) * 16, r * 16, code)
+            pixglyph(desk, (2 + i) * cellpx, r * cellpx, code, cellpx / 8)
         }
         i = i + 1
     }
