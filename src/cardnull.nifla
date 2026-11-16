@@ -337,6 +337,48 @@
 //          through lets the keeping go. With no keeping
 //          disk, painting is exactly as Stone 24 left
 //          it: for the sitting only.
+// Stone 27: letting a note go — a kept note can be
+//          removed now, in plain words, from the files
+//          window and from the editor window. In the
+//          files window, while a note stands picked,
+//          "Let this note go" stands at the window's
+//          foot beside the picked note's label; a press
+//          on those words, or Enter while the note
+//          stands picked (the window's own acting key,
+//          as Enter on the picked picture opens it),
+//          asks first, on the window itself: "Let this
+//          note go for good?", with the note's words
+//          shown, and two choices — "Yes, let it go"
+//          and "Keep it". In the editor window the same
+//          words stand while a note stands picked in
+//          its picking way (at its foot, beside the
+//          keeping word) and while a note stands open
+//          in its writing way (below the keep word); a
+//          press on them asks the same asking there.
+//          The asking stands with "Keep it" picked, so
+//          Enter alone never lets a note go: the yes
+//          must be chosen — by the arrow keys and Enter,
+//          or by a press on its row — and only the yes
+//          removes. "Keep it", closing the window, and
+//          Escape (which puts the asking away first)
+//          all leave the note exactly as it was. The
+//          removal itself goes through the very store
+//          path the editor's keeping uses: the notes
+//          after the let-go one move up a place in the
+//          page in this body's keeping, the place it
+//          leaves is wiped, and the page is written
+//          through by the same notesave — once with the
+//          old count, so the wiped place's sector is
+//          wiped on the disk too, and once with the new
+//          count, so the header and the standing notes
+//          are the disk's truth — and a note kept only
+//          for the sitting is let go the same way, in
+//          the page alone. The files window now lists
+//          a sitting's notes too, under their honest
+//          heading, so they can be picked and let go
+//          there as the editor has always shown them.
+//          The windows' asking standings live in the
+//          desk at 300 to 316 (pixface.nifla's ledger).
 //
 // The arrangement of the screen:
 //   row 0      the bar — "Cardnull" at the left, the date
@@ -907,13 +949,19 @@ make filenotetext(desk, block, place, attr) {
 
 // Paints the files window from the desk's standing:
 // closed, the plain desktop; open, its frame and title
-// bar and — when a disk is keeping notes — the list of
-// the kept notes, the picked one standing white on blue,
-// with the picked note's whole words at the window's
-// foot. When no disk is fitted, the window says so in
-// plain words, and that nothing is saved; a disk fitted
-// but not yet given over is told the same honest way,
-// and no entry is ever shown that is not kept.
+// bar and the list of the kept notes, the picked one
+// standing white on blue, with the picked note's whole
+// words at the window's foot — and, since Stone 27,
+// "Let this note go" beside the foot's label while a
+// note stands picked, and the asking that those words
+// open ("Let this note go for good?", with "Yes, let
+// it go" and "Keep it" to choose from) in the list's
+// place while it stands. Notes kept only for the
+// sitting are listed too, under their honest heading,
+// so they can be picked and let go here; with no notes
+// at all, the window says in plain words where notes
+// would live, as it always has, and no entry is ever
+// shown that is not kept.
 make onefiles(desk, notes) {
     let gx = fileft(desk)
     let gy = fitop(desk)
@@ -934,21 +982,49 @@ make onefiles(desk, notes) {
         pixfill(desk, gx * 16 + 2, gy * 16 + 18, gw * 16 - 4, gh * 16 - 20)
         let keeping = pget(desk, 200)
         let count = pget(desk, 196)
-        if keeping == 0 {
-            if pget(desk, 204) == 0 {
-                pixline(desk, (gy + 2) * 256 + (gx + 2), "There is no disk fitted.", 7)
-                pixline(desk, (gy + 3) * 256 + (gx + 2), "Nothing is saved.", 7)
+        let haspic = pget(desk, 296)
+        if pget(desk, 300) == 1 {
+            // The asking (Stone 27): the window asks
+            // before anything is let go — the plain
+            // question, the picked note's own words, and
+            // the two choices, the picked one white on
+            // blue with the pick mark, as the window's
+            // picks have always stood. The asking opens
+            // with "Keep it" picked (the desk's 304
+            // stands at 1), so Enter alone never lets a
+            // note go.
+            let asel = pget(desk, 192)
+            pixline(desk, (gy + 2) * 256 + (gx + 2), "Let this note go for good?", 7)
+            filenotetext(desk, notes, asel * 65536 + (gy + 3) * 256 + (gx + 2), 15)
+            if pget(desk, 304) == 0 {
+                pixink(desk, 1)
+                pixfill(desk, gx * 16 + 2, (gy + 5) * 16, gw * 16 - 4, 16)
+                pixline(desk, (gy + 5) * 256 + (gx + 2), ">", 31)
+                pixline(desk, (gy + 5) * 256 + (gx + 4), "Yes, let it go", 31)
+                pixline(desk, (gy + 6) * 256 + (gx + 4), "Keep it", 7)
             } else {
-                pixline(desk, (gy + 2) * 256 + (gx + 2), "This disk is not keeping your choices yet.", 7)
-                pixline(desk, (gy + 3) * 256 + (gx + 2), "Nothing is saved on it.", 7)
+                pixline(desk, (gy + 5) * 256 + (gx + 4), "Yes, let it go", 7)
+                pixink(desk, 1)
+                pixfill(desk, gx * 16 + 2, (gy + 6) * 16, gw * 16 - 4, 16)
+                pixline(desk, (gy + 6) * 256 + (gx + 2), ">", 31)
+                pixline(desk, (gy + 6) * 256 + (gx + 4), "Keep it", 31)
             }
         } else {
-            let haspic = pget(desk, 296)
             let shown = 0
             if count == 0 {
                 if haspic == 0 {
-                    pixline(desk, (gy + 2) * 256 + (gx + 2), "No notes are kept on the disk yet.", 7)
                     shown = 1
+                    if keeping == 0 {
+                        if pget(desk, 204) == 0 {
+                            pixline(desk, (gy + 2) * 256 + (gx + 2), "There is no disk fitted.", 7)
+                            pixline(desk, (gy + 3) * 256 + (gx + 2), "Nothing is saved.", 7)
+                        } else {
+                            pixline(desk, (gy + 2) * 256 + (gx + 2), "This disk is not keeping your choices yet.", 7)
+                            pixline(desk, (gy + 3) * 256 + (gx + 2), "Nothing is saved on it.", 7)
+                        }
+                    } else {
+                        pixline(desk, (gy + 2) * 256 + (gx + 2), "No notes are kept on the disk yet.", 7)
+                    }
                 }
             }
             if shown == 0 {
@@ -967,10 +1043,20 @@ make onefiles(desk, notes) {
                         sel = 0
                     }
                 }
-                if count > 0 {
-                    pixline(desk, (gy + 2) * 256 + (gx + 2), "Notes kept on the disk:", 7)
+                if keeping == 0 {
+                    // A sitting's notes, listed under
+                    // their honest heading (Stone 27):
+                    // they are the page's notes all the
+                    // same, and can be picked and let go
+                    // here — they are never said to be
+                    // saved.
+                    pixline(desk, (gy + 2) * 256 + (gx + 2), "Notes kept only for this sitting:", 7)
                 } else {
-                    pixline(desk, (gy + 2) * 256 + (gx + 2), "What is kept on the disk:", 7)
+                    if count > 0 {
+                        pixline(desk, (gy + 2) * 256 + (gx + 2), "Notes kept on the disk:", 7)
+                    } else {
+                        pixline(desk, (gy + 2) * 256 + (gx + 2), "What is kept on the disk:", 7)
+                    }
                 }
                 let i = 0
                 while i < count {
@@ -988,6 +1074,12 @@ make onefiles(desk, notes) {
                 }
                 if sel < count {
                     pixline(desk, (gy + 11) * 256 + (gx + 2), "The note you picked:", 7)
+                    // Letting the picked note go (Stone
+                    // 27): the words stand at the foot's
+                    // right, in white; a press on them —
+                    // or Enter while the note stands
+                    // picked — asks first, above.
+                    pixline(desk, (gy + 11) * 256 + (gx + 36), "Let this note go", 15)
                     filenotetext(desk, notes, sel * 65536 + (gy + 12) * 256 + (gx + 2), 15)
                 } else {
                     pixline(desk, (gy + 11) * 256 + (gx + 2), "The picture you picked:", 7)
@@ -1194,6 +1286,30 @@ make oneeditor(desk, notes) {
         pixink(desk, 0)
         pixfill(desk, gx * 16 + 2, gy * 16 + 18, gw * 16 - 4, gh * 16 - 20)
         let count = pget(desk, 196)
+        if pget(desk, 308) == 1 {
+            // The asking (Stone 27): the same asking
+            // the files window makes, in this window —
+            // the plain question, the note's own words
+            // (the note the desk's 316 names), and the
+            // two choices, the picked one white on blue.
+            // The asking opens with "Keep it" picked.
+            let tgt = pget(desk, 316)
+            pixline(desk, (gy + 2) * 256 + (gx + 2), "Let this note go for good?", 7)
+            filenotetext(desk, notes, tgt * 65536 + (gy + 3) * 256 + (gx + 2), 15)
+            if pget(desk, 312) == 0 {
+                pixink(desk, 1)
+                pixfill(desk, gx * 16 + 2, (gy + 5) * 16, gw * 16 - 4, 16)
+                pixline(desk, (gy + 5) * 256 + (gx + 2), ">", 31)
+                pixline(desk, (gy + 5) * 256 + (gx + 4), "Yes, let it go", 31)
+                pixline(desk, (gy + 6) * 256 + (gx + 4), "Keep it", 7)
+            } else {
+                pixline(desk, (gy + 5) * 256 + (gx + 4), "Yes, let it go", 7)
+                pixink(desk, 1)
+                pixfill(desk, gx * 16 + 2, (gy + 6) * 16, gw * 16 - 4, 16)
+                pixline(desk, (gy + 6) * 256 + (gx + 2), ">", 31)
+                pixline(desk, (gy + 6) * 256 + (gx + 4), "Keep it", 31)
+            }
+        } else {
         if pget(desk, 224) == 1 {
             if pget(desk, 232) == 8 {
                 pixline(desk, (gy + 2) * 256 + (gx + 2), "Write your note:", 7)
@@ -1203,6 +1319,14 @@ make oneeditor(desk, notes) {
             filenotetext(desk, notes, 8 * 65536 + (gy + 3) * 256 + (gx + 2), 15)
             pixline(desk, (gy + 5) * 256 + (gx + 2), "A note can hold 43 letters at most.", 7)
             pixline(desk, (gy + 6) * 256 + (gx + 2), "Press Enter to keep the note.", 7)
+            if pget(desk, 232) != 8 {
+                // Letting the open note go (Stone 27):
+                // the words stand under the keep word
+                // while a kept note stands open; a press
+                // on them asks first, above. A new note
+                // has nothing to let go.
+                pixline(desk, (gy + 7) * 256 + (gx + 2), "Let this note go", 15)
+            }
             if pget(desk, 200) == 1 {
                 pixline(desk, (gy + 8) * 256 + (gx + 2), "Your note will be kept on the disk.", 7)
             } else {
@@ -1248,6 +1372,17 @@ make oneeditor(desk, notes) {
             } else {
                 pixline(desk, (gy + 12) * 256 + (gx + 2), "Notes are kept only for this sitting.", 7)
             }
+            if sel >= 1 {
+                if sel <= count {
+                    // Letting the picked note go (Stone
+                    // 27): the words stand at the foot's
+                    // right while a kept note stands
+                    // picked; a press on them asks first,
+                    // above.
+                    pixline(desk, (gy + 12) * 256 + (gx + 36), "Let this note go", 15)
+                }
+            }
+        }
         }
     }
 }
@@ -2052,6 +2187,15 @@ if pix == 1 {
     // in here and whenever it changes below, for the
     // files window's painting.
     pset(pixdesk, 296, pichas)
+    // The letting-go standings (Stone 27), at 300 to
+    // 316: both windows' askings start put away, each
+    // with "Keep it" standing picked for when it opens,
+    // and no note named as an asking's subject.
+    pset(pixdesk, 300, 0)
+    pset(pixdesk, 304, 1)
+    pset(pixdesk, 308, 0)
+    pset(pixdesk, 312, 1)
+    pset(pixdesk, 316, 0)
     pixbegin(pixdesk)
     // The windows' places (Stone 22), at 236 to 264:
     // each window's left and top are laid here, at the
@@ -2351,11 +2495,24 @@ while true {
             if k == 72 {
                 if pix == 1 {
                     if pget(pixdesk, 180) == 3 {
-                        if pget(pixdesk, 200) == 1 {
-                            let sel = pget(pixdesk, 192)
-                            if sel > 0 {
-                                pset(pixdesk, 192, sel - 1)
+                        if pget(pixdesk, 300) == 1 {
+                            // The files window's asking
+                            // (Stone 27): the arrows move
+                            // the asking's pick — up to
+                            // "Yes, let it go" — and the
+                            // note's pick cannot move while
+                            // the asking stands.
+                            if pget(pixdesk, 304) == 1 {
+                                pset(pixdesk, 304, 0)
                                 paintwindows(pixdesk, cellblock, notesblock)
+                            }
+                        } else {
+                            if pget(pixdesk, 196) + pichas > 0 {
+                                let sel = pget(pixdesk, 192)
+                                if sel > 0 {
+                                    pset(pixdesk, 192, sel - 1)
+                                    paintwindows(pixdesk, cellblock, notesblock)
+                                }
                             }
                         }
                     }
@@ -2365,11 +2522,21 @@ while true {
                     // which the window honestly holds when
                     // no disk is keeping them.
                     if pget(pixdesk, 180) == 5 {
-                        if pget(pixdesk, 224) == 0 {
-                            let sel = pget(pixdesk, 228)
-                            if sel > 0 {
-                                pset(pixdesk, 228, sel - 1)
+                        if pget(pixdesk, 308) == 1 {
+                            // The editor window's asking
+                            // (Stone 27): the arrows move
+                            // its pick the same way.
+                            if pget(pixdesk, 312) == 1 {
+                                pset(pixdesk, 312, 0)
                                 paintwindows(pixdesk, cellblock, notesblock)
+                            }
+                        } else {
+                            if pget(pixdesk, 224) == 0 {
+                                let sel = pget(pixdesk, 228)
+                                if sel > 0 {
+                                    pset(pixdesk, 228, sel - 1)
+                                    paintwindows(pixdesk, cellblock, notesblock)
+                                }
                             }
                         }
                     }
@@ -2378,16 +2545,28 @@ while true {
             if k == 80 {
                 if pix == 1 {
                     if pget(pixdesk, 180) == 3 {
-                        if pget(pixdesk, 200) == 1 {
-                            let sel = pget(pixdesk, 192)
-                            // The pick runs over the notes
-                            // and then the kept picture
-                            // (Stone 26): one more place
-                            // stands at the list's end when
-                            // a picture stands kept.
-                            if sel + 1 < pget(pixdesk, 196) + pichas {
-                                pset(pixdesk, 192, sel + 1)
+                        if pget(pixdesk, 300) == 1 {
+                            // The files window's asking
+                            // (Stone 27): down to "Keep it".
+                            if pget(pixdesk, 304) == 0 {
+                                pset(pixdesk, 304, 1)
                                 paintwindows(pixdesk, cellblock, notesblock)
+                            }
+                        } else {
+                            if pget(pixdesk, 196) + pichas > 0 {
+                                let sel = pget(pixdesk, 192)
+                                // The pick runs over the notes
+                                // and then the kept picture
+                                // (Stone 26): one more place
+                                // stands at the list's end when
+                                // a picture stands kept. Since
+                                // Stone 27 it runs over a
+                                // sitting's notes too, which
+                                // the window now lists.
+                                if sel + 1 < pget(pixdesk, 196) + pichas {
+                                    pset(pixdesk, 192, sel + 1)
+                                    paintwindows(pixdesk, cellblock, notesblock)
+                                }
                             }
                         }
                     }
@@ -2395,11 +2574,20 @@ while true {
                     // (Stone 21): the pick runs from the
                     // new-note entry to the last kept note.
                     if pget(pixdesk, 180) == 5 {
-                        if pget(pixdesk, 224) == 0 {
-                            let sel = pget(pixdesk, 228)
-                            if sel < pget(pixdesk, 196) {
-                                pset(pixdesk, 228, sel + 1)
+                        if pget(pixdesk, 308) == 1 {
+                            // The editor window's asking
+                            // (Stone 27): down to "Keep it".
+                            if pget(pixdesk, 312) == 0 {
+                                pset(pixdesk, 312, 1)
                                 paintwindows(pixdesk, cellblock, notesblock)
+                            }
+                        } else {
+                            if pget(pixdesk, 224) == 0 {
+                                let sel = pget(pixdesk, 228)
+                                if sel < pget(pixdesk, 196) {
+                                    pset(pixdesk, 228, sel + 1)
+                                    paintwindows(pixdesk, cellblock, notesblock)
+                                }
                             }
                         }
                     }
@@ -2450,12 +2638,87 @@ while true {
                         if pix == 1 {
                             if pget(pixdesk, 180) == 3 {
                                 if pget(pixdesk, 188) == 1 {
-                                    if pichas == 1 {
-                                        if pget(pixdesk, 192) == notecount {
+                                    if pget(pixdesk, 300) == 1 {
+                                        // The asking's own Enter
+                                        // (Stone 27): the picked
+                                        // choice is done — the
+                                        // yes lets the picked
+                                        // note go through the
+                                        // store's own path, the
+                                        // keep puts the asking
+                                        // away and leaves the
+                                        // note exactly as it was.
+                                        fileused = 1
+                                        if pget(pixdesk, 304) == 0 {
+                                            let ft = pget(pixdesk, 192)
+                                            let fi = ft
+                                            while fi < notecount - 1 {
+                                                let fj = 0
+                                                while fj < 64 {
+                                                    notesblock[fi * 64 + fj] = notesblock[(fi + 1) * 64 + fj]
+                                                    fj = fj + 1
+                                                }
+                                                fi = fi + 1
+                                            }
+                                            let fz = 0
+                                            while fz < 64 {
+                                                notesblock[(notecount - 1) * 64 + fz] = 0
+                                                fz = fz + 1
+                                            }
+                                            if diskset == 1 {
+                                                let fw1 = notesave(notesblock, notecount)
+                                            }
+                                            notecount = notecount - 1
+                                            let fwrote = 0
+                                            if diskset == 1 {
+                                                if notesave(notesblock, notecount) == 1 {
+                                                    fwrote = 1
+                                                }
+                                            }
+                                            pset(pixdesk, 196, notecount)
+                                            let fsel = ft
+                                            if fsel >= notecount {
+                                                fsel = notecount - 1
+                                            }
+                                            if fsel < 0 {
+                                                fsel = 0
+                                            }
+                                            pset(pixdesk, 192, fsel)
+                                            pset(pixdesk, 300, 0)
+                                            paintwindows(pixdesk, cellblock, notesblock)
+                                            if diskset == 1 {
+                                                if fwrote == 1 {
+                                                    ansrow = printline(ansrow, "Your note is let go, and gone from the disk.", pix, pixdesk)
+                                                } else {
+                                                    ansrow = printline(ansrow, "The disk would not take the change, so the note is let go only for now.", pix, pixdesk)
+                                                }
+                                            } else {
+                                                ansrow = printline(ansrow, "Your note is let go.", pix, pixdesk)
+                                            }
+                                        } else {
+                                            pset(pixdesk, 300, 0)
+                                            paintwindows(pixdesk, cellblock, notesblock)
+                                        }
+                                    } else {
+                                        if pget(pixdesk, 192) < notecount {
+                                            // Enter on a picked
+                                            // note (Stone 27):
+                                            // the asking opens,
+                                            // with "Keep it"
+                                            // standing picked.
                                             fileused = 1
-                                            pset(pixdesk, 272, 1)
-                                            pset(pixdesk, 180, 6)
-                                            paintask = 1
+                                            pset(pixdesk, 304, 1)
+                                            pset(pixdesk, 300, 1)
+                                            paintwindows(pixdesk, cellblock, notesblock)
+                                        } else {
+                                            if pichas == 1 {
+                                                if pget(pixdesk, 192) == notecount {
+                                                    fileused = 1
+                                                    pset(pixdesk, 272, 1)
+                                                    pset(pixdesk, 180, 6)
+                                                    paintask = 1
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -2469,6 +2732,72 @@ while true {
                     if pix == 1 {
                         if pget(pixdesk, 180) == 5 {
                             if pget(pixdesk, 220) == 1 {
+                                if pget(pixdesk, 308) == 1 {
+                                    // The asking's own Enter
+                                    // (Stone 27): the picked
+                                    // choice is done — the
+                                    // yes lets the note the
+                                    // asking names (the desk's
+                                    // 316) go through the
+                                    // store's own path, and
+                                    // the window returns to
+                                    // its picking way; the
+                                    // keep puts the asking
+                                    // away and leaves the
+                                    // note — and any draft
+                                    // standing — exactly as
+                                    // it was.
+                                    edused = 1
+                                    if pget(pixdesk, 312) == 0 {
+                                        let et = pget(pixdesk, 316)
+                                        let ei = et
+                                        while ei < notecount - 1 {
+                                            let ej = 0
+                                            while ej < 64 {
+                                                notesblock[ei * 64 + ej] = notesblock[(ei + 1) * 64 + ej]
+                                                ej = ej + 1
+                                            }
+                                            ei = ei + 1
+                                        }
+                                        let ez = 0
+                                        while ez < 64 {
+                                            notesblock[(notecount - 1) * 64 + ez] = 0
+                                            ez = ez + 1
+                                        }
+                                        if diskset == 1 {
+                                            let ew1 = notesave(notesblock, notecount)
+                                        }
+                                        notecount = notecount - 1
+                                        let ewrote = 0
+                                        if diskset == 1 {
+                                            if notesave(notesblock, notecount) == 1 {
+                                                ewrote = 1
+                                            }
+                                        }
+                                        pset(pixdesk, 196, notecount)
+                                        notesblock[512] = 0
+                                        pset(pixdesk, 224, 0)
+                                        let epick = et + 1
+                                        if epick > notecount {
+                                            epick = notecount
+                                        }
+                                        pset(pixdesk, 228, epick)
+                                        pset(pixdesk, 308, 0)
+                                        paintwindows(pixdesk, cellblock, notesblock)
+                                        if diskset == 1 {
+                                            if ewrote == 1 {
+                                                ansrow = printline(ansrow, "Your note is let go, and gone from the disk.", pix, pixdesk)
+                                            } else {
+                                                ansrow = printline(ansrow, "The disk would not take the change, so the note is let go only for now.", pix, pixdesk)
+                                            }
+                                        } else {
+                                            ansrow = printline(ansrow, "Your note is let go.", pix, pixdesk)
+                                        }
+                                    } else {
+                                        pset(pixdesk, 308, 0)
+                                        paintwindows(pixdesk, cellblock, notesblock)
+                                    }
+                                } else {
                                 let edmode = pget(pixdesk, 224)
                                 if edmode == 1 {
                                     edused = 1
@@ -2534,6 +2863,7 @@ while true {
                                         pset(pixdesk, 224, 1)
                                         paintwindows(pixdesk, cellblock, notesblock)
                                     }
+                                }
                                 }
                             }
                         }
@@ -2826,6 +3156,7 @@ while true {
                     // in plain words, as for 'welcome'.
                     if pix == 1 {
                         pset(pixdesk, 188, 1)
+                        pset(pixdesk, 300, 0)
                         pset(pixdesk, 180, 3)
                         paintwindows(pixdesk, cellblock, notesblock)
                     } else {
@@ -2856,6 +3187,7 @@ while true {
                         pset(pixdesk, 220, 1)
                         pset(pixdesk, 224, 0)
                         pset(pixdesk, 228, 0)
+                        pset(pixdesk, 308, 0)
                         pset(pixdesk, 180, 5)
                         paintwindows(pixdesk, cellblock, notesblock)
                     } else {
@@ -3028,6 +3360,28 @@ while true {
                             if resthad == 1 {
                                 fr = 0 - 1
                             }
+                            // A letting-go asking stands in
+                            // Escape's way the same way
+                            // (Stone 27): while the forward
+                            // window's asking stands open,
+                            // Escape puts the asking away
+                            // and closes no window — the
+                            // note is left exactly as it
+                            // was, as "Keep it" leaves it.
+                            if fr == 3 {
+                                if pget(pixdesk, 300) == 1 {
+                                    pset(pixdesk, 300, 0)
+                                    paintwindows(pixdesk, cellblock, notesblock)
+                                    fr = 0 - 1
+                                }
+                            }
+                            if fr == 5 {
+                                if pget(pixdesk, 308) == 1 {
+                                    pset(pixdesk, 308, 0)
+                                    paintwindows(pixdesk, cellblock, notesblock)
+                                    fr = 0 - 1
+                                }
+                            }
                             if fr == 1 {
                                 pset(pixdesk, 172, 0)
                                 if pget(pixdesk, 176) == 1 {
@@ -3130,6 +3484,7 @@ while true {
                             if fr == 5 {
                                 pset(pixdesk, 220, 0)
                                 pset(pixdesk, 224, 0)
+                                pset(pixdesk, 308, 0)
                                 if pget(pixdesk, 172) == 1 {
                                     pset(pixdesk, 180, 1)
                                 } else {
@@ -3194,7 +3549,9 @@ while true {
                     if pix == 1 {
                         if pget(pixdesk, 180) == 5 {
                             if pget(pixdesk, 224) == 1 {
-                                edwrite = 1
+                                if pget(pixdesk, 308) == 0 {
+                                    edwrite = 1
+                                }
                             }
                         }
                     }
@@ -3244,7 +3601,9 @@ while true {
                         if pix == 1 {
                             if pget(pixdesk, 180) == 5 {
                                 if pget(pixdesk, 224) == 1 {
-                                    edwrite = 1
+                                    if pget(pixdesk, 308) == 0 {
+                                        edwrite = 1
+                                    }
                                 }
                             }
                         }
@@ -3564,6 +3923,7 @@ while true {
                                             }
                                             if pick == 2 {
                                                 pset(pixdesk, 188, 1)
+                                                pset(pixdesk, 300, 0)
                                                 pset(pixdesk, 180, 3)
                                             }
                                             if pick == 3 {
@@ -3574,6 +3934,7 @@ while true {
                                                 pset(pixdesk, 220, 1)
                                                 pset(pixdesk, 224, 0)
                                                 pset(pixdesk, 228, 0)
+                                                pset(pixdesk, 308, 0)
                                                 pset(pixdesk, 180, 5)
                                             }
                                             if pick == 5 {
@@ -3666,6 +4027,7 @@ while true {
                                                 if cyp >= fy * 16 {
                                                     if cyp < (fy + 1) * 16 {
                                                         pset(pixdesk, 188, 0)
+                                                        pset(pixdesk, 300, 0)
                                                         if pget(pixdesk, 180) == 3 {
                                                             if pget(pixdesk, 172) == 1 {
                                                                 pset(pixdesk, 180, 1)
@@ -3731,6 +4093,7 @@ while true {
                                                     if cyp < (ey + 1) * 16 {
                                                         pset(pixdesk, 220, 0)
                                                         pset(pixdesk, 224, 0)
+                                                        pset(pixdesk, 308, 0)
                                                         if pget(pixdesk, 180) == 5 {
                                                             if pget(pixdesk, 172) == 1 {
                                                                 pset(pixdesk, 180, 1)
@@ -3824,6 +4187,168 @@ while true {
                                     }
                                 }
                                 if acted == 0 {
+                                    // The files window's asking
+                                    // rows (Stone 27): while its
+                                    // asking stands and the
+                                    // window stands forward, a
+                                    // press on "Yes, let it
+                                    // go"'s row lets the picked
+                                    // note go through the
+                                    // store's own path, and a
+                                    // press on "Keep it"'s row
+                                    // puts the asking away and
+                                    // leaves the note exactly
+                                    // as it was. While the
+                                    // asking stands, the list
+                                    // rows below do not pick.
+                                    if pget(pixdesk, 188) == 1 {
+                                        if pget(pixdesk, 300) == 1 {
+                                            if pget(pixdesk, 180) == 3 {
+                                                if cxp >= fx * 16 {
+                                                    if cxp < (fx + fw) * 16 {
+                                                        let arow = cyp / 16
+                                                        if arow == fy + 6 {
+                                                            pset(pixdesk, 300, 0)
+                                                            pset(pixdesk, 180, 3)
+                                                            paintwindows(pixdesk, cellblock, notesblock)
+                                                            acted = 1
+                                                        }
+                                                        if arow == fy + 5 {
+                                                            let pft = pget(pixdesk, 192)
+                                                            let pfi = pft
+                                                            while pfi < notecount - 1 {
+                                                                let pfj = 0
+                                                                while pfj < 64 {
+                                                                    notesblock[pfi * 64 + pfj] = notesblock[(pfi + 1) * 64 + pfj]
+                                                                    pfj = pfj + 1
+                                                                }
+                                                                pfi = pfi + 1
+                                                            }
+                                                            let pfz = 0
+                                                            while pfz < 64 {
+                                                                notesblock[(notecount - 1) * 64 + pfz] = 0
+                                                                pfz = pfz + 1
+                                                            }
+                                                            if diskset == 1 {
+                                                                let pfw1 = notesave(notesblock, notecount)
+                                                            }
+                                                            notecount = notecount - 1
+                                                            let pfwrote = 0
+                                                            if diskset == 1 {
+                                                                if notesave(notesblock, notecount) == 1 {
+                                                                    pfwrote = 1
+                                                                }
+                                                            }
+                                                            pset(pixdesk, 196, notecount)
+                                                            let pfsel = pft
+                                                            if pfsel >= notecount {
+                                                                pfsel = notecount - 1
+                                                            }
+                                                            if pfsel < 0 {
+                                                                pfsel = 0
+                                                            }
+                                                            pset(pixdesk, 192, pfsel)
+                                                            pset(pixdesk, 300, 0)
+                                                            pset(pixdesk, 180, 3)
+                                                            paintwindows(pixdesk, cellblock, notesblock)
+                                                            if diskset == 1 {
+                                                                if pfwrote == 1 {
+                                                                    ansrow = printline(ansrow, "Your note is let go, and gone from the disk.", pix, pixdesk)
+                                                                } else {
+                                                                    ansrow = printline(ansrow, "The disk would not take the change, so the note is let go only for now.", pix, pixdesk)
+                                                                }
+                                                            } else {
+                                                                ansrow = printline(ansrow, "Your note is let go.", pix, pixdesk)
+                                                            }
+                                                            acted = 1
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    // The editor window's asking
+                                    // rows (Stone 27): the same
+                                    // two rows in the editor
+                                    // window, while its asking
+                                    // stands and it stands
+                                    // forward — the yes lets the
+                                    // note the asking names go
+                                    // through the store's own
+                                    // path and the window
+                                    // returns to its picking
+                                    // way; the keep leaves the
+                                    // note, and any standing
+                                    // draft, exactly as it was.
+                                    if pget(pixdesk, 220) == 1 {
+                                        if pget(pixdesk, 308) == 1 {
+                                            if pget(pixdesk, 180) == 5 {
+                                                if cxp >= ex * 16 {
+                                                    if cxp < (ex + ew) * 16 {
+                                                        let arow = cyp / 16
+                                                        if arow == ey + 6 {
+                                                            pset(pixdesk, 308, 0)
+                                                            pset(pixdesk, 180, 5)
+                                                            paintwindows(pixdesk, cellblock, notesblock)
+                                                            acted = 1
+                                                        }
+                                                        if arow == ey + 5 {
+                                                            let pet = pget(pixdesk, 316)
+                                                            let pei = pet
+                                                            while pei < notecount - 1 {
+                                                                let pej = 0
+                                                                while pej < 64 {
+                                                                    notesblock[pei * 64 + pej] = notesblock[(pei + 1) * 64 + pej]
+                                                                    pej = pej + 1
+                                                                }
+                                                                pei = pei + 1
+                                                            }
+                                                            let pez = 0
+                                                            while pez < 64 {
+                                                                notesblock[(notecount - 1) * 64 + pez] = 0
+                                                                pez = pez + 1
+                                                            }
+                                                            if diskset == 1 {
+                                                                let pew1 = notesave(notesblock, notecount)
+                                                            }
+                                                            notecount = notecount - 1
+                                                            let pewrote = 0
+                                                            if diskset == 1 {
+                                                                if notesave(notesblock, notecount) == 1 {
+                                                                    pewrote = 1
+                                                                }
+                                                            }
+                                                            pset(pixdesk, 196, notecount)
+                                                            notesblock[512] = 0
+                                                            pset(pixdesk, 224, 0)
+                                                            let pepick = pet + 1
+                                                            if pepick > notecount {
+                                                                pepick = notecount
+                                                            }
+                                                            pset(pixdesk, 228, pepick)
+                                                            pset(pixdesk, 308, 0)
+                                                            pset(pixdesk, 180, 5)
+                                                            paintwindows(pixdesk, cellblock, notesblock)
+                                                            if diskset == 1 {
+                                                                if pewrote == 1 {
+                                                                    ansrow = printline(ansrow, "Your note is let go, and gone from the disk.", pix, pixdesk)
+                                                                } else {
+                                                                    ansrow = printline(ansrow, "The disk would not take the change, so the note is let go only for now.", pix, pixdesk)
+                                                                }
+                                                            } else {
+                                                                ansrow = printline(ansrow, "Your note is let go.", pix, pixdesk)
+                                                            }
+                                                            acted = 1
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
                                     // A press on one of the
                                     // files window's list rows
                                     // picks that note (Stone
@@ -3832,16 +4357,18 @@ while true {
                                     // foot, and the window
                                     // comes forward.
                                     if pget(pixdesk, 188) == 1 {
-                                        if pget(pixdesk, 200) == 1 {
-                                            if cxp >= fx * 16 {
-                                                if cxp < (fx + fw) * 16 {
-                                                    let row = cyp / 16
-                                                    if row >= fy + 3 {
-                                                        if row < fy + 3 + pget(pixdesk, 196) {
-                                                            pset(pixdesk, 192, row - fy - 3)
-                                                            pset(pixdesk, 180, 3)
-                                                            paintwindows(pixdesk, cellblock, notesblock)
-                                                            acted = 1
+                                        if pget(pixdesk, 300) == 0 {
+                                            if pget(pixdesk, 196) > 0 {
+                                                if cxp >= fx * 16 {
+                                                    if cxp < (fx + fw) * 16 {
+                                                        let row = cyp / 16
+                                                        if row >= fy + 3 {
+                                                            if row < fy + 3 + pget(pixdesk, 196) {
+                                                                pset(pixdesk, 192, row - fy - 3)
+                                                                pset(pixdesk, 180, 3)
+                                                                paintwindows(pixdesk, cellblock, notesblock)
+                                                                acted = 1
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -3870,7 +4397,8 @@ while true {
                                     // 'paint' opening does.
                                     if pget(pixdesk, 188) == 1 {
                                         if pget(pixdesk, 200) == 1 {
-                                            if pichas == 1 {
+                                            if pget(pixdesk, 300) == 0 {
+                                                if pichas == 1 {
                                                 if cxp >= fx * 16 {
                                                     if cxp < (fx + fw) * 16 {
                                                         if cyp / 16 == fy + 13 {
@@ -3880,6 +4408,37 @@ while true {
                                                             paintask = 1
                                                             paintwindows(pixdesk, cellblock, notesblock)
                                                             acted = 1
+                                                        }
+                                                    }
+                                                }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    // A press on "Let this note
+                                    // go" at the files window's
+                                    // foot (Stone 27): the words
+                                    // stand at the foot's right
+                                    // while a note stands picked
+                                    // and the window stands
+                                    // forward; the press opens
+                                    // the asking — nothing is
+                                    // let go by this press.
+                                    if pget(pixdesk, 188) == 1 {
+                                        if pget(pixdesk, 300) == 0 {
+                                            if pget(pixdesk, 180) == 3 {
+                                                if pget(pixdesk, 192) < notecount {
+                                                    if cyp / 16 == fy + 11 {
+                                                        if cxp >= (fx + 36) * 16 {
+                                                            if cxp < (fx + 52) * 16 {
+                                                                pset(pixdesk, 304, 1)
+                                                                pset(pixdesk, 300, 1)
+                                                                pset(pixdesk, 180, 3)
+                                                                paintwindows(pixdesk, cellblock, notesblock)
+                                                                acted = 1
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -3945,6 +4504,62 @@ while true {
                                     }
                                 }
                                 if acted == 0 {
+                                    // A press on "Let this note
+                                    // go" in the editor window
+                                    // (Stone 27): in its picking
+                                    // way the words stand at the
+                                    // foot's right while a kept
+                                    // note stands picked; in its
+                                    // writing way they stand
+                                    // under the keep word while
+                                    // a kept note stands open.
+                                    // Either press opens the
+                                    // asking, naming that note
+                                    // at the desk's 316 —
+                                    // nothing is let go by this
+                                    // press.
+                                    if pget(pixdesk, 220) == 1 {
+                                        if pget(pixdesk, 308) == 0 {
+                                            if pget(pixdesk, 180) == 5 {
+                                                if pget(pixdesk, 224) == 0 {
+                                                    let epick2 = pget(pixdesk, 228)
+                                                    if epick2 >= 1 {
+                                                        if epick2 <= notecount {
+                                                            if cyp / 16 == ey + 12 {
+                                                                if cxp >= (ex + 36) * 16 {
+                                                                    if cxp < (ex + 52) * 16 {
+                                                                        pset(pixdesk, 316, epick2 - 1)
+                                                                        pset(pixdesk, 312, 1)
+                                                                        pset(pixdesk, 308, 1)
+                                                                        pset(pixdesk, 180, 5)
+                                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                                        acted = 1
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                } else {
+                                                    if pget(pixdesk, 232) != 8 {
+                                                        if cyp / 16 == ey + 7 {
+                                                            if cxp >= ex * 16 {
+                                                                if cxp < (ex + ew) * 16 {
+                                                                    pset(pixdesk, 316, pget(pixdesk, 232))
+                                                                    pset(pixdesk, 312, 1)
+                                                                    pset(pixdesk, 308, 1)
+                                                                    pset(pixdesk, 180, 5)
+                                                                    paintwindows(pixdesk, cellblock, notesblock)
+                                                                    acted = 1
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
                                     // A press on one of the
                                     // editor window's rows
                                     // (Stone 21): in its picking
@@ -3960,6 +4575,7 @@ while true {
                                     // by. Either way the window
                                     // comes forward.
                                     if pget(pixdesk, 220) == 1 {
+                                        if pget(pixdesk, 308) == 0 {
                                         if cxp >= ex * 16 {
                                             if cxp < (ex + ew) * 16 {
                                                 let erow = cyp / 16
@@ -4012,6 +4628,7 @@ while true {
                                                     }
                                                 }
                                             }
+                                        }
                                         }
                                     }
                                 }

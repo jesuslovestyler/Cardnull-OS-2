@@ -95,6 +95,16 @@ To build the bootable witness disc (see "The witness disc" below):
                       # picture beside a note, and opening it
                       # there shows the drawing again, its
                       # cells decoded back (Stone 26)
+./prove-stone27.sh    # prepares a disk with three known
+                      # notes, CANCELS a letting go twice in
+                      # the files window (the note stands
+                      # whole), lets one note go there and
+                      # one in the editor, reads the CNN3
+                      # store's own bytes (one note whole,
+                      # the let-go sectors wiped), REBOOTS
+                      # and finds only the remaining note —
+                      # and lets a sitting's note go with no
+                      # disk fitted at all (Stone 27)
 ./build-stick.sh      # makes dist/cardnull-stick.img (Stone 17)
 ```
 
@@ -1933,6 +1943,128 @@ bytes match it and nothing more, and the host's
 keeping trusts the cells the feather laid — it keeps
 them verbatim, and reckons nothing of its own into
 them but where they live.
+
+### Stone 27 — Letting a note go
+
+A kept note can be **let go** now — removed, in plain
+words, from the files window and from the editor
+window — and **nothing is removed without a plain-words
+asking first**. Stone 15's honest limit ("there is no
+erasing or editing of a kept note yet") is half retired:
+editing came at Stone 21, and erasing comes here.
+
+**In the files window**, while a note stands picked,
+**"Let this note go"** stands in white at the foot's
+right, beside "The note you picked:". A press on those
+words — or **Enter while the note stands picked**, the
+window's own acting key, as Enter on the picked picture
+opens it (Stone 26) — opens the asking on the window
+itself: **"Let this note go for good?"**, the note's own
+words beneath it, and two choices, one to a row —
+**"Yes, let it go"** and **"Keep it"**. **In the editor
+window** the same words stand while a note stands picked
+in its picking way (at its foot's right, beside the
+keeping word) and while a note stands open in its
+writing way (under "Press Enter to keep the note."); a
+press on them opens the same asking there, over the same
+store. A new note being written has nothing to let go,
+and none is offered.
+
+**The asking is built so Enter alone can never let a
+note go:** it opens with **"Keep it" standing picked**.
+The yes must be chosen on purpose — the up and down
+arrow keys move the asking's pick and Enter does the
+picked choice, or a press lands on a choice's row.
+**"Keep it" leaves the note exactly as it was** — and so
+do **Escape**, which stands in the asking's way as it
+stands in the menu's and the rest panel's (it puts the
+asking away and closes no window), and **closing the
+window**, whose close mark puts the asking away with
+it. While an asking stands, its window's list does not
+pick and the editor's draft does not take letters: the
+asking is the window's whole business until it is
+answered or put away.
+
+**The removal goes through the store's own path** — the
+very `notesave` the editor's keeping writes through
+(Stone 21), over the same page in the main body's
+keeping. The notes after the let-go one move up a place
+in the page, in their order; the place the last note
+leaves is wiped in the page; and the page is written
+through **twice** — once with the old count, so the
+wiped place's sector is wiped on the disk too, and once
+with the new count, so the CNN3 header and the standing
+notes are the disk's truth. After a restart the let-go
+note is gone from the files window and the editor alike,
+the remaining notes stand whole and in their order, and
+the raw bytes agree: a let-go note's sector no longer
+reads as a kept note. No parallel store was invented;
+the header on sector 64 and one sector to a note from
+sector 65 are the whole of it, as they have been since
+Stone 15. **A note kept only for the sitting is let go
+the same way**, in the page alone — and so the files
+window now **lists a sitting's notes too**, under their
+honest heading ("Notes kept only for this sitting:"),
+picked and let go there as the editor has always shown
+them; with no notes at all its plain no-disk words stand
+exactly as Stone 19 left them. The windows' asking
+standings live in the pixel face's desk at 300 to 316,
+beside the others'.
+
+**One building note, in the open:** this stone's growth
+carried the kernel's staged segment end from 203,181 to
+219,902 bytes — the headroom under the BIOS doorman's
+224 KiB claim (Stone 26) narrows from 26,195 bytes to
+**9,474 bytes**. No stage moved: the claim still holds
+the whole system with room to spare, and the full proof
+set below was run on it as it stands. The next stone
+that grows the kernel by more than that headroom must
+move the stages again, the adoption's own remedy, and
+say so.
+
+Proven by `prove-stone27.sh`: a keeping disk prepared
+with three known notes is booted; in the files window
+a press on "Let this note go" opens the asking and its
+words are **decoded letter by letter** — the question,
+the note's words, the yes unpicked and "Keep it"
+picked — and the **cancel paths are proven before any
+removal**: a press on "Keep it" leaves all three notes
+whole, and Escape after Enter opens the asking leaves
+the first note whole at the window's foot. Enter, up,
+Enter then lets the first note go (the second stands
+first, whole, the third second); in the editor window
+the third note is picked, its asking opened by a press
+on the foot's words, and a press on "Yes, let it go"
+lets it go. The disk's own bytes are then read: the
+CNN3 header counts **one** note, its sector carries
+"call billy about the roof" whole, the two let-go
+notes' sectors are **wiped**, and the settings card
+stands unharmed. A **second boot on the same disk**
+finds the files window and the editor listing the one
+remaining note and neither let-go one. A **third boot
+with no disk at all** keeps two notes for the sitting,
+lists them in the files window under their honest
+heading, and lets the second go by keyboard with the
+same asking. The neighbouring proofs pass with it —
+Stones 19, 21, 26, 15, and the ISO proof, and Stone 22
+beside them (the files window's place and height are
+unchanged; nothing it reckons moved).
+
+Honest limits: letting go is the two windows' — the
+face of light's, as they are; the text face's word
+`notes` still only shows the page, and no typed word
+removes a note. In the editor's writing way the offer
+is the pointer's (the draft owns the keyboard there,
+as it always has); the picking way's offer is likewise
+taken by a press, while the files window's asking is
+reachable by pointer and keyboard alike — and in both
+windows the asking itself is answered by pointer or by
+arrows and Enter. A note let go is gone: there is no
+bringing it back, which is exactly why the asking
+stands in front of it and opens on "Keep it". The
+picture in the files window is not a note and cannot
+be let go here — clearing the paint canvas lets its
+keeping go, as Stone 26 said.
 
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 

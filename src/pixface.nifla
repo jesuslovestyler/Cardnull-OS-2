@@ -126,6 +126,21 @@
 //       does (0) — the main body's fact, copied into the
 //       desk whenever it changes, so the files window's
 //       painting can list the picture beside the notes.
+//  300  letting a note go (Stone 27): the files window's
+//       asking — whether its "are you sure" asking
+//       stands open (300: 1) or not (0), and which of
+//       its two choices stands picked (304: 0 "Yes, let
+//       it go", 1 "Keep it" — the asking opens with
+//       "Keep it" picked, so Enter alone never lets a
+//       note go). The note the asking is about is the
+//       files window's own pick at 192, which cannot
+//       move while the asking stands.
+//  308  the editor window's asking, the same shape:
+//       whether it stands open (308), which choice
+//       stands picked (312, the same reckoning), and
+//       which note it is about (316: the note's place
+//       on the page — the pick's note from the picking
+//       way, or the open note from the writing way).
 //
 // A letter cell is sixteen pixels square: the font's eight
 // by eight, drawn at twice size. The face's layout is the
