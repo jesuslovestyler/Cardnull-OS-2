@@ -66,6 +66,9 @@ To build the bootable witness disc (see "The witness disc" below):
 ./prove-stone20.sh    # opens the settings window, CLICKS its choices,
                       # and reads them back from the disk's card after
                       # a re-boot (Stone 20)
+./prove-stone21.sh    # opens the editor window, TYPES a note in it,
+                      # changes it, and reads the changed words back
+                      # from the disk's CNN3 store (Stone 21)
 ./build-stick.sh      # makes dist/cardnull-stick.img (Stone 17)
 ```
 
@@ -1235,6 +1238,100 @@ word `chime` — and nothing else that sounds; and a
 choice made with no keeping disk is gone when the
 machine is turned off, as the window itself says.
 
+### Stone 21 — The editor window
+
+A fifth window stands on the face of light now, opened
+by the new word `editor` (kind 14). Here a note is
+**written and changed in a window**, not only by the
+word `note` — and it is kept to the very same CNN3 note
+store that word keeps to: the same page in the main
+body's keeping, written through by the same `notesave`,
+so a note kept here stands in the files window and in
+the reckoning of the word `notes`, and theirs stand
+here. Nothing about the store changed; the window is a
+second road to it.
+
+The window stands in two ways. In its **picking way** it
+lists "Write a new note" first, then every kept note,
+the picked one white on blue with the pick mark, the
+files window's way; the up and down arrow keys or a
+press of the pointer on an entry's row pick, and Enter
+— on an empty typing line — takes the pick into the
+**writing way**. (A line with words on it is a command,
+as it always is; the window never takes a typed word's
+Enter from it.) In the writing way the note's words
+stand as a draft: a note being changed is copied in
+whole, a new note starts empty, and the desktop's own
+typing writes into the draft — the shift keys and Caps
+Lock resolve exactly as they do on the typing line,
+Backspace forgets the draft's last letter, and Enter
+keeps the draft back to the same slot, so a changed
+note keeps its place on the page. A press of the
+pointer on the keep row keeps the draft the same way.
+The draft lives in a ninth slot of the notes block,
+beyond the eight the disk carries; it reaches the disk
+only by being kept, through the store's own path.
+
+A note holds **forty-three letters at most** — the
+typing line's own measure, the measure the word `note`
+has always kept by (its line holds forty-eight keys,
+and the word and its space take five) — and the
+writing way says so in plain words, "A note can hold
+43 letters at most.", rather than letting the words
+run past it in silence: typing past the measure simply
+adds nothing, and the draft that stands in the window
+is the whole of what will be kept. Tab cycles through
+all five windows now, Escape closes the forward one
+(a draft not yet kept is thrown away with the window),
+and the window's close mark closes it like the others'.
+Its standing lives in the pixel face's desk beside the
+others' (offsets 220 to 232); the count and the keeping
+it speaks of are the files window's copies in the same
+desk, the same facts.
+
+The honesty is the store's own, said in the window:
+with a keeping disk, "Your note will be kept on the
+disk."; with none, "Your note will be kept only for
+this sitting." — with "There is no disk fitted." or
+"This disk is not keeping notes yet." beneath, as the
+case stands — and the note still lives for the sitting,
+in the window's list and in the word `notes`, exactly
+as the answers have always put it.
+
+Proven by `prove-stone21.sh`: a keeping disk prepared
+with one known note is booted with the shipped disc;
+the word `editor` opens the window and its rendered
+list is **decoded letter by letter** against the
+system's own letter shapes; a pointer press picks the
+kept note and Enter shows its whole words as the
+draft; a new note is typed and kept, and stands in the
+list; forty-six letters typed at a fresh note stop at
+forty-three, and that draft is thrown away by Escape —
+the page still holds exactly two notes. The kept note
+is then changed in the window (its last word rubbed
+out, another typed) and kept back to the same place;
+the files window lists the changed words from the same
+store; Tab brings the editor forward among the five
+and Escape closes it. The disk's bytes are then
+checked: the CNN3 header counts two notes and the
+second sector carries the changed words — the window
+truly wrote through the store. A second boot with no
+disk at all reads the plain sitting-only words back
+from both of the window's ways, keeps a note for the
+sitting in the window, and finds it again in the
+reckoning of the word `notes`.
+
+Honest limits: the editor window stands on the face of
+light only; the text face answers `editor` as it
+answers `welcome`, in plain words. The word `editor`
+is not named on the desktop's invitation line, as
+`files` and `settings` are not. A note is one line of
+words, as the store has always held it — the window
+writes the line the store holds, no longer and no
+otherwise shaped. Editing speaks to the notes page
+only; the settings card is the settings window's, as
+it has been since Stone 20.
+
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 
 This is not one of this system's own stones; it is the
@@ -1583,7 +1680,8 @@ was split by duty, without changing its behavior:
   winframe, onewelcome, onefeather, paintwindows; Stone 19:
   onefiles and filenotetext, the files window and its drawing
   of the kept notes from their bytes; Stone 20: onesettings
-  and sechoice, the settings window and its choice rows),
+  and sechoice, the settings window and its choice rows;
+  Stone 21: oneeditor, the editor window and its two ways),
   reading the windows' standing from the pixel face's desk.
 - `src/screenlib.nifla` — the screen library: drawing on the text
   screen's own memory (clearscreen, writeat, paintrow, paintrect,

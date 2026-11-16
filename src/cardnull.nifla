@@ -169,6 +169,32 @@
 //          rising and the word 'chime'; the refusal's low
 //          note is not the chime and sounds as it always
 //          has.
+// Stone 21: the editor window — a fifth window on the
+//          face of light, opened by the word 'editor'.
+//          Here a note is written and changed with the
+//          desktop's own typing (the shift keys and Caps
+//          Lock speak as they do on the typing line) and
+//          kept to the very same CNN3 note store the word
+//          'note' keeps to — the same page in this body's
+//          keeping, written through by the same notesave
+//          — so a note kept here stands in the files
+//          window and in the word 'notes' reckoning, and
+//          theirs stand here. The window stands in two
+//          ways: a picking way, listing the new-note entry
+//          and every kept note (the arrow keys or a press
+//          of the pointer pick, as in the files window),
+//          and a writing way, entered by Enter on the
+//          pick, where the words are typed into a draft
+//          and Enter keeps them back to the same slot —
+//          a changed note keeps its place on the page. A
+//          note holds forty-three letters at most — the
+//          typing line's own measure, the measure the
+//          word 'note' has always kept by — and the
+//          writing way says so in plain words rather than
+//          letting the words run past it in silence.
+//          With no keeping disk the note is kept only for
+//          the sitting, and the window says so plainly,
+//          as the answers have always said.
 //
 // The arrangement of the screen:
 //   row 0      the bar — "Cardnull" at the left, the date
@@ -890,6 +916,139 @@ make onesettings(desk) {
     }
 }
 
+// ---- the editor window (Stone 21) ----
+//
+// A fifth window, standing where the files and settings
+// windows stand — they are never forward at once, and
+// the painting order below keeps each whole. Here a
+// note is written and changed, not only by the word
+// 'note': the window stands in two ways. In its picking
+// way it lists the new-note entry first, then every
+// kept note, the picked one white on blue with the pick
+// mark, exactly as the files window shows its list; the
+// arrow keys or a press of the pointer pick, and Enter
+// takes the pick into the writing way. There the note's
+// words stand as a draft — the note being changed is
+// copied in whole, a new note starts empty — and the
+// desktop's typing writes into the draft: the main loop
+// hands the letters here (the notes block's ninth slot,
+// a slot of the page's own shape), Backspace forgets the
+// last one, and Enter keeps the draft back through the
+// same store path the word 'note' uses. A note holds
+// forty-three letters at most, and the writing way says
+// so in plain words. The window's standing lives in the
+// desk at 220 to 232 (pixface.nifla's ledger): open,
+// the way it stands, the pick, and the note being
+// changed; the count and the keeping it speaks of are
+// the files window's copies at 196, 200 and 204, the
+// same facts, so what it says of where notes live is
+// what the files window says.
+
+make edwide(desk) {
+    if pget(desk, 28) >= 56 {
+        give 54
+    }
+    give pget(desk, 28) - 2
+}
+
+make edleft(desk) {
+    give (pget(desk, 28) - edwide(desk)) / 2
+}
+
+make edtop(desk) {
+    give layrow(desk, 17)
+}
+
+make edhigh(desk) {
+    give 14
+}
+
+// Paints the editor window from the desk's standing:
+// closed, the plain desktop; open in its picking way,
+// its frame and title bar, the new-note entry and the
+// kept notes with the picked one standing white on
+// blue, and at its foot the plain word of where the
+// notes live; open in its writing way, the draft's
+// words as they stand, the measure of a note said
+// plainly, and the word of where the kept note will
+// live — on the disk, or only for this sitting.
+make oneeditor(desk, notes) {
+    let gx = edleft(desk)
+    let gy = edtop(desk)
+    let gw = edwide(desk)
+    let gh = edhigh(desk)
+    if pget(desk, 220) == 0 {
+        pixink(desk, 0)
+        pixfill(desk, gx * 16, gy * 16, gw * 16, gh * 16)
+    } else {
+        let front = 0
+        if pget(desk, 180) == 5 {
+            front = 1
+        }
+        winframe(desk, gy * 256 + gx, gh * 256 + gw, front)
+        pixspan(desk, 0, 8, 15)
+        pixtext(desk, gy, gx + 1, "Editor")
+        pixink(desk, 0)
+        pixfill(desk, gx * 16 + 2, gy * 16 + 18, gw * 16 - 4, gh * 16 - 20)
+        let count = pget(desk, 196)
+        if pget(desk, 224) == 1 {
+            if pget(desk, 232) == 8 {
+                pixline(desk, (gy + 2) * 256 + (gx + 2), "Write your note:", 7)
+            } else {
+                pixline(desk, (gy + 2) * 256 + (gx + 2), "Change your note:", 7)
+            }
+            filenotetext(desk, notes, 8 * 65536 + (gy + 3) * 256 + (gx + 2), 15)
+            pixline(desk, (gy + 5) * 256 + (gx + 2), "A note can hold 43 letters at most.", 7)
+            pixline(desk, (gy + 6) * 256 + (gx + 2), "Press Enter to keep the note.", 7)
+            if pget(desk, 200) == 1 {
+                pixline(desk, (gy + 8) * 256 + (gx + 2), "Your note will be kept on the disk.", 7)
+            } else {
+                pixline(desk, (gy + 8) * 256 + (gx + 2), "Your note will be kept only for this sitting.", 7)
+                if pget(desk, 204) == 0 {
+                    pixline(desk, (gy + 9) * 256 + (gx + 2), "There is no disk fitted.", 7)
+                } else {
+                    pixline(desk, (gy + 9) * 256 + (gx + 2), "This disk is not keeping notes yet.", 7)
+                }
+            }
+        } else {
+            pixline(desk, (gy + 2) * 256 + (gx + 2), "Pick a note, then press Enter to write it:", 7)
+            let sel = pget(desk, 228)
+            if sel > count {
+                sel = 0
+            }
+            if sel == 0 {
+                pixink(desk, 1)
+                pixfill(desk, gx * 16 + 2, (gy + 3) * 16, gw * 16 - 4, 16)
+                pixline(desk, (gy + 3) * 256 + (gx + 2), ">", 31)
+                pixline(desk, (gy + 3) * 256 + (gx + 4), "Write a new note", 31)
+            } else {
+                pixline(desk, (gy + 3) * 256 + (gx + 4), "Write a new note", 7)
+            }
+            let i = 0
+            while i < count {
+                let row = gy + 4 + i
+                if i + 1 == sel {
+                    pixink(desk, 1)
+                    pixfill(desk, gx * 16 + 2, row * 16, gw * 16 - 4, 16)
+                    pixline(desk, row * 256 + (gx + 2), ">", 31)
+                    filenotetext(desk, notes, i * 65536 + row * 256 + (gx + 4), 31)
+                } else {
+                    filenotetext(desk, notes, i * 65536 + row * 256 + (gx + 4), 7)
+                }
+                i = i + 1
+            }
+            if count == 0 {
+                pixline(desk, (gy + 5) * 256 + (gx + 2), "No notes are kept yet.", 7)
+            }
+            if pget(desk, 200) == 1 {
+                pixline(desk, (gy + 12) * 256 + (gx + 2), "Notes are kept on the disk.", 7)
+            } else {
+                pixline(desk, (gy + 12) * 256 + (gx + 2), "Notes are kept only for this sitting.", 7)
+            }
+        }
+    }
+}
+
 // Paints the windows: the closed ones first (each is
 // painted as the plain desktop it covers), then the open
 // ones behind, and the forward one last, so the forward
@@ -909,6 +1068,9 @@ make paintwindows(desk, block, notes) {
     }
     if pget(desk, 208) == 0 {
         onesettings(desk)
+    }
+    if pget(desk, 220) == 0 {
+        oneeditor(desk, notes)
     }
     let f = pget(desk, 180)
     if f != 1 {
@@ -931,6 +1093,11 @@ make paintwindows(desk, block, notes) {
             onesettings(desk)
         }
     }
+    if f != 5 {
+        if pget(desk, 220) == 1 {
+            oneeditor(desk, notes)
+        }
+    }
     if f == 1 {
         if pget(desk, 172) == 1 {
             onewelcome(desk)
@@ -949,6 +1116,11 @@ make paintwindows(desk, block, notes) {
     if f == 4 {
         if pget(desk, 208) == 1 {
             onesettings(desk)
+        }
+    }
+    if f == 5 {
+        if pget(desk, 220) == 1 {
+            oneeditor(desk, notes)
         }
     }
 }
@@ -1080,8 +1252,15 @@ while mi2 < nmods {
 // length at the slot's first byte, the letters after —
 // and how many stand kept. The page is this body's to
 // keep; diskkeep.nifla only carries it to the disk and
-// back.
-let notesblock = makebytes(512)
+// back. The block carries a ninth slot besides (Stone
+// 21), at its end: the editor window's draft, in the
+// same shape, holding the words being written or changed
+// in the window until Enter keeps them into the page
+// itself through the same store path. The ninth slot is
+// never the disk's: notesave and notesload carry the
+// eight kept slots and no more, by the count they are
+// handed.
+let notesblock = makebytes(576)
 let notecount = 0
 
 let diskup = diskhere()
@@ -1423,6 +1602,20 @@ while true {
                             }
                         }
                     }
+                    // The editor window's picking way
+                    // (Stone 21): the same arrows move its
+                    // pick — over the session's notes too,
+                    // which the window honestly holds when
+                    // no disk is keeping them.
+                    if pget(pixdesk, 180) == 5 {
+                        if pget(pixdesk, 224) == 0 {
+                            let sel = pget(pixdesk, 228)
+                            if sel > 0 {
+                                pset(pixdesk, 228, sel - 1)
+                                paintwindows(pixdesk, cellblock, notesblock)
+                            }
+                        }
+                    }
                 }
             }
             if k == 80 {
@@ -1432,6 +1625,18 @@ while true {
                             let sel = pget(pixdesk, 192)
                             if sel + 1 < pget(pixdesk, 196) {
                                 pset(pixdesk, 192, sel + 1)
+                                paintwindows(pixdesk, cellblock, notesblock)
+                            }
+                        }
+                    }
+                    // The editor window's picking way
+                    // (Stone 21): the pick runs from the
+                    // new-note entry to the last kept note.
+                    if pget(pixdesk, 180) == 5 {
+                        if pget(pixdesk, 224) == 0 {
+                            let sel = pget(pixdesk, 228)
+                            if sel < pget(pixdesk, 196) {
+                                pset(pixdesk, 228, sel + 1)
                                 paintwindows(pixdesk, cellblock, notesblock)
                             }
                         }
@@ -1451,6 +1656,98 @@ while true {
                 // line, drawing the face again, receiving
                 // the feather, keeping the clock's new offset —
                 // happens here, where the state lives.
+                // The editor window's Enter (Stone 21):
+                // while the editor stands forward, Enter on
+                // an EMPTY typing line is the window's own
+                // key, not a command's — in its picking way
+                // it begins writing the picked note (or a
+                // new one), and in its writing way it keeps
+                // the draft through the same store path the
+                // word 'note' uses. A line with words on it
+                // is a command, as it always is: the window
+                // never takes a typed word's Enter from it.
+                // 'edused' marks the line as the window's,
+                // so no command kind fires for it below. The
+                // setup gate's waiting answer is never the
+                // window's: while the gate waits, Enter
+                // answers the gate as it always has.
+                let edused = 0
+                if awaiting == 0 {
+                    if klen == 0 {
+                    if pix == 1 {
+                        if pget(pixdesk, 180) == 5 {
+                            if pget(pixdesk, 220) == 1 {
+                                let edmode = pget(pixdesk, 224)
+                                if edmode == 1 {
+                                    edused = 1
+                                    if notesblock[512] == 0 {
+                                        ansrow = printline(ansrow, "Write the words of your note first.", pix, pixdesk)
+                                    } else {
+                                        let slot = pget(pixdesk, 232)
+                                        let isnew = 0
+                                        if slot == 8 {
+                                            slot = notecount
+                                            isnew = 1
+                                        }
+                                        let dn = notesblock[512]
+                                        let di = 0
+                                        while di < dn {
+                                            notesblock[slot * 64 + 1 + di] = notesblock[512 + 1 + di]
+                                            di = di + 1
+                                        }
+                                        notesblock[slot * 64] = dn
+                                        if isnew == 1 {
+                                            notecount = notecount + 1
+                                            pset(pixdesk, 196, notecount)
+                                        }
+                                        pset(pixdesk, 228, slot + 1)
+                                        pset(pixdesk, 224, 0)
+                                        paintwindows(pixdesk, cellblock, notesblock)
+                                        if diskset == 1 {
+                                            if notesave(notesblock, notecount) == 1 {
+                                                ansrow = printline(ansrow, "Your note is kept on the disk.", pix, pixdesk)
+                                            } else {
+                                                ansrow = printline(ansrow, "The disk would not take the note, so it is kept only for now.", pix, pixdesk)
+                                            }
+                                        } else {
+                                            ansrow = printline(ansrow, "Your note is kept until the machine is turned off.", pix, pixdesk)
+                                        }
+                                    }
+                                }
+                                if edmode == 0 {
+                                    edused = 1
+                                    let pick = pget(pixdesk, 228)
+                                    if pick > notecount {
+                                        pick = 0
+                                    }
+                                    if pick == 0 {
+                                        if notecount >= 8 {
+                                            ansrow = printline(ansrow, "The notes page is full. Eight notes are kept there.", pix, pixdesk)
+                                        } else {
+                                            notesblock[512] = 0
+                                            pset(pixdesk, 232, 8)
+                                            pset(pixdesk, 224, 1)
+                                            paintwindows(pixdesk, cellblock, notesblock)
+                                        }
+                                    } else {
+                                        let slot = pick - 1
+                                        let cn = notesblock[slot * 64]
+                                        notesblock[512] = cn
+                                        let ci = 0
+                                        while ci < cn {
+                                            notesblock[512 + 1 + ci] = notesblock[slot * 64 + 1 + ci]
+                                            ci = ci + 1
+                                        }
+                                        pset(pixdesk, 232, slot)
+                                        pset(pixdesk, 224, 1)
+                                        paintwindows(pixdesk, cellblock, notesblock)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    }
+                }
                 let line = buildline(keys, keymod, 0, klen)
                 let wlen = klen
                 let wi = 0
@@ -1470,6 +1767,11 @@ while true {
                 klen = 0
                 drawtyping("", pix, pixdesk)
                 let kind = wordkind(cmd)
+                if edused == 1 {
+                    // The line was the editor window's own
+                    // (Stone 21): no kind's doing fires.
+                    kind = 0
+                }
                 if awaiting == 1 {
                     // The setup gate's answer (Stone 8):
                     // this line answers the gate, not the
@@ -1714,6 +2016,23 @@ while true {
                         ansrow = printline(ansrow, "This face has no windows to open.", pix, pixdesk)
                     }
                 }
+                if kind == 14 {
+                    // 'editor': the editor window is opened
+                    // and brought forward (Stone 21), in its
+                    // picking way with the new-note entry
+                    // picked, whatever way it last stood in.
+                    // The text face has no windows, and says
+                    // so in plain words, as for 'welcome'.
+                    if pix == 1 {
+                        pset(pixdesk, 220, 1)
+                        pset(pixdesk, 224, 0)
+                        pset(pixdesk, 228, 0)
+                        pset(pixdesk, 180, 5)
+                        paintwindows(pixdesk, cellblock, notesblock)
+                    } else {
+                        ansrow = printline(ansrow, "This face has no windows to open.", pix, pixdesk)
+                    }
+                }
                 if kind == 1 {
                     // A line of words answers it. A word
                     // the machine does not know is a
@@ -1731,9 +2050,10 @@ while true {
                 if k == 15 {
                     // Tab: the next open window comes
                     // forward (Stone 14, grown at Stone 19
-                    // to three windows and at Stone 20 to
-                    // four: welcome, feather, files,
-                    // settings, and round again). The key
+                    // to three windows, at Stone 20 to
+                    // four, and at Stone 21 to five:
+                    // welcome, feather, files, settings,
+                    // editor, and round again). The key
                     // types nothing, as it never has; on
                     // the text face, which has no windows,
                     // it simply passes.
@@ -1742,9 +2062,9 @@ while true {
                         let nxt = 0
                         let cand = cur
                         let tries = 0
-                        while tries < 4 {
+                        while tries < 5 {
                             cand = cand + 1
-                            if cand > 4 {
+                            if cand > 5 {
                                 cand = 1
                             }
                             let open = 0
@@ -1760,9 +2080,12 @@ while true {
                             if cand == 4 {
                                 open = pget(pixdesk, 208)
                             }
+                            if cand == 5 {
+                                open = pget(pixdesk, 220)
+                            }
                             if open == 1 {
                                 nxt = cand
-                                tries = 4
+                                tries = 5
                             } else {
                                 tries = tries + 1
                             }
@@ -1778,7 +2101,9 @@ while true {
                     if k == 1 {
                         // Escape: the forward window closes
                         // back to the desktop (Stone 14, the
-                        // files window joining at Stone 19),
+                        // files window joining at Stone 19,
+                        // the settings at Stone 20, and the
+                        // editor at Stone 21),
                         // and another, if one stands open,
                         // comes forward in its place.
                         if pix == 1 {
@@ -1851,14 +2176,74 @@ while true {
                                 }
                                 paintwindows(pixdesk, cellblock, notesblock)
                             }
+                            // The editor window joins the
+                            // closing (Stone 21): the four
+                            // chains above were written before
+                            // it stood here, so when one of
+                            // them finds nothing else open and
+                            // the editor stands open, the
+                            // editor comes forward in the
+                            // closed window's place.
+                            if fr >= 1 {
+                                if fr <= 4 {
+                                    if pget(pixdesk, 180) == 0 {
+                                        if pget(pixdesk, 220) == 1 {
+                                            pset(pixdesk, 180, 5)
+                                            paintwindows(pixdesk, cellblock, notesblock)
+                                        }
+                                    }
+                                }
+                            }
+                            if fr == 5 {
+                                pset(pixdesk, 220, 0)
+                                pset(pixdesk, 224, 0)
+                                if pget(pixdesk, 172) == 1 {
+                                    pset(pixdesk, 180, 1)
+                                } else {
+                                    if pget(pixdesk, 176) == 1 {
+                                        pset(pixdesk, 180, 2)
+                                    } else {
+                                        if pget(pixdesk, 188) == 1 {
+                                            pset(pixdesk, 180, 3)
+                                        } else {
+                                            if pget(pixdesk, 208) == 1 {
+                                                pset(pixdesk, 180, 4)
+                                            } else {
+                                                pset(pixdesk, 180, 0)
+                                            }
+                                        }
+                                    }
+                                }
+                                paintwindows(pixdesk, cellblock, notesblock)
+                            }
                         }
                     } else {
                 if k == 14 {
-                    // Backspace: forget the last key.
-                    if klen > 0 {
-                        klen = klen - 1
+                    // Backspace: forget the last key. While
+                    // the editor window stands forward in
+                    // its writing way (Stone 21), the key
+                    // forgets the draft's last letter
+                    // instead, and the typing line is not
+                    // touched.
+                    let edwrite = 0
+                    if pix == 1 {
+                        if pget(pixdesk, 180) == 5 {
+                            if pget(pixdesk, 224) == 1 {
+                                edwrite = 1
+                            }
+                        }
                     }
-                    drawtyping(buildline(keys, keymod, 0, klen), pix, pixdesk)
+                    if edwrite == 1 {
+                        if notesblock[512] > 0 {
+                            notesblock[512] = notesblock[512] - 1
+                            paintwindows(pixdesk, cellblock, notesblock)
+                        }
+                    } else {
+                        if klen > 0 {
+                            klen = klen - 1
+                        }
+                        drawtyping(buildline(keys, keymod, 0, klen), pix, pixdesk)
+                    }
                 } else {
                     // A letter or a mark: resolve its shift
                     // standing now, under the shifts as they
@@ -1880,12 +2265,38 @@ while true {
                     }
                     let ch = charFor(k, mod)
                     if length(ch) > 0 {
-                        if klen < 48 {
-                            keys[klen] = k
-                            keymod[klen] = mod
-                            klen = klen + 1
+                        // While the editor window stands
+                        // forward in its writing way (Stone
+                        // 21), the letter goes into the
+                        // draft instead of the typing line —
+                        // resolved under the same shifts and
+                        // Caps Lock, so the window's typing
+                        // is the desktop's real typing — and
+                        // the draft stops at a note's
+                        // measure, forty-three letters, the
+                        // limit the window itself names.
+                        let edwrite = 0
+                        if pix == 1 {
+                            if pget(pixdesk, 180) == 5 {
+                                if pget(pixdesk, 224) == 1 {
+                                    edwrite = 1
+                                }
+                            }
                         }
-                        drawtyping(buildline(keys, keymod, 0, klen), pix, pixdesk)
+                        if edwrite == 1 {
+                            if notesblock[512] < 43 {
+                                notesblock[512 + notesblock[512] + 1] = textbyte(ch, 0)
+                                notesblock[512] = notesblock[512] + 1
+                                paintwindows(pixdesk, cellblock, notesblock)
+                            }
+                        } else {
+                            if klen < 48 {
+                                keys[klen] = k
+                                keymod[klen] = mod
+                                klen = klen + 1
+                            }
+                            drawtyping(buildline(keys, keymod, 0, klen), pix, pixdesk)
+                        }
                     }
                 }
                     }
@@ -1960,6 +2371,10 @@ while true {
                                 let sy = setop(pixdesk)
                                 let sw = sewide(pixdesk)
                                 let sh = sehigh(pixdesk)
+                                let ex = edleft(pixdesk)
+                                let ey = edtop(pixdesk)
+                                let ew = edwide(pixdesk)
+                                let eh = edhigh(pixdesk)
                                 let acted = 0
                                 if acted == 0 {
                                     if pget(pixdesk, 172) == 1 {
@@ -2038,7 +2453,11 @@ while true {
                                                                     if pget(pixdesk, 208) == 1 {
                                                                         pset(pixdesk, 180, 4)
                                                                     } else {
-                                                                        pset(pixdesk, 180, 0)
+                                                                        if pget(pixdesk, 220) == 1 {
+                                                                            pset(pixdesk, 180, 5)
+                                                                        } else {
+                                                                            pset(pixdesk, 180, 0)
+                                                                        }
                                                                     }
                                                                 }
                                                             }
@@ -2078,6 +2497,57 @@ while true {
                                                     }
                                                 }
                                             }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    if pget(pixdesk, 220) == 1 {
+                                        if cxp >= (ex + ew - 2) * 16 {
+                                            if cxp < (ex + ew - 1) * 16 {
+                                                if cyp >= ey * 16 {
+                                                    if cyp < (ey + 1) * 16 {
+                                                        pset(pixdesk, 220, 0)
+                                                        pset(pixdesk, 224, 0)
+                                                        if pget(pixdesk, 180) == 5 {
+                                                            if pget(pixdesk, 172) == 1 {
+                                                                pset(pixdesk, 180, 1)
+                                                            } else {
+                                                                if pget(pixdesk, 176) == 1 {
+                                                                    pset(pixdesk, 180, 2)
+                                                                } else {
+                                                                    if pget(pixdesk, 188) == 1 {
+                                                                        pset(pixdesk, 180, 3)
+                                                                    } else {
+                                                                        if pget(pixdesk, 208) == 1 {
+                                                                            pset(pixdesk, 180, 4)
+                                                                        } else {
+                                                                            pset(pixdesk, 180, 0)
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 1 {
+                                    // A close mark's reckoning
+                                    // above may have found
+                                    // nothing to stand forward
+                                    // (Stone 21): those chains
+                                    // predate the editor, so
+                                    // when it alone stands open
+                                    // it comes forward in the
+                                    // closed window's place.
+                                    if pget(pixdesk, 180) == 0 {
+                                        if pget(pixdesk, 220) == 1 {
+                                            pset(pixdesk, 180, 5)
+                                            paintwindows(pixdesk, cellblock, notesblock)
                                         }
                                     }
                                 }
@@ -2165,6 +2635,77 @@ while true {
                                     }
                                 }
                                 if acted == 0 {
+                                    // A press on one of the
+                                    // editor window's rows
+                                    // (Stone 21): in its picking
+                                    // way, a press on an entry's
+                                    // row picks that entry — the
+                                    // new-note entry first, then
+                                    // the kept notes — as the
+                                    // files window's rows pick;
+                                    // in its writing way, a press
+                                    // on the keep row keeps the
+                                    // draft, through the same
+                                    // store path Enter keeps it
+                                    // by. Either way the window
+                                    // comes forward.
+                                    if pget(pixdesk, 220) == 1 {
+                                        if cxp >= ex * 16 {
+                                            if cxp < (ex + ew) * 16 {
+                                                let erow = cyp / 16
+                                                if pget(pixdesk, 224) == 0 {
+                                                    if erow >= ey + 3 {
+                                                        if erow < ey + 4 + pget(pixdesk, 196) {
+                                                            pset(pixdesk, 228, erow - ey - 3)
+                                                            pset(pixdesk, 180, 5)
+                                                            paintwindows(pixdesk, cellblock, notesblock)
+                                                            acted = 1
+                                                        }
+                                                    }
+                                                } else {
+                                                    if erow == ey + 6 {
+                                                        if notesblock[512] == 0 {
+                                                            ansrow = printline(ansrow, "Write the words of your note first.", pix, pixdesk)
+                                                        } else {
+                                                            let eslot = pget(pixdesk, 232)
+                                                            let enew = 0
+                                                            if eslot == 8 {
+                                                                eslot = notecount
+                                                                enew = 1
+                                                            }
+                                                            let edn = notesblock[512]
+                                                            let edi = 0
+                                                            while edi < edn {
+                                                                notesblock[eslot * 64 + 1 + edi] = notesblock[512 + 1 + edi]
+                                                                edi = edi + 1
+                                                            }
+                                                            notesblock[eslot * 64] = edn
+                                                            if enew == 1 {
+                                                                notecount = notecount + 1
+                                                                pset(pixdesk, 196, notecount)
+                                                            }
+                                                            pset(pixdesk, 228, eslot + 1)
+                                                            pset(pixdesk, 224, 0)
+                                                            if diskset == 1 {
+                                                                if notesave(notesblock, notecount) == 1 {
+                                                                    ansrow = printline(ansrow, "Your note is kept on the disk.", pix, pixdesk)
+                                                                } else {
+                                                                    ansrow = printline(ansrow, "The disk would not take the note, so it is kept only for now.", pix, pixdesk)
+                                                                }
+                                                            } else {
+                                                                ansrow = printline(ansrow, "Your note is kept until the machine is turned off.", pix, pixdesk)
+                                                            }
+                                                        }
+                                                        pset(pixdesk, 180, 5)
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
                                     if pget(pixdesk, 176) == 1 {
                                         if cxp >= (gx + 1) * 16 {
                                             if cxp < (gx + 53) * 16 {
@@ -2231,6 +2772,21 @@ while true {
                                                 if cyp >= sy * 16 {
                                                     if cyp < (sy + sh) * 16 {
                                                         pset(pixdesk, 180, 4)
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    if pget(pixdesk, 220) == 1 {
+                                        if cxp >= ex * 16 {
+                                            if cxp < (ex + ew) * 16 {
+                                                if cyp >= ey * 16 {
+                                                    if cyp < (ey + eh) * 16 {
+                                                        pset(pixdesk, 180, 5)
                                                         paintwindows(pixdesk, cellblock, notesblock)
                                                         acted = 1
                                                     }

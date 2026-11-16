@@ -65,6 +65,18 @@
 //       window's painting shows the choices as they
 //       actually stand. (180's forward reckoning grows
 //       too: 4 is the settings window.)
+//  220  the editor window's standing (Stone 21): whether
+//       it stands open (220), whether it stands in its
+//       writing way or its picking way (224: 0 picking,
+//       1 writing), which entry stands picked in the
+//       picking way (228: 0 the new-note entry, then one
+//       more than the note's own place), and which note
+//       the writing way is changing (232: the note's
+//       place, or 8 when the note is a new one). The
+//       note count and the keeping standing it shows are
+//       the files window's copies at 196, 200 and 204 —
+//       the same facts. (180's forward reckoning grows
+//       again: 5 is the editor window.)
 //
 // A letter cell is sixteen pixels square: the font's eight
 // by eight, drawn at twice size. The face's layout is the

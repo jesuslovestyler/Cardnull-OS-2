@@ -53,6 +53,9 @@
 //  13 — the settings window is opened and brought forward
 //       ('settings'; the window is the face of light's,
 //       Stone 20, and the doing is the main body's)
+//  14 — the editor window is opened and brought forward
+//       ('editor'; the window is the face of light's,
+//       Stone 21, and the doing is the main body's)
 make wordkind(word) {
     if word == "" {
         give 0
@@ -95,6 +98,9 @@ make wordkind(word) {
     }
     if word == "settings" {
         give 13
+    }
+    if word == "editor" {
+        give 14
     }
     give 1
 }
