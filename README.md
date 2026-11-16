@@ -1435,6 +1435,73 @@ away leaves the plain desktop there, not the words —
 the same manners opening and closing a window have
 always kept; `clear` draws the face whole again.
 
+### Stone 23 — The bar's menu
+
+The top bar answers the pointer now: **a press on the
+Cardnull bar opens a small menu of plain words** just
+under the bar, at the desktop's left — the five
+windows' names, one to a row: **Welcome, Feather,
+Files, Settings, Editor**, the names the desktop
+already gives them. A press on a choice opens that
+window (or brings it forward), **exactly as the
+choice's typed word does** — the Feather choice asks
+for the feather through the door, as the word
+`feather` does, and the Editor choice opens the editor
+in its picking way, as the word `editor` does. A press
+anywhere else puts the menu away without opening
+anything, and so does the Escape key — while the menu
+stands open, Escape is the menu's, and closes no
+window. A press that meets the menu is never a
+title-bar drag (Stone 22): while the menu stands open,
+every press is the menu's alone, and the bar itself
+answers no other press — no window's title bar can
+stand in its row, since a drag keeps every window's
+top at row 1 or below — so the bar's press is the
+menu's alone too.
+
+The menu is desktop chrome, kept under the windows'
+own discipline: plain words in the pixel face, no
+codes, and **its place reckoned once** — its left,
+top, width, and height in letter cells (`menuleft` and
+its kin in the main body: left cell 0, top row 1,
+twelve wide — room for the longest name, Settings —
+and five high, one row to a choice) — read by its
+painter and by the pointer's pressing alike, so the
+two can never disagree about where the menu stands.
+Its standing lives in the pixel face's desk at 268,
+with the windows' standings; while it stands open it
+is painted last, over everything, and putting it away
+wipes its ground back to the plain desktop and paints
+the windows again, so whatever stood under it stands
+whole once more. A clearing of the face (`clear`) puts
+it away too. The typed words keep working exactly as
+before, and the bar's clock keeps telling time above
+it all.
+
+Proven by `prove-stone23.sh`: the shipped disc is
+booted with no disk fitted; a press on the bar opens
+the menu and its five rendered choices are **decoded
+letter by letter** against the system's own letter
+shapes. A press on the Files choice opens the files
+window — its title and its plain heading ("There is
+no disk fitted.") decoded at the window's own place —
+and Escape closes it again, as it always has. The
+menu is reopened and dismissed by a press on the plain
+desktop elsewhere: every pixel of its ground stands
+plain desktop again, no window has opened, and the
+welcome window's title still decodes — the desktop
+whole. The typed word `files` opens the files window
+again, exactly as before. Finally the menu is opened
+once more and Escape puts the menu away and no window
+with it — the files window's title still decodes — and
+the bar's clock still stands at its right end.
+
+Honest limits: the menu is the pixel face's alone, as
+the windows are — the text face has no pointer and no
+bar to press, as it never has. The menu holds no
+standing of its own beyond open or closed: it is not
+kept anywhere, and each boot starts with it closed.
+
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 
 This is not one of this system's own stones; it is the

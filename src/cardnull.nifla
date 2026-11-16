@@ -208,6 +208,27 @@
 //          and every content press still reckon from the
 //          window's one place. A dragged place lasts for
 //          the sitting; nothing keeps it past it.
+// Stone 23: the bar's menu — a press of the pointer on
+//          the top bar opens a small menu of plain words
+//          just under the bar, at the desktop's left: the
+//          five windows' names, one to a row — Welcome,
+//          Feather, Files, Settings, Editor, the names
+//          the desktop already gives them. A press on a
+//          choice opens that window (or brings it
+//          forward), exactly as the choice's typed word
+//          does — the feather's choice asks for the
+//          feather, as the word 'feather' does — and a
+//          press anywhere else, or the Escape key, puts
+//          the menu away without opening anything. The
+//          menu's place is reckoned once (menuleft and
+//          its kin, below) and read by its painter and
+//          the pointer's pressing alike, the discipline
+//          the windows have kept since Stone 14; its
+//          standing lives in the pixel face's desk at
+//          268. The typed words keep working exactly as
+//          before, the bar's clock keeps telling time,
+//          and a press that meets the menu is never a
+//          title-bar drag.
 //
 // The arrangement of the screen:
 //   row 0      the bar — "Cardnull" at the left, the date
@@ -1062,6 +1083,83 @@ make oneeditor(desk, notes) {
     }
 }
 
+// ---- the bar's menu (Stone 23) ----
+//
+// A press of the pointer on the top bar — the Cardnull
+// bar — opens a small menu of plain words just under
+// the bar, at the desktop's left: the five windows'
+// names, one to a row — Welcome, Feather, Files,
+// Settings, Editor, the names the desktop already
+// gives them. A press on a choice opens that window
+// (or brings it forward), exactly as the choice's
+// typed word does — the feather's choice asks for the
+// feather, as the word 'feather' does — and a press
+// anywhere else, or the Escape key, puts the menu away
+// without opening anything. The menu is desktop
+// chrome: plain words in the pixel face, and no codes.
+//
+// The menu's place is reckoned once, here — its left,
+// top, width, and height in letter cells — and the
+// painter below and the pointer's pressing in the main
+// loop both read those reckonings, the discipline the
+// windows have kept since Stone 14: painter and
+// pointer can never disagree about where the menu
+// stands. Its standing lives in the pixel face's desk
+// at 268 (pixface.nifla's ledger): 1 while it stands
+// open. The menu stands under the bar at the left: its
+// top is the bar's underside (row 1), it is twelve
+// cells wide — room for the longest name, Settings,
+// with the frame's breathing room the windows keep —
+// and five cells high, one row to a choice.
+
+make menuleft(desk) {
+    give 0
+}
+
+make menutop(desk) {
+    give 1
+}
+
+make menuwide(desk) {
+    give 12
+}
+
+make menuhigh(desk) {
+    give 5
+}
+
+// Wipes the menu's place back to the plain desktop:
+// the ground the menu covered is filled black, and the
+// caller paints the windows again over it, so whatever
+// stood under the menu stands whole once more.
+make menuwash(desk) {
+    pixink(desk, 0)
+    pixfill(desk, menuleft(desk) * 16, menutop(desk) * 16, menuwide(desk) * 16, menuhigh(desk) * 16)
+}
+
+// Paints the bar's menu from the desk's standing: open,
+// its gray edge and black body and the five choices in
+// white, one to a row; closed, nothing — putting the
+// menu away is menuwash's and the windows' painting's
+// work.
+make onemenu(desk) {
+    if pget(desk, 268) == 1 {
+        let ml = menuleft(desk)
+        let mt = menutop(desk)
+        let mw = menuwide(desk)
+        let mh = menuhigh(desk)
+        pixink(desk, 8)
+        pixfill(desk, ml * 16, mt * 16, mw * 16, mh * 16)
+        pixink(desk, 0)
+        pixfill(desk, ml * 16 + 2, mt * 16 + 2, mw * 16 - 4, mh * 16 - 4)
+        pixline(desk, (mt + 0) * 256 + (ml + 1), "Welcome", 15)
+        pixline(desk, (mt + 1) * 256 + (ml + 1), "Feather", 15)
+        pixline(desk, (mt + 2) * 256 + (ml + 1), "Files", 15)
+        pixline(desk, (mt + 3) * 256 + (ml + 1), "Settings", 15)
+        pixline(desk, (mt + 4) * 256 + (ml + 1), "Editor", 15)
+    }
+}
+
 // Paints the windows: the closed ones first (each is
 // painted as the plain desktop it covers), then the open
 // ones behind, and the forward one last, so the forward
@@ -1135,6 +1233,12 @@ make paintwindows(desk, block, notes) {
         if pget(desk, 220) == 1 {
             oneeditor(desk, notes)
         }
+    }
+    // The bar's menu stands over everything (Stone 23):
+    // while it stands open it is painted last, so no
+    // window's painting can cover it.
+    if pget(desk, 268) == 1 {
+        onemenu(desk)
     }
 }
 
@@ -1504,6 +1608,9 @@ if pix == 1 {
     // (The editor window's standing at 220 to 232 starts
     // at nothing, as the desk is taken cleared: closed,
     // in its picking way.)
+    // The bar menu's standing (Stone 23), at 268: it
+    // starts closed — a press on the bar opens it.
+    pset(pixdesk, 268, 0)
     pixbegin(pixdesk)
     // The windows' places (Stone 22), at 236 to 264:
     // each window's left and top are laid here, at the
@@ -1970,6 +2077,11 @@ while true {
                     // 'clear': the face is drawn again, empty.
                     drawface(offset, utcnow, pix, pixdesk)
                     if pix == 1 {
+                        // The bar's menu is put away by a
+                        // clearing too (Stone 23): the face
+                        // stands drawn whole, and no menu
+                        // stands on the new face.
+                        pset(pixdesk, 268, 0)
                         paintwindows(pixdesk, cellblock, notesblock)
                     }
                     ansrow = 13
@@ -2262,7 +2374,26 @@ while true {
                         // and another, if one stands open,
                         // comes forward in its place.
                         if pix == 1 {
+                            // The bar's menu stands in
+                            // Escape's way first (Stone
+                            // 23): while it stands open,
+                            // Escape puts the menu away
+                            // and closes no window — the
+                            // forward reckoning is set
+                            // aside below (fr stands at
+                            // nothing), so every closing
+                            // chain passes by.
+                            let menuhad = 0
+                            if pget(pixdesk, 268) == 1 {
+                                pset(pixdesk, 268, 0)
+                                menuhad = 1
+                                menuwash(pixdesk)
+                                paintwindows(pixdesk, cellblock, notesblock)
+                            }
                             let fr = pget(pixdesk, 180)
+                            if menuhad == 1 {
+                                fr = 0 - 1
+                            }
                             if fr == 1 {
                                 pset(pixdesk, 172, 0)
                                 if pget(pixdesk, 176) == 1 {
@@ -2592,6 +2723,93 @@ while true {
                                 let ew = edwide(pixdesk)
                                 let eh = edhigh(pixdesk)
                                 let acted = 0
+                                if acted == 0 {
+                                    // The bar and its menu
+                                    // (Stone 23): while the
+                                    // menu stands open, a
+                                    // press is the menu's
+                                    // alone — a press on a
+                                    // choice opens its
+                                    // window, exactly as the
+                                    // choice's typed word
+                                    // does (the feather's
+                                    // choice asks for the
+                                    // feather, as the word
+                                    // does), and a press
+                                    // anywhere else puts the
+                                    // menu away without
+                                    // opening anything — and
+                                    // without taking hold of
+                                    // any window for a drag:
+                                    // a menu press is never
+                                    // a title-bar drag. While
+                                    // the menu stands closed,
+                                    // a press on the top bar
+                                    // opens it: the bar
+                                    // answers no other press,
+                                    // and no window's title
+                                    // bar can stand in its
+                                    // row (a drag keeps every
+                                    // window's top at row 1
+                                    // or below), so the bar's
+                                    // press is the menu's
+                                    // alone too. The menu's
+                                    // place is read through
+                                    // its own reckonings
+                                    // (menuleft and its kin),
+                                    // the ones its painter
+                                    // reads.
+                                    if pget(pixdesk, 268) == 1 {
+                                        let ml = menuleft(pixdesk)
+                                        let mt = menutop(pixdesk)
+                                        let mw = menuwide(pixdesk)
+                                        let mh = menuhigh(pixdesk)
+                                        let inmenu = 0
+                                        if cxp >= ml * 16 {
+                                            if cxp < (ml + mw) * 16 {
+                                                if cyp >= mt * 16 {
+                                                    if cyp < (mt + mh) * 16 {
+                                                        inmenu = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        pset(pixdesk, 268, 0)
+                                        menuwash(pixdesk)
+                                        if inmenu == 1 {
+                                            let pick = cyp / 16 - mt
+                                            if pick == 0 {
+                                                pset(pixdesk, 172, 1)
+                                                pset(pixdesk, 180, 1)
+                                            }
+                                            if pick == 1 {
+                                                featherask = 1
+                                            }
+                                            if pick == 2 {
+                                                pset(pixdesk, 188, 1)
+                                                pset(pixdesk, 180, 3)
+                                            }
+                                            if pick == 3 {
+                                                pset(pixdesk, 208, 1)
+                                                pset(pixdesk, 180, 4)
+                                            }
+                                            if pick == 4 {
+                                                pset(pixdesk, 220, 1)
+                                                pset(pixdesk, 224, 0)
+                                                pset(pixdesk, 228, 0)
+                                                pset(pixdesk, 180, 5)
+                                            }
+                                        }
+                                        paintwindows(pixdesk, cellblock, notesblock)
+                                        acted = 1
+                                    } else {
+                                        if cyp < 16 {
+                                            pset(pixdesk, 268, 1)
+                                            onemenu(pixdesk)
+                                            acted = 1
+                                        }
+                                    }
+                                }
                                 if acted == 0 {
                                     if pget(pixdesk, 172) == 1 {
                                         if cxp >= (pl + pw - 2) * 16 {

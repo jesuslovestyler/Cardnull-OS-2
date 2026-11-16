@@ -91,6 +91,13 @@
 //       needed no pair of its own: its place has always
 //       lived in this desk at 140 to 152, and dragging
 //       writes that place itself, the same way.
+//  268  the bar menu's standing (Stone 23): whether the
+//       menu the top bar opens stands open (1) or not
+//       (0). The menu's place is reckoned in the main
+//       body (menuleft and its kin), the same discipline
+//       as the windows' measures, and its painting is
+//       there too; only its standing lives here, with
+//       the windows'.
 //
 // A letter cell is sixteen pixels square: the font's eight
 // by eight, drawn at twice size. The face's layout is the
