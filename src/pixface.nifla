@@ -46,8 +46,17 @@
 //       desk like the rest of the face's estate: whether
 //       the welcome window stands open (172), whether the
 //       feather window stands open (176), which window is
-//       forward (180: 1 the welcome, 2 the feather, 0 none),
-//       and whether a feather has visited (184)
+//       forward (180: 1 the welcome, 2 the feather, 3 the
+//       files window, 0 none), and whether a feather has
+//       visited (184)
+//  188  the files window's standing (Stone 19): whether
+//       it stands open (188), which kept note stands
+//       picked in it (192), how many notes stand kept
+//       (196), whether a disk is keeping them (200), and
+//       whether a disk is fitted at all (204) — the last
+//       three are the main body's facts, copied into the
+//       desk whenever they change, so the window's
+//       painting can say plainly where the notes live
 //
 // A letter cell is sixteen pixels square: the font's eight
 // by eight, drawn at twice size. The face's layout is the

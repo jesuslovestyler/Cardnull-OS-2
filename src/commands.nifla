@@ -47,6 +47,9 @@
 //  11 — the welcome chime is sounded again ('chime';
 //       the voice is speaker.nifla's, Stone 18, and the
 //       sounding is the main body's to make)
+//  12 — the files window is opened and brought forward
+//       ('files'; the window is the face of light's,
+//       Stone 19, and the doing is the main body's)
 make wordkind(word) {
     if word == "" {
         give 0
@@ -83,6 +86,9 @@ make wordkind(word) {
     }
     if word == "chime" {
         give 11
+    }
+    if word == "files" {
+        give 12
     }
     give 1
 }

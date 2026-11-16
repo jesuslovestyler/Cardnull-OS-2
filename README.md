@@ -61,6 +61,8 @@ To build the bootable witness disc (see "The witness disc" below):
 ./prove-pointertrail.sh  # drags the pointer across the desktop and
                       # requires the desktop pixel for pixel as it was
                       # (the pointer trail fix)
+./prove-stone19.sh    # opens the files window on a prepared disk and
+                      # DECODES its list letter by letter (Stone 19)
 ./build-stick.sh      # makes dist/cardnull-stick.img (Stone 17)
 ```
 
@@ -1095,6 +1097,68 @@ things; it has no words, and the desktop's law of
 plain words is unchanged — the sounds accompany the
 words, they never replace them.
 
+### Stone 19 — The files window
+
+A third window stands on the face of light now, opened
+by the new word `files` (kind 12). It lists what the
+fitted disk actually holds — and what the disk honestly
+holds today is the notes page of the CNN3 store
+(sectors 64 onward, Stone 15): the window is a list of
+exactly those notes, each entry the note's own words,
+and no filesystem is invented beyond them. The picked
+entry stands white on blue; picking one — a press of
+the pointer on its row, or the up and down arrow keys
+while the window stands forward — shows that note's
+whole words at the window's foot, under the plain label
+"The note you picked:". Tab cycles through all three
+windows now, Escape closes the forward one as before,
+and each window's close mark still closes it, the files
+window's included. The window's standing lives in the
+pixel face's desk beside the others' (offsets 188 to
+204), with the main body's facts — how many notes stand
+kept, whether a disk is keeping them, whether one is
+fitted at all — copied into the desk whenever they
+change, so its painting can say plainly where the notes
+live.
+
+With no disk fitted, the window says so in plain words
+— "There is no disk fitted." and "Nothing is saved." —
+and shows no entry at all; a disk fitted but not yet
+given over is told the same honest way ("This disk is
+not keeping your choices yet." / "Nothing is saved on
+it."), and a keeping disk with an empty page says that
+instead. Notes kept only for the session are never
+shown as if they were saved.
+
+Proven by `prove-stone19.sh`: a keeping disk prepared
+with three known notes in the CNN3 store (the settings
+card on sector 8, the header on sector 64, one sector
+to a note — the shape Stone 15's proof checks byte for
+byte) is booted with the shipped disc, the word `files`
+is typed, and the window's rendered list is **decoded
+letter by letter** against the system's own letter
+shapes and compared against the known notes; the down
+arrow and then a pointer press each move the pick, and
+the picked note's whole words must stand at the
+window's foot; Tab cycles through all three windows;
+Escape closes the files window back to the desktop. A
+second boot with no disk at all reads the plain
+no-disk words back the same way, and checks that no
+picked note is shown.
+
+Honest limits: the list is the notes page and nothing
+more — the store holds no other kind of file, so the
+window shows no other kind; a note's entry is its whole
+text (a note is one line of at most 43 letters, and the
+window is wide enough for it whole). The files window
+stands on the face of light only; the text face answers
+`files` as it answers `welcome`, in plain words. The
+word `files` is not named on the desktop's invitation
+line, as `note` and `notes` are not. And the window is
+a reader, not an editor: a note is still kept by the
+word `note`, and there is still no erasing or editing
+of a kept note.
+
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 
 This is not one of this system's own stones; it is the
@@ -1439,9 +1503,11 @@ was split by duty, without changing its behavior:
 - `src/cardnull.nifla` — the main body: the boot sequence, the
   first-breath lift of what the loader brought, all the system's
   state, the face, the typing line, and the loop that calls the
-  libraries. The two windows' painting lives here too (Stone 14:
-  winframe, onewelcome, onefeather, paintwindows), reading the
-  windows' standing from the pixel face's desk.
+  libraries. The windows' painting lives here too (Stone 14:
+  winframe, onewelcome, onefeather, paintwindows; Stone 19:
+  onefiles and filenotetext, the files window and its drawing
+  of the kept notes from their bytes), reading the windows'
+  standing from the pixel face's desk.
 - `src/screenlib.nifla` — the screen library: drawing on the text
   screen's own memory (clearscreen, writeat, paintrow, paintrect,
   scrollanswers).
