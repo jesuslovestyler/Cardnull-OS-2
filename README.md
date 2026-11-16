@@ -63,6 +63,9 @@ To build the bootable witness disc (see "The witness disc" below):
                       # (the pointer trail fix)
 ./prove-stone19.sh    # opens the files window on a prepared disk and
                       # DECODES its list letter by letter (Stone 19)
+./prove-stone20.sh    # opens the settings window, CLICKS its choices,
+                      # and reads them back from the disk's card after
+                      # a re-boot (Stone 20)
 ./build-stick.sh      # makes dist/cardnull-stick.img (Stone 17)
 ```
 
@@ -1159,6 +1162,79 @@ a reader, not an editor: a note is still kept by the
 word `note`, and there is still no erasing or editing
 of a kept note.
 
+### Stone 20 — The settings window
+
+A fourth window stands on the face of light now, opened
+by the new word `settings` (kind 13). Two choices are
+set there **by clicking**: the time zone — "Eastern
+time" or "World's standard time", under the plain label
+"Time zone:" — and whether the welcome chime sounds —
+"Chime on" or "Chime off", under "Welcome chime:". Each
+choice stands as its own row, and the one that truly
+stands is shown white on blue with the pick mark, the
+files window's way; a press of the pointer on a choice's
+row sets that choice. The window shows the choices as
+they actually stand — its time zone from the very
+offset the bar's clock reckons by, its chime from
+whether the chime is on — and the typed words follow it
+and it follows them: `eastern` and `utc` move the
+window's pick as they move the clock, and `chime` is
+governed by the standing, answering in plain words
+("The chime is off, so nothing sounded.") when the
+chime stands off. The refusal's low note is not the
+chime and sounds as it always has. Tab cycles through
+all four windows now, Escape closes the forward one,
+and the window's close mark closes it like the others'.
+Its standing lives in the pixel face's desk beside the
+others' (offsets 208 to 216), the main body's facts
+copied in whenever they change.
+
+The choices are kept the way the time choice has been
+kept since Stone 8: on the fitted keeping disk's
+settings card (sector 8), which grows by one byte at
+its end — the chime byte, fourth on the card: 1 when
+the chime stands on, 2 when it stands off, and 0 when
+no choice was ever kept there, so a card laid before
+this stone keeps the chime on, as it always sounded.
+A click on a keeping disk writes both choices through
+at once, and the window's foot says so: "Your choices
+are kept on the disk." With no keeping disk the window
+says plainly, "Your choices last only for this sitting."
+— with "There is no disk fitted." or "This disk is not
+keeping them yet." beneath, as the case stands — and
+the choices still work for the sitting, exactly as
+honestly as the typed words have always put it.
+
+Proven by `prove-stone20.sh`: a keeping disk prepared
+with an Eastern card (its chime byte 0, as an older
+card carries) is booted with the shipped disc at a
+bench clock where Eastern reads 19 and the world's
+standard 00; the word `settings` opens the window and
+its rendered choices are **decoded letter by letter**
+against the system's own letter shapes; the typed word
+`eastern` is answered as before; a pointer press on
+the world's-standard row moves the bar clock's own
+rendered figures to 00, and a press on the chime-off
+row stands the chime off in the window; Tab cycles
+through all four windows and Escape closes the
+settings window. The disk's bytes are then checked —
+the card carries offset 64 and chime byte 2 — and a
+second boot on the same disk, choosing nothing, finds
+the clock already at 00 and both choices as they were
+left: they persisted from the card. A third boot with
+no disk at all reads the plain sitting-only words back
+and clicks the clock over for the sitting.
+
+Honest limits: the settings window stands on the face
+of light only; the text face answers `settings` as it
+answers `welcome`, in plain words. The word `settings`
+is not named on the desktop's invitation line, as
+`files` is not. The chime's standing governs the
+welcome chime — at the desktop's rising and at the
+word `chime` — and nothing else that sounds; and a
+choice made with no keeping disk is gone when the
+machine is turned off, as the window itself says.
+
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 
 This is not one of this system's own stones; it is the
@@ -1506,8 +1582,9 @@ was split by duty, without changing its behavior:
   libraries. The windows' painting lives here too (Stone 14:
   winframe, onewelcome, onefeather, paintwindows; Stone 19:
   onefiles and filenotetext, the files window and its drawing
-  of the kept notes from their bytes), reading the windows'
-  standing from the pixel face's desk.
+  of the kept notes from their bytes; Stone 20: onesettings
+  and sechoice, the settings window and its choice rows),
+  reading the windows' standing from the pixel face's desk.
 - `src/screenlib.nifla` — the screen library: drawing on the text
   screen's own memory (clearscreen, writeat, paintrow, paintrect,
   scrollanswers).
@@ -1536,7 +1613,8 @@ was split by duty, without changing its behavior:
 - `src/diskkeep.nifla` — what the system remembers on a hard
   disk (Stone 8): waking the drive, the settings card and its
   reading, the write-back, and the setup clearing
-  (diskhere, savedoffset, remember, disksetup). The notes
+  (diskhere, savedoffset, remember, disksetup). Stone 20
+  grows the card by its chime byte (savedchime, rememberall). The notes
   page's carrying is here too (Stone 15: notesload, notesave)
   — a header on sector 64 and one sector to a note.
 - `src/font.nifla` — the letters of the face of light

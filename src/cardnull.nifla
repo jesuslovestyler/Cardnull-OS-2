@@ -148,6 +148,27 @@
 //          With no disk fitted it says so plainly and
 //          that nothing is saved; Tab cycles through it
 //          with the other windows, and Escape closes it.
+// Stone 20: the settings window — a fourth window on the
+//          face of light, opened by the word 'settings'.
+//          Two choices are set there by clicking: the time
+//          zone (Eastern or the world's standard time) and
+//          whether the welcome chime sounds. The window
+//          shows the choices as they truly stand — the
+//          offset the bar's clock reckons by, and whether
+//          the chime is on. When a keeping disk stands
+//          ready, a click writes both choices through to
+//          its settings card (sector 8, the chime in the
+//          card's fourth byte — diskkeep.nifla), so they
+//          survive a reboot; with no keeping disk the
+//          window says plainly that the choices last only
+//          for this sitting, exactly as the typed words
+//          have always said. The typed words 'eastern',
+//          'utc', and 'chime' keep working as before, and
+//          the window's standing follows them. The chime
+//          standing governs the welcome at the desktop's
+//          rising and the word 'chime'; the refusal's low
+//          note is not the chime and sounds as it always
+//          has.
 //
 // The arrangement of the screen:
 //   row 0      the bar — "Cardnull" at the left, the date
@@ -760,6 +781,115 @@ make onefiles(desk, notes) {
     }
 }
 
+// ---- the settings window (Stone 20) ----
+//
+// A fourth window, standing where the files window
+// stands — the two are never forward at once, and the
+// painting order below keeps each whole. Two choices
+// are set here by clicking: the time zone and whether
+// the welcome chime sounds. Each choice stands as its
+// own row; the one that truly stands is shown white on
+// blue with the pick mark, exactly as the files window
+// shows its pick, and a press of the pointer on a
+// choice's row sets that choice (the pressing is the
+// main loop's, reckoned from these same four measures).
+// The window's standing lives in the desk at 208 to 216
+// (pixface.nifla's ledger): open, and the main body's
+// facts copied in whenever they change — whether the
+// chime stands on, and the clock's offset as the bar
+// truly reckons it — with the keeping and the fitted
+// standing shared from the files window's copy at 200
+// and 204, the same facts. When no disk is keeping the
+// choices, the window says plainly that they last only
+// for this sitting.
+
+make sewide(desk) {
+    if pget(desk, 28) >= 56 {
+        give 54
+    }
+    give pget(desk, 28) - 2
+}
+
+make seleft(desk) {
+    give (pget(desk, 28) - sewide(desk)) / 2
+}
+
+make setop(desk) {
+    give layrow(desk, 17)
+}
+
+make sehigh(desk) {
+    give 13
+}
+
+// Draws one of the settings window's choice rows: the
+// row that truly stands is filled blue and its words
+// stand white with the pick mark; the other stands in
+// the window's quiet colors. The row and the words are
+// named by 'place' — the row times 256 plus the column
+// the words start at — as pixline packs its cell.
+make sechoice(desk, place, text, picked) {
+    let row = place / 256
+    let col = place - row * 256
+    if picked == 1 {
+        pixink(desk, 1)
+        pixfill(desk, (col - 4) * 16 + 2, row * 16, sewide(desk) * 16 - 4, 16)
+        pixline(desk, row * 256 + (col - 2), ">", 31)
+        pixline(desk, row * 256 + col, text, 31)
+    } else {
+        pixline(desk, row * 256 + col, text, 7)
+    }
+}
+
+// Paints the settings window from the desk's standing:
+// closed, the plain desktop; open, its frame and title
+// bar, the two choices with the standing one picked —
+// the time zone from the offset the bar's clock truly
+// reckons by, the chime from whether it truly sounds —
+// and at its foot the plain word of where the choices
+// live: kept on the disk, or only for this sitting.
+make onesettings(desk) {
+    let gx = seleft(desk)
+    let gy = setop(desk)
+    let gw = sewide(desk)
+    let gh = sehigh(desk)
+    if pget(desk, 208) == 0 {
+        pixink(desk, 0)
+        pixfill(desk, gx * 16, gy * 16, gw * 16, gh * 16)
+    } else {
+        let front = 0
+        if pget(desk, 180) == 4 {
+            front = 1
+        }
+        winframe(desk, gy * 256 + gx, gh * 256 + gw, front)
+        pixspan(desk, 0, 8, 15)
+        pixtext(desk, gy, gx + 1, "Settings")
+        pixink(desk, 0)
+        pixfill(desk, gx * 16 + 2, gy * 16 + 18, gw * 16 - 4, gh * 16 - 20)
+        pixline(desk, (gy + 2) * 256 + (gx + 2), "Time zone:", 7)
+        let eastern = 0
+        if pget(desk, 216) != 0 {
+            eastern = 1
+        }
+        sechoice(desk, (gy + 3) * 256 + (gx + 4), "Eastern time", eastern)
+        sechoice(desk, (gy + 4) * 256 + (gx + 4), "World's standard time", 1 - eastern)
+        pixline(desk, (gy + 6) * 256 + (gx + 2), "Welcome chime:", 7)
+        let chon = pget(desk, 212)
+        sechoice(desk, (gy + 7) * 256 + (gx + 4), "Chime on", chon)
+        sechoice(desk, (gy + 8) * 256 + (gx + 4), "Chime off", 1 - chon)
+        if pget(desk, 200) == 1 {
+            pixline(desk, (gy + 10) * 256 + (gx + 2), "Your choices are kept on the disk.", 7)
+        } else {
+            pixline(desk, (gy + 10) * 256 + (gx + 2), "Your choices last only for this sitting.", 7)
+            if pget(desk, 204) == 0 {
+                pixline(desk, (gy + 11) * 256 + (gx + 2), "There is no disk fitted.", 7)
+            } else {
+                pixline(desk, (gy + 11) * 256 + (gx + 2), "This disk is not keeping them yet.", 7)
+            }
+        }
+    }
+}
+
 // Paints the windows: the closed ones first (each is
 // painted as the plain desktop it covers), then the open
 // ones behind, and the forward one last, so the forward
@@ -777,6 +907,9 @@ make paintwindows(desk, block, notes) {
     if pget(desk, 188) == 0 {
         onefiles(desk, notes)
     }
+    if pget(desk, 208) == 0 {
+        onesettings(desk)
+    }
     let f = pget(desk, 180)
     if f != 1 {
         if pget(desk, 172) == 1 {
@@ -793,6 +926,11 @@ make paintwindows(desk, block, notes) {
             onefiles(desk, notes)
         }
     }
+    if f != 4 {
+        if pget(desk, 208) == 1 {
+            onesettings(desk)
+        }
+    }
     if f == 1 {
         if pget(desk, 172) == 1 {
             onewelcome(desk)
@@ -806,6 +944,11 @@ make paintwindows(desk, block, notes) {
     if f == 3 {
         if pget(desk, 188) == 1 {
             onefiles(desk, notes)
+        }
+    }
+    if f == 4 {
+        if pget(desk, 208) == 1 {
+            onesettings(desk)
         }
     }
 }
@@ -950,6 +1093,18 @@ if diskup == 1 {
         diskset = 1
     }
 }
+// The chime's standing (Stone 20): it sounds, unless a
+// keeping disk's card says it stands off — the card's
+// chime byte (diskkeep.nifla) is read with the offset
+// above, from the same card. A card laid before the
+// chime had a byte of its own carries 0 there, and the
+// chime stands on, as it always has.
+let chimeon = 1
+if diskset == 1 {
+    if savedchime() == 2 {
+        chimeon = 0
+    }
+}
 if diskset == 1 {
     // A keeping disk's notes are read back at boot, so
     // they stay (Stone 15).
@@ -1034,6 +1189,14 @@ if pix == 1 {
     pset(pixdesk, 196, notecount)
     pset(pixdesk, 200, diskset)
     pset(pixdesk, 204, diskup)
+    // The settings window's standing (Stone 20), at 208
+    // to 216: it starts closed — the word 'settings'
+    // opens it — and the facts it shows (whether the
+    // chime stands on, the clock's offset) are copied in
+    // here and whenever they change below.
+    pset(pixdesk, 208, 0)
+    pset(pixdesk, 212, chimeon)
+    pset(pixdesk, 216, offset)
     pixbegin(pixdesk)
     // The feather's canvas on this face: a text screen's
     // worth of cells, laid out as the text screen's own
@@ -1116,8 +1279,12 @@ if pix == 1 {
 // voice. The waits inside it are bounded twice over —
 // a machine with no speaker, or a timer that stands
 // still, is not held by it, and the typing line below
-// is reached either way.
-welcomechime()
+// is reached either way. Since Stone 20 it sounds only
+// when the chime stands on — a keeping disk's card may
+// have said off, above.
+if chimeon == 1 {
+    welcomechime()
+}
 
 let keys = makebytes(48)
 // The shift standing resolved for each key in 'keys', at
@@ -1315,7 +1482,11 @@ while true {
                     awaiting = 0
                     kind = 0 - 1
                     if line == "yes" {
-                        if disksetup(offset) == 1 {
+                        let chbyte = 2
+                        if chimeon == 1 {
+                            chbyte = 1
+                        }
+                        if disksetup(offset, chbyte) == 1 {
                             diskset = 1
                             if pix == 1 {
                                 // The files window's copy of
@@ -1406,6 +1577,17 @@ while true {
                     // there.
                     offset = wordoffset(cmd, offset)
                     lastsec = 0 - 1
+                    if pix == 1 {
+                        // The settings window's copy of the
+                        // offset follows (Stone 20), and the
+                        // window is painted again if it
+                        // stands open, so what it shows is
+                        // what the clock reckons by.
+                        pset(pixdesk, 216, offset)
+                        if pget(pixdesk, 208) == 1 {
+                            paintwindows(pixdesk, cellblock, notesblock)
+                        }
+                    }
                     if diskset == 1 {
                         let kept = remember(offset)
                         if cmd == "eastern" {
@@ -1495,8 +1677,16 @@ while true {
                 if kind == 11 {
                     // 'chime': the welcome sounded again
                     // (Stone 18), and a line to say so.
-                    welcomechime()
-                    ansrow = printline(ansrow, "The welcome chime, once more.", pix, pixdesk)
+                    // Since Stone 20 the chime's standing
+                    // governs it: when the chime stands off
+                    // the word is answered in plain words
+                    // and nothing sounds.
+                    if chimeon == 1 {
+                        welcomechime()
+                        ansrow = printline(ansrow, "The welcome chime, once more.", pix, pixdesk)
+                    } else {
+                        ansrow = printline(ansrow, "The chime is off, so nothing sounded.", pix, pixdesk)
+                    }
                 }
                 if kind == 12 {
                     // 'files': the files window is opened
@@ -1506,6 +1696,19 @@ while true {
                     if pix == 1 {
                         pset(pixdesk, 188, 1)
                         pset(pixdesk, 180, 3)
+                        paintwindows(pixdesk, cellblock, notesblock)
+                    } else {
+                        ansrow = printline(ansrow, "This face has no windows to open.", pix, pixdesk)
+                    }
+                }
+                if kind == 13 {
+                    // 'settings': the settings window is
+                    // opened and brought forward (Stone 20).
+                    // The text face has no windows, and says
+                    // so in plain words, as for 'welcome'.
+                    if pix == 1 {
+                        pset(pixdesk, 208, 1)
+                        pset(pixdesk, 180, 4)
                         paintwindows(pixdesk, cellblock, notesblock)
                     } else {
                         ansrow = printline(ansrow, "This face has no windows to open.", pix, pixdesk)
@@ -1528,8 +1731,9 @@ while true {
                 if k == 15 {
                     // Tab: the next open window comes
                     // forward (Stone 14, grown at Stone 19
-                    // to three windows: welcome, feather,
-                    // files, and round again). The key
+                    // to three windows and at Stone 20 to
+                    // four: welcome, feather, files,
+                    // settings, and round again). The key
                     // types nothing, as it never has; on
                     // the text face, which has no windows,
                     // it simply passes.
@@ -1538,9 +1742,9 @@ while true {
                         let nxt = 0
                         let cand = cur
                         let tries = 0
-                        while tries < 3 {
+                        while tries < 4 {
                             cand = cand + 1
-                            if cand > 3 {
+                            if cand > 4 {
                                 cand = 1
                             }
                             let open = 0
@@ -1553,9 +1757,12 @@ while true {
                             if cand == 3 {
                                 open = pget(pixdesk, 188)
                             }
+                            if cand == 4 {
+                                open = pget(pixdesk, 208)
+                            }
                             if open == 1 {
                                 nxt = cand
-                                tries = 3
+                                tries = 4
                             } else {
                                 tries = tries + 1
                             }
@@ -1584,7 +1791,11 @@ while true {
                                     if pget(pixdesk, 188) == 1 {
                                         pset(pixdesk, 180, 3)
                                     } else {
-                                        pset(pixdesk, 180, 0)
+                                        if pget(pixdesk, 208) == 1 {
+                                            pset(pixdesk, 180, 4)
+                                        } else {
+                                            pset(pixdesk, 180, 0)
+                                        }
                                     }
                                 }
                                 paintwindows(pixdesk, cellblock, notesblock)
@@ -1597,7 +1808,11 @@ while true {
                                     if pget(pixdesk, 188) == 1 {
                                         pset(pixdesk, 180, 3)
                                     } else {
-                                        pset(pixdesk, 180, 0)
+                                        if pget(pixdesk, 208) == 1 {
+                                            pset(pixdesk, 180, 4)
+                                        } else {
+                                            pset(pixdesk, 180, 0)
+                                        }
                                     }
                                 }
                                 paintwindows(pixdesk, cellblock, notesblock)
@@ -1610,7 +1825,28 @@ while true {
                                     if pget(pixdesk, 176) == 1 {
                                         pset(pixdesk, 180, 2)
                                     } else {
-                                        pset(pixdesk, 180, 0)
+                                        if pget(pixdesk, 208) == 1 {
+                                            pset(pixdesk, 180, 4)
+                                        } else {
+                                            pset(pixdesk, 180, 0)
+                                        }
+                                    }
+                                }
+                                paintwindows(pixdesk, cellblock, notesblock)
+                            }
+                            if fr == 4 {
+                                pset(pixdesk, 208, 0)
+                                if pget(pixdesk, 172) == 1 {
+                                    pset(pixdesk, 180, 1)
+                                } else {
+                                    if pget(pixdesk, 176) == 1 {
+                                        pset(pixdesk, 180, 2)
+                                    } else {
+                                        if pget(pixdesk, 188) == 1 {
+                                            pset(pixdesk, 180, 3)
+                                        } else {
+                                            pset(pixdesk, 180, 0)
+                                        }
                                     }
                                 }
                                 paintwindows(pixdesk, cellblock, notesblock)
@@ -1720,6 +1956,10 @@ while true {
                                 let fy = fitop(pixdesk)
                                 let fw = fiwide(pixdesk)
                                 let fh = fihigh(pixdesk)
+                                let sx = seleft(pixdesk)
+                                let sy = setop(pixdesk)
+                                let sw = sewide(pixdesk)
+                                let sh = sehigh(pixdesk)
                                 let acted = 0
                                 if acted == 0 {
                                     if pget(pixdesk, 172) == 1 {
@@ -1735,7 +1975,11 @@ while true {
                                                                 if pget(pixdesk, 188) == 1 {
                                                                     pset(pixdesk, 180, 3)
                                                                 } else {
-                                                                    pset(pixdesk, 180, 0)
+                                                                    if pget(pixdesk, 208) == 1 {
+                                                                        pset(pixdesk, 180, 4)
+                                                                    } else {
+                                                                        pset(pixdesk, 180, 0)
+                                                                    }
                                                                 }
                                                             }
                                                         }
@@ -1761,7 +2005,11 @@ while true {
                                                                 if pget(pixdesk, 188) == 1 {
                                                                     pset(pixdesk, 180, 3)
                                                                 } else {
-                                                                    pset(pixdesk, 180, 0)
+                                                                    if pget(pixdesk, 208) == 1 {
+                                                                        pset(pixdesk, 180, 4)
+                                                                    } else {
+                                                                        pset(pixdesk, 180, 0)
+                                                                    }
                                                                 }
                                                             }
                                                         }
@@ -1787,7 +2035,41 @@ while true {
                                                                 if pget(pixdesk, 176) == 1 {
                                                                     pset(pixdesk, 180, 2)
                                                                 } else {
-                                                                    pset(pixdesk, 180, 0)
+                                                                    if pget(pixdesk, 208) == 1 {
+                                                                        pset(pixdesk, 180, 4)
+                                                                    } else {
+                                                                        pset(pixdesk, 180, 0)
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    if pget(pixdesk, 208) == 1 {
+                                        if cxp >= (sx + sw - 2) * 16 {
+                                            if cxp < (sx + sw - 1) * 16 {
+                                                if cyp >= sy * 16 {
+                                                    if cyp < (sy + 1) * 16 {
+                                                        pset(pixdesk, 208, 0)
+                                                        if pget(pixdesk, 180) == 4 {
+                                                            if pget(pixdesk, 172) == 1 {
+                                                                pset(pixdesk, 180, 1)
+                                                            } else {
+                                                                if pget(pixdesk, 176) == 1 {
+                                                                    pset(pixdesk, 180, 2)
+                                                                } else {
+                                                                    if pget(pixdesk, 188) == 1 {
+                                                                        pset(pixdesk, 180, 3)
+                                                                    } else {
+                                                                        pset(pixdesk, 180, 0)
+                                                                    }
                                                                 }
                                                             }
                                                         }
@@ -1820,6 +2102,63 @@ while true {
                                                             acted = 1
                                                         }
                                                     }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    // A press on one of the
+                                    // settings window's choice
+                                    // rows sets that choice
+                                    // (Stone 20): the time
+                                    // zone rows set the clock's
+                                    // offset — and the bar is
+                                    // drawn again at once — and
+                                    // the chime rows set whether
+                                    // the chime sounds. When a
+                                    // disk is keeping the
+                                    // choices, both are written
+                                    // through to its card at
+                                    // once, so they stay; the
+                                    // window is painted again
+                                    // and comes forward either
+                                    // way.
+                                    if pget(pixdesk, 208) == 1 {
+                                        if cxp >= sx * 16 {
+                                            if cxp < (sx + sw) * 16 {
+                                                let row = cyp / 16
+                                                let chose = 0
+                                                if row == sy + 3 {
+                                                    offset = 0 - 5
+                                                    chose = 1
+                                                }
+                                                if row == sy + 4 {
+                                                    offset = 0
+                                                    chose = 1
+                                                }
+                                                if row == sy + 7 {
+                                                    chimeon = 1
+                                                    chose = 1
+                                                }
+                                                if row == sy + 8 {
+                                                    chimeon = 0
+                                                    chose = 1
+                                                }
+                                                if chose == 1 {
+                                                    pset(pixdesk, 216, offset)
+                                                    pset(pixdesk, 212, chimeon)
+                                                    lastsec = 0 - 1
+                                                    if diskset == 1 {
+                                                        let chbyte = 2
+                                                        if chimeon == 1 {
+                                                            chbyte = 1
+                                                        }
+                                                        let kept = rememberall(offset, chbyte)
+                                                    }
+                                                    pset(pixdesk, 180, 4)
+                                                    paintwindows(pixdesk, cellblock, notesblock)
+                                                    acted = 1
                                                 }
                                             }
                                         }
@@ -1877,6 +2216,21 @@ while true {
                                                 if cyp >= fy * 16 {
                                                     if cyp < (fy + fh) * 16 {
                                                         pset(pixdesk, 180, 3)
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    if pget(pixdesk, 208) == 1 {
+                                        if cxp >= sx * 16 {
+                                            if cxp < (sx + sw) * 16 {
+                                                if cyp >= sy * 16 {
+                                                    if cyp < (sy + sh) * 16 {
+                                                        pset(pixdesk, 180, 4)
                                                         paintwindows(pixdesk, cellblock, notesblock)
                                                         acted = 1
                                                     }

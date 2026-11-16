@@ -57,6 +57,14 @@
 //       three are the main body's facts, copied into the
 //       desk whenever they change, so the window's
 //       painting can say plainly where the notes live
+//  208  the settings window's standing (Stone 20):
+//       whether it stands open (208), and the main body's
+//       facts copied in whenever they change — whether
+//       the chime stands on (212) and the clock's offset
+//       as the bar truly reckons it (216) — so the
+//       window's painting shows the choices as they
+//       actually stand. (180's forward reckoning grows
+//       too: 4 is the settings window.)
 //
 // A letter cell is sixteen pixels square: the font's eight
 // by eight, drawn at twice size. The face's layout is the

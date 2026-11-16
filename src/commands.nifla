@@ -50,6 +50,9 @@
 //  12 — the files window is opened and brought forward
 //       ('files'; the window is the face of light's,
 //       Stone 19, and the doing is the main body's)
+//  13 — the settings window is opened and brought forward
+//       ('settings'; the window is the face of light's,
+//       Stone 20, and the doing is the main body's)
 make wordkind(word) {
     if word == "" {
         give 0
@@ -89,6 +92,9 @@ make wordkind(word) {
     }
     if word == "files" {
         give 12
+    }
+    if word == "settings" {
+        give 13
     }
     give 1
 }
