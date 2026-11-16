@@ -500,6 +500,38 @@ make onewelcome(desk) {
     }
 }
 
+// The feather window's place and size on the face of
+// light, in the face's own letter cells. The window is
+// fifty-four cells wide — room for the feather's whole
+// panel (the text face's columns 14 to 65, fifty-two
+// cells) with a cell to spare at each side — and nine
+// cells high: its title row, a breathing row, the
+// panel's five rows, and two rows below. Its top stands
+// where the layout has always put it (the text face's
+// row 14, laid on this grid), and it is centered across
+// the face. These four reckonings are the window's one
+// definition: the painter below and the pointer's
+// pressing in the main loop both take the window's
+// place from them, so the two can never disagree.
+make fwwide(desk) {
+    if pget(desk, 28) >= 56 {
+        give 54
+    }
+    give pget(desk, 28) - 2
+}
+
+make fwleft(desk) {
+    give (pget(desk, 28) - fwwide(desk)) / 2
+}
+
+make fwtop(desk) {
+    give layrow(desk, 14)
+}
+
+make fwhigh(desk) {
+    give 9
+}
+
 // Paints the feather window from the desk's standing: its
 // frame stands around the panel the feather paints (the
 // text face's rows 15 to 19, columns 14 to 65), with a
@@ -509,11 +541,36 @@ make onewelcome(desk) {
 // chose — the showing the visit has always had (Stone 9),
 // now kept by the window, so the visit stands until the
 // window is closed or the face is drawn again.
+//
+// The cells are shown by CARRYING, never by scaling:
+// each of the feather's cells stands in the face's own
+// grid exactly one cell from its neighbor — the panel's
+// first cell at the window's second column and third
+// row, and every other cell counted on from there, one
+// for one. The window's first painting (Stone 9, kept
+// through Stone 14) instead laid each cell at the place
+// laycol and layrow reckon for its text-face row and
+// column — and those reckonings squeeze the text face's
+// eighty columns onto this face's sixty-four and stretch
+// its twenty-five rows over this face's forty-eight, so
+// neighboring cells landed on the SAME face cell (the
+// later painting overwrote the earlier, and letters
+// vanished — one in five, in a steady rhythm) and the
+// panel's rows landed two face rows apart with an
+// unpainted row between them (the panel showed as green
+// bands). Tyler witnessed exactly that on his own
+// machine (November 15, 2026: "A fetheris vsitig" for
+// "A feather is visiting"), and the bench's pixel proof
+// (prove-featherpaint.sh) now decodes the painted window
+// letter by letter so it cannot ship again. The system's
+// own words were never garbled: they are drawn in the
+// face's own grid to begin with, and only this showing
+// ever scaled.
 make onefeather(desk, block) {
-    let gx = laycol(desk, 13)
-    let gy = layrow(desk, 14)
-    let gw = laycol(desk, 68) - gx
-    let gh = layrow(desk, 21) - gy
+    let gx = fwleft(desk)
+    let gy = fwtop(desk)
+    let gw = fwwide(desk)
+    let gh = fwhigh(desk)
     if pget(desk, 176) == 0 {
         pixink(desk, 0)
         pixfill(desk, gx * 16, gy * 16, gw * 16, gh * 16)
@@ -536,8 +593,8 @@ make onefeather(desk, block) {
                     let at = cellbyte(block, (gr * 80 + gc) * 2 + 1)
                     let fg = at - (at / 16) * 16
                     let bgv = (at / 16) - (at / 128) * 8
-                    let lr = layrow(desk, gr)
-                    let lc = laycol(desk, gc)
+                    let lr = gy + 2 + (gr - 15)
+                    let lc = gx + 1 + (gc - 14)
                     pset(desk, 56, pget(desk, 64 + bgv * 4))
                     pixfill(desk, lc * 16, lr * 16, 16, 16)
                     if ch != 32 {
@@ -549,7 +606,7 @@ make onefeather(desk, block) {
                 gr = gr + 1
             }
         } else {
-            pixline(desk, (layrow(desk, 15)) * 256 + (laycol(desk, 14) + 2), "No feather has visited yet.", 7)
+            pixline(desk, (gy + 2) * 256 + (gx + 2), "No feather has visited yet.", 7)
         }
     }
 }
@@ -1345,10 +1402,10 @@ while true {
                                 let pt = pget(pixdesk, 144)
                                 let pw = pget(pixdesk, 148)
                                 let ph = pget(pixdesk, 152)
-                                let gx = laycol(pixdesk, 13)
-                                let gy = layrow(pixdesk, 14)
-                                let gw = laycol(pixdesk, 68) - gx
-                                let gh = layrow(pixdesk, 21) - gy
+                                let gx = fwleft(pixdesk)
+                                let gy = fwtop(pixdesk)
+                                let gw = fwwide(pixdesk)
+                                let gh = fwhigh(pixdesk)
                                 let acted = 0
                                 if acted == 0 {
                                     if pget(pixdesk, 172) == 1 {
@@ -1396,10 +1453,10 @@ while true {
                                 }
                                 if acted == 0 {
                                     if pget(pixdesk, 176) == 1 {
-                                        if cxp >= laycol(pixdesk, 14) * 16 {
-                                            if cxp < laycol(pixdesk, 66) * 16 {
-                                                if cyp >= layrow(pixdesk, 15) * 16 {
-                                                    if cyp < layrow(pixdesk, 20) * 16 {
+                                        if cxp >= (gx + 1) * 16 {
+                                            if cxp < (gx + 53) * 16 {
+                                                if cyp >= (gy + 2) * 16 {
+                                                    if cyp < (gy + 7) * 16 {
                                                         pset(pixdesk, 180, 2)
                                                         featherask = 1
                                                         acted = 1

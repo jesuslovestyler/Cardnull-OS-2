@@ -56,6 +56,8 @@ To build the bootable witness disc (see "The witness disc" below):
 ./prove-iso.sh        # boots the ISO itself, three ways, and reads the screens
 ./prove-nowitness.sh  # boots the disc and the stick with NO input at all,
                       # and watches the face paint (the witness fix)
+./prove-featherpaint.sh  # receives the feather and DECODES its painted
+                      # window letter by letter (the feather paint fix)
 ./build-stick.sh      # makes dist/cardnull-stick.img (Stone 17)
 ```
 
@@ -1283,6 +1285,79 @@ the witness reproduced; now all five paint. The full
 regression stands on the fixed build: the fifteen
 live proofs pass, and the new no-input proof with
 them.
+
+## The feather paint fix (November 16, 2026)
+
+The same afternoon's witness carried a second fault,
+in the feather's visit on the face of light: the
+feather window opened and the visit stood, but its
+writing was garbled — letters dropped in a steady
+rhythm and the green panel banded — while every word
+the system drew itself on the same screen stood
+clean, and the door's own line below the window
+("The feather visited, and has gone home again.")
+read whole. Tyler read "A fetheris vsitig" for
+"A feather is visiting" and "I wa cheked irst
+andI amwhol" for "I was checked first, and I am
+whole."
+
+**The fault was in the showing, not the visit —
+proven, and reproduced on the bench letter for
+letter.** On the face of light a feather paints a
+block of text cells in the host's keeping, and the
+host shows those cells as light (Stone 9). The
+showing (onefeather, in the main body) laid each
+cell at the place the layout reckonings give its
+text-face row and column: laycol squeezes the text
+face's eighty columns onto this face's sixty-four,
+so every fifth pair of neighboring cells landed on
+the SAME face cell and the later painting overwrote
+the earlier — the letters at the squeezed places
+simply never stood (the 'a' of "feather", the 's'
+of "was", the 'f' of "first"); layrow stretches
+twenty-five rows over forty-eight, so the panel's
+rows landed two face rows apart with the window's
+black ground showing between them — the green
+bands. Decoded from a bench screendump with the
+system's own letter shapes, the pre-fix painting
+reads exactly as Tyler read it, and the reckoning
+alone, run on paper, gives the same three garbled
+lines. The system's own words were never garbled:
+they are drawn in the face's own grid to begin
+with, and only this one showing ever scaled. The
+text face was never garbled either: there the
+feather paints the screen's own memory one cell
+for one cell.
+
+The fix: the feather's cells are now CARRIED, not
+scaled — each stands in the face's own grid exactly
+one cell from its neighbor, the panel's first cell
+at the feather window's second column and third
+row, counted on one for one from there. The window
+itself is sized to hold them: fifty-four cells
+wide, centered, nine high, its place reckoned once
+(fwleft, fwtop, fwwide, fwhigh in the main body)
+and taken from that one reckoning by both the
+painter and the pointer's pressing, so the two can
+never disagree about where the window stands.
+
+**The proofs changed, so this class cannot hide
+again.** The standing pixel proofs counted green
+and white in bands — and garbled letters carry the
+same colors as whole ones, which is why this
+shipped. `prove-featherpaint.sh` joins the standing
+set: it boots the shipped disc, receives the
+feather, and DECODES the painted window against the
+system's own letter shapes — the feather's three
+lines must read exactly as written, the panel must
+stand solid with no unpainted band, and the
+system's line below must read whole. On the pre-fix
+build it fails five checks; on the fixed build it
+passes, and the full standing regression passes
+with it (the founding Stones 1 and 2 proofs, which
+describe the pre-face screen, fail on the fixed
+build exactly as they failed before it — their
+staleness, unchanged).
 
 ## The kernel's files
 
