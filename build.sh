@@ -8,6 +8,9 @@
 #                        compiled WITH its card by the compiler's
 #                        feather mode (Nifla Stone 20, adopted
 #                        here November 15, 2026).
+#   build/paint.feather — the paint feather (Stone 24), built
+#                        the same way, riding the disc as its
+#                        own module beside the welcome feather's.
 #
 # The compiler is Nifla's own `niflac`; it stays in the Nifla
 # repository and is never copied into this one. NIFLA_REPO names
@@ -74,6 +77,12 @@ if [ -f src/welcome-feather.nifla ]; then
     # own drawing code. (See src/welcome-feather.nifla.)
     "$NIFLA_REPO/niflac" --bare --guest --feather src/welcome-feather.nifla -o build/welcome.feather
     echo "Built build/welcome.feather (the welcome feather, with its card)"
+    # The paint feather (Stone 24): a second feather, built
+    # the same way — its own source, its own card, laid on
+    # the disc as its own module (paint.fea) and received
+    # through the same door.
+    "$NIFLA_REPO/niflac" --bare --guest --feather src/paint-feather.nifla -o build/paint.feather
+    echo "Built build/paint.feather (the paint feather, with its card)"
     # The one small module that still rides beside it on the
     # disc: the settings (Stone 4). The feather's card is no
     # longer a module of its own — it stands at the feather's

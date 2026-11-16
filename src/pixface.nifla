@@ -98,6 +98,23 @@
 //       as the windows' measures, and its painting is
 //       there too; only its standing lives here, with
 //       the windows'.
+//  272  the paint window's standing (Stone 24): whether
+//       it stands open (272), whether the paint feather
+//       has visited (276), and its place (280 its left
+//       column, 284 its top row, in letter cells) — the
+//       sixth window's pair, laid at the face's rising
+//       and written by dragging, like the pairs at 236
+//       to 264. (180's forward reckoning grows again:
+//       6 is the paint window.) The window shows the
+//       paint feather's own cells, in the main body's
+//       second cell block; the feather, its colors, and
+//       its canvas are the feather's — see
+//       src/paint-feather.nifla.
+//  288  the paint feather's cell block's address (Stone
+//       24): the block the paint feather paints and the
+//       paint window shows, found by its address because
+//       paintwindows' hands are already full — the shape
+//       the letter shapes (36) and the arrow (44) take.
 //
 // A letter cell is sixteen pixels square: the font's eight
 // by eight, drawn at twice size. The face's layout is the

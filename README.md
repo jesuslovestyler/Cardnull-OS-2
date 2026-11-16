@@ -32,8 +32,9 @@ one. By default the build looks for it at `~/workspace/nifla-repo`; set
 
 ```
 ./build.sh            # makes build/cardnull.elf, build/welcome.feather
-                      # (the feather with its card, by the compiler's
-                      # feather mode), and the disc's one small module
+                      # and build/paint.feather (the feathers with
+                      # their cards, by the compiler's feather mode),
+                      # and the disc's one small module
                       # (build/settings.bin)
 ```
 
@@ -73,6 +74,10 @@ To build the bootable witness disc (see "The witness disc" below):
                       # new place, DECODES it there, checks the ground
                       # it left, and clicks a note's row in the
                       # dragged window (Stone 22)
+./prove-stone24.sh    # opens the paint feather by its word, DRAWS
+                      # with the pointer in its canvas, changes color
+                      # at its swatches, and CLEARS the canvas —
+                      # every mark read back as pixels (Stone 24)
 ./build-stick.sh      # makes dist/cardnull-stick.img (Stone 17)
 ```
 
@@ -1501,6 +1506,102 @@ the windows are — the text face has no pointer and no
 bar to press, as it never has. The menu holds no
 standing of its own beyond open or closed: it is not
 kept anywhere, and each boot starts with it closed.
+
+### Stone 24 — A paint feather
+
+A second feather rides the disc now, and it draws:
+**the paint feather** (`src/paint-feather.nifla`,
+built with `niflac --bare --guest --feather` like the
+welcome feather, riding as its own module `paint.fea`
+with its own card at its own head). The word **`paint`**
+opens a sixth window — the paint window — and asks for
+the feather through **the same feather door** as the
+welcome feather: both doormen (BIOS and EFI) now carry
+three modules, the boot lift tells the two feathers
+apart by the name on the card (`paintmark` in
+`featherdoor.nifla` — the name only routes the module),
+and **each feather is let in by its own card's
+reckoning, on every visit, exactly as the one feather
+always was**. Neither's check is weakened by sharing
+the door. On its opening visit the feather paints its
+whole window into a second block of cells the host
+holds and shows 1:1 (the feather-paint fix's
+discipline, carried): an invitation in words, a row of
+**six color swatches — Red, Green, Blue, Purple,
+Orange, Black** — the chosen color **named in words**
+("Color: Red" at the opening, the chosen swatch
+carrying a star), a **Clear** word on a red ground,
+and an empty canvas on a light-gray ground.
+
+**The contract, as it stands, and the shape it
+honestly gives.** A feather is handed one number
+across the desk (`guestvalue`), the screen it is to
+paint (named in the doorstep's top word — here the
+paint window's cell block), and the way back
+(`guestgive`). It does **not** own the machine: the
+compiler refuses a guest the timer, the keyboard, and
+the disk, and there is no pointer tool on either side
+of the door — so a feather cannot hear the mouse
+itself, and this one does not pretend to. What the
+contract does carry is the desk, used as a
+conversation of visits: while the paint window stands
+open, **a press of the pointer inside its shown cells
+is carried across the desk as another visit** — gift
+1000 plus the press's row times 100 plus its column,
+in the very cells the feather paints — and **the
+feather itself reckons what the press means**: a
+press on the swatch row chooses that color, a press
+on the Clear word empties the canvas, a press on the
+canvas paints that cell in the chosen color, and a
+held drag paints as it goes, press by carried press.
+The host is a courier of presses and a keeper of
+cells; **every mark in the canvas is the feather's
+own**, laid in answer to a press it was handed. The
+chosen color is the feather's keeping too, and since
+a feather's heap is fresh each visit, it lives where
+it can stand between visits: in the cells themselves,
+as a figure in a cell the window never shows. The
+paint window itself is a window like the others — it
+drags by its title bar, Tab reaches it, Escape and
+its close mark close it — and the bar's menu keeps
+its five choices: `paint` is a typed word, as the
+feather's own word has always been a word.
+
+Proven by `prove-stone24.sh`: the shipped disc is
+booted at the BIOS door, the word `paint` is typed,
+and the door's plain-words line ("The paint feather
+visited. Pick a color, then draw.") is **decoded
+letter by letter**, as are the feather's invitation
+and its named color in the window; the six swatches
+are read back in their colors and the canvas empty.
+Then the bench's PS/2 mouse — the real pointer road —
+**presses a canvas cell** (it stands Red), **drags**
+across the canvas (the crossed cells stand Red),
+**presses the Blue swatch** ("Color: Blue" decodes,
+the star stands on Blue and has left Red), **presses
+the canvas again** (Blue), and **presses Clear** —
+every painted cell back to the canvas ground, the
+swatches and the chosen color still standing.
+
+Honest limits: the drawing lives for the sitting —
+the canvas stands in the host's kept cells, nothing
+writes it to a disk, and a reboot starts with an
+empty canvas and Red chosen. The canvas is the
+window's shown region (seven rows by forty-eight
+cells of the cells' reckoning), and its colors are
+the six a cell's ground can honestly be among the
+first eight of the sixteen — bright grounds would
+fall under the color byte's blink reckoning, so they
+are not offered. A press is carried once a pass of
+the main loop at most, so a very fast drag can step
+over a cell the way a fast hand steps over a square
+of paper. The paint window is the pixel face's, as
+every window is: on the text face the word `paint`
+is answered plainly, as `files` and `editor` are. And
+the door's standing honesty is unchanged: host and
+feather share one privilege level and one memory, the
+card proves the bytes match it and nothing more, and
+a faulting feather stops the whole machine.
 
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 

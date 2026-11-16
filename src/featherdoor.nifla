@@ -28,9 +28,14 @@
 // feather's head, reckons the program bytes' checksum with
 // its own hand, and only if the reckoning matches the
 // card's promise does it lay the program at the doorstep
-// and call it — handing it the number 7 across the desk.
+// and call it — handing it a number across the desk (the
+// welcome feather is handed 7, as it always has been).
 // The feather draws its panel, returns, and the system
-// carries on.
+// carries on. Since Stone 24 a second feather rides the
+// disc — the paint feather, its own module with its own
+// card — and the same door receives it, by the same
+// reckoning, told apart from the welcome feather only by
+// the name on its card (paintmark, below).
 //
 // A feather whose bytes do not match its card — or whose
 // card is damaged — is refused, in plain words, and never
@@ -71,6 +76,41 @@ make feathermark(img, got) {
     if img[16] != 32 { give false }
     if img[17] != 49 { give false }
     if img[18] != 10 { give false }
+    give true
+}
+
+// Whether a feather-marked module is the PAINT feather
+// (Stone 24): its card's name line, standing just after
+// the card's first line (which feathermark has already
+// proven), spells "name: paint-feather" — the letters at
+// 19 to 37, and the line's newline at 38. The door now
+// carries two feathers on the disc, told apart by the
+// name on the card, and each is checked against its own
+// card exactly as the one feather always was: the name
+// only says WHICH feather a module claims to be; the
+// reckoning in runfeather is what lets it in, unchanged.
+make paintmark(img, got) {
+    if got < 39 { give false }
+    if img[19] != 110 { give false }
+    if img[20] != 97 { give false }
+    if img[21] != 109 { give false }
+    if img[22] != 101 { give false }
+    if img[23] != 58 { give false }
+    if img[24] != 32 { give false }
+    if img[25] != 112 { give false }
+    if img[26] != 97 { give false }
+    if img[27] != 105 { give false }
+    if img[28] != 110 { give false }
+    if img[29] != 116 { give false }
+    if img[30] != 45 { give false }
+    if img[31] != 102 { give false }
+    if img[32] != 101 { give false }
+    if img[33] != 97 { give false }
+    if img[34] != 116 { give false }
+    if img[35] != 104 { give false }
+    if img[36] != 101 { give false }
+    if img[37] != 114 { give false }
+    if img[38] != 10 { give false }
     give true
 }
 
@@ -266,16 +306,22 @@ make placefeather(img, start, count, paintbase) {
     }
 }
 
-// Tries to receive the feather, from what was lifted at
+// Tries to receive a feather, from what was lifted at
 // boot: the feather as one module — its card at its head,
 // its program after — and how many bytes of it were truly
 // lifted ('got'), and the screen it is to paint
-// ('paintbase', laid at the doorstep by placefeather).
-// Gives back a number saying how it went: 1 — there is no
-// feather on this disc; 2 — the feather on this disc is
-// not whole, and was refused; 3 — the feather visited and
-// went home again.
-make runfeather(img, got, paintbase) {
+// ('paintbase', laid at the doorstep by placefeather),
+// and the number handed across the desk ('gift': the
+// welcome feather has always been handed 7; the paint
+// feather's visits carry their errand in it — Stone 24).
+// The check is the same for every visit of every feather:
+// the card is read, the program bytes are reckoned, and
+// only a reckoning that matches the card's promise is
+// laid at the doorstep and called. Gives back a number
+// saying how it went: 1 — there is no feather on this
+// disc; 2 — the feather on this disc is not whole, and
+// was refused; 3 — the feather visited and went home again.
+make runfeather(img, got, paintbase, gift) {
     if feathermark(img, got) == false {
         give 1
     }
@@ -297,6 +343,6 @@ make runfeather(img, got, paintbase) {
         give 2
     }
     placefeather(img, start, want, paintbase)
-    let back = callguest(2097152, 7)
+    let back = callguest(2097152, gift)
     give 3
 }

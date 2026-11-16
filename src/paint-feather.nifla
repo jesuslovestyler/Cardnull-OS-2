@@ -1,0 +1,305 @@
+// The paint feather — Cardnull OS 2's second feather
+// (Stone 24). This program is never booted: like the
+// welcome feather, it is built with
+// `niflac --bare --guest --feather` into a flat image
+// with its plain-text card at its head, laid on the disc
+// as its own module (paint.fea), and received by the
+// system through the same feather door as the welcome
+// feather: the card is read and the program bytes are
+// reckoned against it FIRST, and only a whole feather is
+// laid at the doorstep and called. It is a separate
+// feather from the welcome feather — the door tells the
+// two apart by the name on the card (featherdoor.nifla's
+// paintmark) — and neither's check guards the other any
+// less for sharing the door.
+//
+// What a feather can be handed, as the door stands: one
+// number across the desk (guestvalue), the screen it is
+// to paint named in the doorstep's top word (here, the
+// host's block of letter-and-color cells for the paint
+// window, laid there by placefeather as for any visit),
+// and the way back (guestgive). A feather does NOT own
+// the machine: the timer, the keyboard, and the mouse
+// stay with the host, and the compiler refuses those
+// tools in a guest build. So this feather cannot hear
+// the pointer itself — and it does not pretend to.
+//
+// The drawing is therefore a conversation of visits,
+// each one checked at the door like the first:
+//
+//   gift 1        — the opening visit: the feather
+//                   paints its whole window into the
+//                   cells: the invitation, the row of
+//                   color swatches, the color now chosen
+//                   named in words, the Clear word, and
+//                   the empty canvas.
+//   gift 1000 + row * 100 + col
+//                 — a pointer press the host carried
+//                   across the desk: the press's place
+//                   in the very cells this feather paints
+//                   (the text screen's reckoning, rows
+//                   10 to 20 and columns 14 to 65 — the
+//                   window's shown region, 1:1 as the
+//                   feather-paint fix established). The
+//                   host is a courier only: it says WHERE
+//                   the press fell, never what it means.
+//                   What a press means is this feather's
+//                   own reckoning, below: a press on the
+//                   swatch row chooses that color, a
+//                   press on the Clear word empties the
+//                   canvas, a press on the canvas paints
+//                   that cell in the chosen color, and a
+//                   press anywhere else in the window is
+//                   simply let go.
+//
+// The chosen color is the feather's own keeping, and it
+// must live somewhere that stands between visits — a
+// feather's own heap is fresh each call, as the door's
+// honesty states. It lives in the cells themselves: the
+// letter byte of the cell at row 0, column 0 of the
+// painted block, a cell the paint window never shows,
+// holds the chosen color's number as a figure ('0' to
+// '5'). The canvas likewise stands in the cells between
+// visits — which is the truth of this shape, stated
+// plainly: the host holds the painted cells and shows
+// them; every mark in them was laid by this feather, in
+// answer to a press the host carried to it.
+//
+// The window this feather paints, in the cells' own
+// reckoning (rows 10 to 20, columns 14 to 65):
+//   row 10        the invitation, in words
+//   row 11        the color swatches: six blocks of
+//                 color, six cells wide with two cells
+//                 between, from column 16 — Red, Green,
+//                 Blue, Purple, Orange, Black (the
+//                 colors a cell's ground can honestly
+//                 be: the first eight of the sixteen).
+//                 The chosen swatch carries a star.
+//   row 12        the chosen color named in words, and
+//                 the Clear word at columns 57 to 61 on
+//                 a red ground (its ground stands at
+//                 columns 56 to 62)
+//   rows 14 to 20 the canvas: columns 16 to 63, its
+//                 ground light gray until painted
+//
+// The drawing tools are this feather's own, as the
+// welcome feather's are: the compiler refuses a
+// feather build that leans on the system's libraries.
+
+// The screen this feather is to paint: the doorstep word
+// (address 0x27FFF8), or the text screen's address when
+// no word was laid — the welcome feather's own reckoning.
+make paintbase() -> number {
+    give floor() {
+        mov rax, qword ptr [0x27FFF8]
+        test rax, rax
+        jnz pb_done
+        mov rax, 0xB8000
+    pb_done:
+    }
+}
+
+// Paints a filled rectangle of spaces in one color —
+// 'color' is the whole cell color byte (the ink's place
+// plus sixteen times the ground's), as the welcome
+// feather's painter takes it.
+make paintrect(base: number, row: number, col: number, wide: number, high: number, color: number) {
+    floor(base, row, col, wide, high, color) {
+        mov rax, [r10]
+        mov rcx, [r10 + 8]
+        imul rcx, 160
+        add rax, rcx
+        mov rcx, [r10 + 16]
+        shl rcx, 1
+        add rax, rcx
+        mov rdi, rax
+        mov r8, [r10 + 32]
+        mov rdx, [r10 + 40]
+        shl rdx, 8
+        or rdx, 32
+        mov eax, edx
+    pr_row:
+        mov rcx, [r10 + 24]
+        rep stosw
+        mov rcx, [r10 + 24]
+        shl rcx, 1
+        mov rdx, 160
+        sub rdx, rcx
+        add rdi, rdx
+        dec r8
+        jnz pr_row
+    }
+}
+
+// Writes one line of text at (row, col) in one color,
+// from the words it is handed — the welcome feather's
+// own painter, carried here as every feather carries
+// its own tools.
+make paintline(base: number, row: number, col: number, color: number, text: text) {
+    floor(text, base, row, col, color) {
+        mov rax, [r10]
+        mov rcx, [r10 + 8]
+        imul rcx, 160
+        add rax, rcx
+        mov rcx, [r10 + 16]
+        shl rcx, 1
+        add rax, rcx
+        mov rdi, rax
+        mov rdx, [r10 + 24]
+        shl rdx, 8
+        mov rcx, 0
+    pl_loop:
+        cmp rcx, r12
+        jae pl_done
+        movzx eax, byte ptr [rbx + rcx]
+        or rax, rdx
+        mov word ptr [rdi + rcx * 2], ax
+        inc rcx
+        jmp pl_loop
+    pl_done:
+    }
+}
+
+// Lays one cell: the letter and the color byte named,
+// at (row, col) of the painted block.
+make setcell(base: number, row: number, col: number, letter: number, color: number) {
+    floor(base, row, col, letter, color) {
+        mov rax, [r10 + 8]
+        imul rax, 80
+        add rax, [r10 + 16]
+        shl rax, 1
+        add rax, [r10]
+        mov rdx, [r10 + 32]
+        shl rdx, 8
+        or rdx, [r10 + 24]
+        mov word ptr [rax], dx
+    }
+}
+
+// Reads one cell's letter byte back — how the feather
+// finds its own keeping (the chosen color's figure at
+// row 0, column 0) at the start of a press's visit.
+make cellletter(base: number, row: number, col: number) -> number {
+    give floor(base, row, col) {
+        mov rax, [r10 + 8]
+        imul rax, 80
+        add rax, [r10 + 16]
+        shl rax, 1
+        add rax, [r10]
+        movzx eax, byte ptr [rax]
+    }
+}
+
+// The ground color of one of the six drawing colors, by
+// its number: 0 Red, 1 Green, 2 Blue, 3 Purple,
+// 4 Orange, 5 Black — palette places 4, 2, 1, 5, 6, 0.
+make colorbg(idx: number) -> number {
+    if idx == 0 { give 4 }
+    if idx == 1 { give 2 }
+    if idx == 2 { give 1 }
+    if idx == 3 { give 5 }
+    if idx == 4 { give 6 }
+    give 0
+}
+
+// Paints the swatch row (row 11): six blocks of color
+// from column 16, each six cells wide with two cells
+// between, the chosen one carrying a star at its middle.
+make paintpalette(base: number, sel: number) {
+    let k = 0
+    while k < 6 {
+        let bg = colorbg(k)
+        paintrect(base, 11, 16 + k * 8, 6, 1, bg * 16 + 15)
+        if k == sel {
+            setcell(base, 11, 16 + k * 8 + 2, 42, bg * 16 + 15)
+        }
+        k = k + 1
+    }
+}
+
+// Names the chosen color in words at row 12: the line
+// is first wiped to the panel's ground, then "Color: "
+// and the color's own name are written in white.
+make paintcolorname(base: number, sel: number) {
+    paintrect(base, 12, 16, 20, 1, 7)
+    paintline(base, 12, 16, 15, "Color: ")
+    if sel == 0 { paintline(base, 12, 23, 15, "Red") }
+    if sel == 1 { paintline(base, 12, 23, 15, "Green") }
+    if sel == 2 { paintline(base, 12, 23, 15, "Blue") }
+    if sel == 3 { paintline(base, 12, 23, 15, "Purple") }
+    if sel == 4 { paintline(base, 12, 23, 15, "Orange") }
+    if sel == 5 { paintline(base, 12, 23, 15, "Black") }
+}
+
+// The opening visit's whole painting: the panel's
+// ground over the window's whole region, the
+// invitation, the swatches with the first color chosen,
+// its name, the Clear word on its red ground, and the
+// canvas standing empty on its light-gray ground. The
+// chosen color's keeping is laid first: Red, number 0.
+make paintall(base: number) {
+    setcell(base, 0, 0, 48, 7)
+    paintrect(base, 10, 14, 52, 11, 7)
+    paintline(base, 10, 16, 15, "Pick a color, then draw below.")
+    paintpalette(base, 0)
+    paintcolorname(base, 0)
+    paintrect(base, 12, 56, 7, 1, 79)
+    paintline(base, 12, 57, 79, "Clear")
+    paintrect(base, 14, 16, 48, 7, 119)
+}
+
+let gift = guestvalue()
+let base = paintbase()
+if gift == 1 {
+    // The opening visit.
+    paintall(base)
+}
+if gift >= 1000 {
+    // A press the host carried across the desk: its
+    // place in the painted cells, unpacked.
+    let v = gift - 1000
+    let row = v / 100
+    let col = v - row * 100
+    let sel = cellletter(base, 0, 0) - 48
+    if sel < 0 { sel = 0 }
+    if sel > 5 { sel = 0 }
+    if row == 11 {
+        // The swatch row: a press on a swatch chooses
+        // its color — the keeping is rewritten, the
+        // star moves, and the name follows.
+        let k = 0
+        while k < 6 {
+            if col >= 16 + k * 8 {
+                if col < 22 + k * 8 {
+                    setcell(base, 0, 0, 48 + k, 7)
+                    paintpalette(base, k)
+                    paintcolorname(base, k)
+                }
+            }
+            k = k + 1
+        }
+    }
+    if row == 12 {
+        // The Clear word's ground: the canvas is
+        // emptied — every canvas cell back to its
+        // light-gray ground.
+        if col >= 56 {
+            if col <= 62 {
+                paintrect(base, 14, 16, 48, 7, 119)
+            }
+        }
+    }
+    if row >= 14 {
+        if row <= 20 {
+            if col >= 16 {
+                if col <= 63 {
+                    // The canvas: this cell takes the
+                    // chosen color, whole.
+                    let bg = colorbg(sel)
+                    setcell(base, row, col, 32, bg * 16 + bg)
+                }
+            }
+        }
+    }
+}
+guestgive(24)

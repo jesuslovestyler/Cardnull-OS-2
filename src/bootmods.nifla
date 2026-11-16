@@ -27,7 +27,7 @@
 // a module begins, where it ends, the name it was given,
 // and a spare word.
 //
-// Two modules ride the Cardnull disc:
+// Three modules ride the Cardnull disc:
 //   the settings (512 bytes): the letters C and N, then one
 //     byte holding the clock's hour offset with 64 added
 //     (so -5 is kept as 59 and 0 as 64; a byte of 0 means
@@ -45,6 +45,11 @@
 //     modules — the image, and a separate 32-byte binary
 //     card beside it; the card moved onto the feather, and
 //     the door reads it there now.)
+//   the paint feather (Stone 24): a second feather, its
+//     own module with its own card at its own head, told
+//     apart from the welcome feather by the name on its
+//     card and received through the same door, checked
+//     first, exactly as the welcome feather is.
 //
 // One discipline governs all of it: the loader leaves its
 // table and the modules in low memory that this system's

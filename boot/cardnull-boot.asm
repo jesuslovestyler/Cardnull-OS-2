@@ -11,12 +11,12 @@
 #      disc services (int 13h, the extended read), walking
 #      the ISO9660 filesystem from the primary volume
 #      descriptor: root directory, then BOOT, then the
-#      three files — CARDNULL.ELF, SETTINGS.BIN,
-#      FEATHER.FEA — each staged in low memory.
+#      four files — CARDNULL.ELF, SETTINGS.BIN,
+#      FEATHER.FEA, PAINT.FEA — each staged in low memory.
 #   2. It asks the machine its memory map (int 15h, E820)
 #      and lays the multiboot information down: the map,
 #      the memory figures, and a module table for the
-#      two modules that ride with the system.
+#      three modules that ride with the system.
 #   3. When the system's own header asks for a picture
 #      screen (the multiboot video request, Stone 9), it
 #      sets the matching VESA mode with its linear
@@ -55,7 +55,7 @@
 #   0x1000  one disc sector, read and re-read
 #   0x2000  the VESA information blocks
 #   0x4000  the multiboot information
-#   0x4400  the module table (two entries)
+#   0x4400  the module table (three entries)
 #   0x4800  the memory map, as the BIOS gave it
 #   0x7C00  this loader (its stack grows down from here)
 #   0x40000 the system file, staged (up to 192 KiB)
@@ -63,6 +63,9 @@
 #   0x72000 the feather, staged (up to 56 KiB) — the
 #           feather carries its card at its own head
 #           (Nifla Stone 20); no card module rides anymore
+#   0x80000 the paint feather, staged (Stone 24: the
+#           second feather, its own card at its own head,
+#           received through the same door)
 # (The modules' stages stand above the system's WHOLE
 # stage, all 192 KiB of its claim: the system's file is
 # staged entire, and any byte of it may be wanted by the
@@ -77,7 +80,7 @@
 # (November 15, 2026) and moved in the open: nothing may
 # stage inside another stage's claim again.)
 # and on the far side of the step into protected mode:
-#   0x300000 the two modules, laid in a row
+#   0x300000 the three modules, laid in a row
 #
 # Assembled flat and linked at 0x7C00 by build-iso.sh.
 
@@ -171,7 +174,7 @@ sec_known:
     mov eax, [found_len]
     mov [dir_len], eax
 
-    # The three files, each staged.
+    # The four files, each staged.
     mov si, offset name_kernel
     call find_in_dir
     jc fail_files
@@ -198,6 +201,15 @@ sec_known:
     jc fail_disc
     mov eax, [found_len]
     mov [feather_len], eax
+
+    mov si, offset name_paint
+    call find_in_dir
+    jc fail_files
+    mov edi, 0x80000
+    call stage_file
+    jc fail_disc
+    mov eax, [found_len]
+    mov [paint_len], eax
 
     # ---- the memory map (int 15h, E820) ----
     # Each entry is laid in the multiboot shape: a size
@@ -288,13 +300,13 @@ info_flags_done:
     mov eax, 0
     mov ax, [mem_upper_kb]
     mov dword ptr [0x4008], eax
-    mov dword ptr [0x4014], 2          # mods_count (+20)
+    mov dword ptr [0x4014], 3          # mods_count (+20)
     mov dword ptr [0x4018], 0x4400     # mods_addr (+24)
     mov eax, [mmap_count]
     imul eax, 24
     mov dword ptr [0x402C], eax        # mmap_length (+44)
     mov dword ptr [0x4030], 0x4800     # mmap_addr (+48)
-    # The module table: two entries of start, end, and
+    # The module table: three entries of start, end, and
     # two quiet words. The modules are laid at 0x300000
     # on the far side; their lengths are known now.
     mov eax, 0x300000
@@ -308,6 +320,11 @@ info_flags_done:
     mov dword ptr [0x4414], eax
     mov dword ptr [0x4418], 0
     mov dword ptr [0x441C], 0
+    mov dword ptr [0x4420], eax
+    add eax, [paint_len]
+    mov dword ptr [0x4424], eax
+    mov dword ptr [0x4428], 0
+    mov dword ptr [0x442C], 0
     # The picture grant's fields, when there is one.
     cmp dword ptr [video_ok], 0
     je info_done
@@ -751,6 +768,9 @@ ph_done:
     mov esi, 0x72000
     mov ecx, [feather_len]
     rep movsb
+    mov esi, 0x80000
+    mov ecx, [paint_len]
+    rep movsb
 
     # Hand over.
     mov eax, dword ptr [0x40000 + 24]   # the entry
@@ -825,6 +845,8 @@ settings_len:
     .long 0
 feather_len:
     .long 0
+paint_len:
+    .long 0
 mmap_count:
     .long 0
 mem_upper_kb:
@@ -880,6 +902,8 @@ name_settings:
     .asciz "SETTINGS.BIN"
 name_feather:
     .asciz "FEATHER.FEA"
+name_paint:
+    .asciz "PAINT.FEA"
 
 msg_services:
     .asciz "Cardnull could not start: this machine's disc services are not the extended kind it needs."

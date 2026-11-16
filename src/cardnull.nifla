@@ -229,6 +229,44 @@
 //          before, the bar's clock keeps telling time,
 //          and a press that meets the menu is never a
 //          title-bar drag.
+// Stone 24: a paint feather — a second feather rides
+//          the disc (paint.fea, its own module with its
+//          own card), told apart from the welcome
+//          feather by the name on its card and received
+//          through the same door, checked first, exactly
+//          as the welcome feather is. The word 'paint'
+//          opens a sixth window, the paint window, and
+//          asks for the feather's opening visit: the
+//          feather paints its whole window — a row of
+//          color swatches in plain reach, the chosen
+//          color named in words, a Clear word, and an
+//          empty canvas — into a second block of cells
+//          the host holds and shows 1:1, as the feather
+//          window shows its feather's cells. A feather
+//          owns no machine: the compiler refuses it the
+//          timer, the keyboard, and the mouse, so the
+//          pointer cannot speak to it directly. What
+//          the contract honestly carries is the desk:
+//          one number in, the painted cells shared, one
+//          number back. So drawing is a conversation of
+//          visits: while the paint window stands open,
+//          a press of the pointer inside its shown cells
+//          is carried across the desk as another visit —
+//          gift 1000 plus the press's row times 100 plus
+//          its column, in the cells' own reckoning —
+//          and the feather itself reckons what the press
+//          means (a swatch chooses its color, the Clear
+//          word empties the canvas, a canvas cell takes
+//          the chosen color) and paints it, and returns.
+//          The host is a courier of presses and a keeper
+//          of cells; every mark in the canvas is the
+//          feather's own. The window's standing lives in
+//          the desk at 272 to 284, its place with the
+//          other windows' (it drags by its title bar,
+//          Tab reaches it, Escape and its close mark
+//          close it), and the bar's menu keeps its five
+//          choices — 'paint' is a typed word, as the
+//          feather's own word has always been a word.
 //
 // The arrangement of the screen:
 //   row 0      the bar — "Cardnull" at the left, the date
@@ -1083,6 +1121,116 @@ make oneeditor(desk, notes) {
     }
 }
 
+// ---- the paint window (Stone 24) ----
+//
+// A sixth window, standing where the files, settings,
+// and editor windows stand. Its body is not the system's
+// drawing at all: it is the paint feather's own cells,
+// shown 1:1 exactly as the feather window shows the
+// welcome feather's (the feather-paint fix's discipline:
+// carried, never scaled). The feather paints the cells
+// of its window's region — the text reckoning's rows 10
+// to 20, columns 14 to 65 — and this painter lays the
+// region's first cell at the window's second column and
+// third row and counts on from there, one for one.
+// Before the feather's first visit the body says so in
+// plain words, as the feather window's does. The
+// window's measures are reckoned here, like every
+// window's, so its painter and the pointer's pressing
+// can never disagree: fifty-four cells wide (the
+// region's fifty-two, with a cell to spare at each
+// side) and fourteen high (its title row, a breathing
+// row, the region's eleven rows, and one row below).
+// Its standing lives in the desk at 272 to 284
+// (pixface.nifla's ledger): open, whether the paint
+// feather has visited, and its place.
+
+make pawide(desk) {
+    if pget(desk, 28) >= 56 {
+        give 54
+    }
+    give pget(desk, 28) - 2
+}
+
+make paleft(desk) {
+    give pget(desk, 280)
+}
+
+make patop(desk) {
+    give pget(desk, 284)
+}
+
+make pahigh(desk) {
+    give 14
+}
+
+// One byte of the paint feather's cell block, read by
+// its address: the block's address stands in the desk
+// at 288 (pixface.nifla's ledger), laid there at the
+// face's rising — the shape the face's other blocks
+// take (the letter shapes at 36, the arrow at 44),
+// because a call can carry only six words and
+// paintwindows' hands are already full with the desk,
+// the feather's cells, and the notes.
+make pcellbyte(desk: bytes, off: number) -> number {
+    give floor(desk, off) {
+        mov rax, [r10]
+        mov rcx, qword ptr [rbx + 288]
+        movzx eax, byte ptr [rcx + rax]
+    }
+}
+
+// Paints the paint window from the desk's standing:
+// closed, the plain desktop; open, its frame and title
+// bar and — after the paint feather has visited — the
+// feather's own cells, carried 1:1: its invitation, its
+// swatches, its named color, its Clear word, and its
+// canvas with every mark the feather has laid in it.
+make onepaint(desk) {
+    let gx = paleft(desk)
+    let gy = patop(desk)
+    let gw = pawide(desk)
+    let gh = pahigh(desk)
+    if pget(desk, 272) == 0 {
+        pixink(desk, 0)
+        pixfill(desk, gx * 16, gy * 16, gw * 16, gh * 16)
+    } else {
+        let front = 0
+        if pget(desk, 180) == 6 {
+            front = 1
+        }
+        winframe(desk, gy * 256 + gx, gh * 256 + gw, front)
+        pixspan(desk, 0, 5, 15)
+        pixtext(desk, gy, gx + 1, "Paint")
+        pixink(desk, 0)
+        pixfill(desk, gx * 16 + 2, gy * 16 + 18, gw * 16 - 4, gh * 16 - 20)
+        if pget(desk, 276) == 1 {
+            let gr = 10
+            while gr < 21 {
+                let gc = 14
+                while gc < 66 {
+                    let ch = pcellbyte(desk, (gr * 80 + gc) * 2)
+                    let at = pcellbyte(desk, (gr * 80 + gc) * 2 + 1)
+                    let fg = at - (at / 16) * 16
+                    let bgv = (at / 16) - (at / 128) * 8
+                    let lr = gy + 2 + (gr - 10)
+                    let lc = gx + 1 + (gc - 14)
+                    pset(desk, 56, pget(desk, 64 + bgv * 4))
+                    pixfill(desk, lc * 16, lr * 16, 16, 16)
+                    if ch != 32 {
+                        pset(desk, 56, pget(desk, 64 + fg * 4))
+                        pixglyph(desk, lc * 16, lr * 16, ch)
+                    }
+                    gc = gc + 1
+                }
+                gr = gr + 1
+            }
+        } else {
+            pixline(desk, (gy + 2) * 256 + (gx + 2), "No paint feather has visited yet.", 7)
+        }
+    }
+}
+
 // ---- the bar's menu (Stone 23) ----
 //
 // A press of the pointer on the top bar — the Cardnull
@@ -1183,6 +1331,9 @@ make paintwindows(desk, block, notes) {
     if pget(desk, 220) == 0 {
         oneeditor(desk, notes)
     }
+    if pget(desk, 272) == 0 {
+        onepaint(desk)
+    }
     let f = pget(desk, 180)
     if f != 1 {
         if pget(desk, 172) == 1 {
@@ -1209,6 +1360,11 @@ make paintwindows(desk, block, notes) {
             oneeditor(desk, notes)
         }
     }
+    if f != 6 {
+        if pget(desk, 272) == 1 {
+            onepaint(desk)
+        }
+    }
     if f == 1 {
         if pget(desk, 172) == 1 {
             onewelcome(desk)
@@ -1232,6 +1388,11 @@ make paintwindows(desk, block, notes) {
     if f == 5 {
         if pget(desk, 220) == 1 {
             oneeditor(desk, notes)
+        }
+    }
+    if f == 6 {
+        if pget(desk, 272) == 1 {
+            onepaint(desk)
         }
     }
     // The bar's menu stands over everything (Stone 23):
@@ -1282,6 +1443,7 @@ make winopen(desk, win) {
     if win == 3 { give pget(desk, 188) }
     if win == 4 { give pget(desk, 208) }
     if win == 5 { give pget(desk, 220) }
+    if win == 6 { give pget(desk, 272) }
     give 0
 }
 
@@ -1294,6 +1456,7 @@ make winleft(desk, win) {
     if win == 3 { give fileft(desk) }
     if win == 4 { give seleft(desk) }
     if win == 5 { give edleft(desk) }
+    if win == 6 { give paleft(desk) }
     give 0
 }
 
@@ -1303,6 +1466,7 @@ make wintop(desk, win) {
     if win == 3 { give fitop(desk) }
     if win == 4 { give setop(desk) }
     if win == 5 { give edtop(desk) }
+    if win == 6 { give patop(desk) }
     give 0
 }
 
@@ -1312,6 +1476,7 @@ make winwide(desk, win) {
     if win == 3 { give fiwide(desk) }
     if win == 4 { give sewide(desk) }
     if win == 5 { give edwide(desk) }
+    if win == 6 { give pawide(desk) }
     give 0
 }
 
@@ -1321,6 +1486,7 @@ make winhigh(desk, win) {
     if win == 3 { give fihigh(desk) }
     if win == 4 { give sehigh(desk) }
     if win == 5 { give edhigh(desk) }
+    if win == 6 { give pahigh(desk) }
     give 0
 }
 
@@ -1351,6 +1517,10 @@ make winmove(desk, win, newleft, newtop) {
     if win == 5 {
         pset(desk, 260, newleft)
         pset(desk, 264, newtop)
+    }
+    if win == 6 {
+        pset(desk, 280, newleft)
+        pset(desk, 284, newtop)
     }
 }
 
@@ -1445,6 +1615,8 @@ while mi < nmods {
 // module longer than the doorstep plus a card's room
 // cannot be a feather for this door, and is stepped over:
 // a feather's card is a few hundred bytes of plain text.)
+let paintimg = makebytes(0)
+let paintgot = 0
 let mi2 = 0
 while mi2 < nmods {
     let s = 0
@@ -1458,8 +1630,24 @@ while mi2 < nmods {
             let blk = makebytes(l)
             let c = modcopyfrom(s, l, blk)
             if feathermark(blk, c) {
-                featherimg = blk
-                feathergot = c
+                // Two feathers ride the disc since
+                // Stone 24, told apart by the name on
+                // the card: the paint feather (its card
+                // names it — paintmark) is kept apart,
+                // and every other carded feather is the
+                // welcome feather the word 'feather'
+                // receives, as it always has been. The
+                // name only routes the module; each
+                // feather is still let in by its own
+                // card's reckoning at the door, or not
+                // at all.
+                if paintmark(blk, c) {
+                    paintimg = blk
+                    paintgot = c
+                } else {
+                    featherimg = blk
+                    feathergot = c
+                }
             }
         }
     }
@@ -1537,6 +1725,7 @@ if diskset == 1 {
 let pix = 0
 let pixdesk = makebytes(0)
 let cellblock = makebytes(0)
+let paintblock = makebytes(0)
 if fbflags - (fbflags / 8192) * 8192 >= 4096 {
     if fbtype == 1 {
         if fbbpp == 32 {
@@ -1629,6 +1818,11 @@ if pix == 1 {
     pset(pixdesk, 256, layrow(pixdesk, 17))
     pset(pixdesk, 260, (pget(pixdesk, 28) - edwide(pixdesk)) / 2)
     pset(pixdesk, 264, layrow(pixdesk, 17))
+    // The paint window's place (Stone 24), at 280 and
+    // 284: centered at the layout's row 17, with the
+    // files, settings, and editor windows' places.
+    pset(pixdesk, 280, (pget(pixdesk, 28) - pawide(pixdesk)) / 2)
+    pset(pixdesk, 284, layrow(pixdesk, 17))
     // The feather's canvas on this face: a text screen's
     // worth of cells, laid out as the text screen's own
     // are — a letter byte and a color byte to a cell —
@@ -1640,6 +1834,33 @@ if pix == 1 {
         pset(cellblock, ci * 4, 119539488)
         ci = ci + 1
     }
+    // The paint window's standing (Stone 24), at 272 to
+    // 284: it starts closed — the word 'paint' opens it —
+    // and no paint feather has visited yet. Its place is
+    // laid with the other windows' places below.
+    pset(pixdesk, 272, 0)
+    pset(pixdesk, 276, 0)
+    // The paint feather's canvas on this face (Stone
+    // 24): a second text screen's worth of cells, the
+    // paint window's own, filled with the same resting
+    // cell. The paint feather paints here — its panel,
+    // its swatches, its canvas — and the window shows
+    // the cells 1:1, as the feather window shows its
+    // feather's. What stands in these cells between
+    // visits IS the painting, the feather's keeping
+    // held by the host, as the feather's cells have
+    // always been held.
+    paintblock = makebytes(4000)
+    let pi = 0
+    while pi < 1000 {
+        pset(paintblock, pi * 4, 119539488)
+        pi = pi + 1
+    }
+    // The paint cells' address stands in the desk at
+    // 288, where the paint window's painter reads it
+    // (pcellbyte above) — paintwindows' hands are full,
+    // as its heading tells.
+    pset(pixdesk, 288, blockaddr(paintblock))
 }
 
 // Ears on the USB road (Stone 6): the driver's whole
@@ -1669,6 +1890,14 @@ let my = 0
 let mbtn = 0
 let mshown = 0
 let featherask = 0
+// The paint feather's asking (Stone 24): 0 when no visit
+// is owed; otherwise the gift the next visit carries
+// across the desk — 1 for the opening visit the word
+// 'paint' asks for, or 1000 plus a press's row times 100
+// plus its column for a press the pointer's asking below
+// carries in. The one receiving below serves every
+// asking, as the feather's has since Stone 13.
+let paintask = 0
 // The drag's standing (Stone 22): which window the
 // pointer holds by its title bar (0 none, else the
 // window's own number, as winopen and its kin reckon),
@@ -2300,6 +2529,28 @@ while true {
                         ansrow = printline(ansrow, "This face has no windows to open.", pix, pixdesk)
                     }
                 }
+                if kind == 15 {
+                    // 'paint': the paint window is opened
+                    // and brought forward, and the paint
+                    // feather is asked for — its opening
+                    // visit, gift 1 — through the door
+                    // below, where the pointer's carried
+                    // presses meet the same receiving
+                    // (Stone 24). The asking stands whether
+                    // the visit then stands or is refused,
+                    // as the feather's asking has always
+                    // stood. The text face has no windows,
+                    // and says so in plain words, as for
+                    // 'welcome'.
+                    if pix == 1 {
+                        pset(pixdesk, 272, 1)
+                        pset(pixdesk, 180, 6)
+                        paintask = 1
+                        paintwindows(pixdesk, cellblock, notesblock)
+                    } else {
+                        ansrow = printline(ansrow, "This face has no windows to open.", pix, pixdesk)
+                    }
+                }
                 if kind == 1 {
                     // A line of words answers it. A word
                     // the machine does not know is a
@@ -2318,20 +2569,20 @@ while true {
                     // Tab: the next open window comes
                     // forward (Stone 14, grown at Stone 19
                     // to three windows, at Stone 20 to
-                    // four, and at Stone 21 to five:
-                    // welcome, feather, files, settings,
-                    // editor, and round again). The key
-                    // types nothing, as it never has; on
-                    // the text face, which has no windows,
-                    // it simply passes.
+                    // four, at Stone 21 to five, and at
+                    // Stone 24 to six: welcome, feather,
+                    // files, settings, editor, paint, and
+                    // round again). The key types nothing,
+                    // as it never has; on the text face,
+                    // which has no windows, it simply passes.
                     if pix == 1 {
                         let cur = pget(pixdesk, 180)
                         let nxt = 0
                         let cand = cur
                         let tries = 0
-                        while tries < 5 {
+                        while tries < 6 {
                             cand = cand + 1
-                            if cand > 5 {
+                            if cand > 6 {
                                 cand = 1
                             }
                             let open = 0
@@ -2350,9 +2601,12 @@ while true {
                             if cand == 5 {
                                 open = pget(pixdesk, 220)
                             }
+                            if cand == 6 {
+                                open = pget(pixdesk, 272)
+                            }
                             if open == 1 {
                                 nxt = cand
-                                tries = 5
+                                tries = 6
                             } else {
                                 tries = tries + 1
                             }
@@ -2469,12 +2723,25 @@ while true {
                             // them finds nothing else open and
                             // the editor stands open, the
                             // editor comes forward in the
-                            // closed window's place.
+                            // closed window's place. The
+                            // paint window joins the same way
+                            // (Stone 24), after the editor:
+                            // when every chain above has
+                            // found nothing and the paint
+                            // window stands open, it comes
+                            // forward in the closed window's
+                            // place.
                             if fr >= 1 {
-                                if fr <= 4 {
+                                if fr <= 5 {
                                     if pget(pixdesk, 180) == 0 {
                                         if pget(pixdesk, 220) == 1 {
                                             pset(pixdesk, 180, 5)
+                                            paintwindows(pixdesk, cellblock, notesblock)
+                                        }
+                                    }
+                                    if pget(pixdesk, 180) == 0 {
+                                        if pget(pixdesk, 272) == 1 {
+                                            pset(pixdesk, 180, 6)
                                             paintwindows(pixdesk, cellblock, notesblock)
                                         }
                                     }
@@ -2496,6 +2763,38 @@ while true {
                                                 pset(pixdesk, 180, 4)
                                             } else {
                                                 pset(pixdesk, 180, 0)
+                                            }
+                                        }
+                                    }
+                                }
+                                paintwindows(pixdesk, cellblock, notesblock)
+                            }
+                            if fr == 6 {
+                                // The paint window closes
+                                // (Stone 24): another window,
+                                // if one stands open, comes
+                                // forward in its place — the
+                                // welcome first, then the
+                                // feather, the files, the
+                                // settings, and the editor.
+                                pset(pixdesk, 272, 0)
+                                if pget(pixdesk, 172) == 1 {
+                                    pset(pixdesk, 180, 1)
+                                } else {
+                                    if pget(pixdesk, 176) == 1 {
+                                        pset(pixdesk, 180, 2)
+                                    } else {
+                                        if pget(pixdesk, 188) == 1 {
+                                            pset(pixdesk, 180, 3)
+                                        } else {
+                                            if pget(pixdesk, 208) == 1 {
+                                                pset(pixdesk, 180, 4)
+                                            } else {
+                                                if pget(pixdesk, 220) == 1 {
+                                                    pset(pixdesk, 180, 5)
+                                                } else {
+                                                    pset(pixdesk, 180, 0)
+                                                }
                                             }
                                         }
                                     }
@@ -2685,6 +2984,51 @@ while true {
                             }
                         }
                     }
+                    // The paint feather's carried presses
+                    // (Stone 24): while the paint window
+                    // stands open and a visit has stood in
+                    // it, a packet that finds the first
+                    // button held with the arrow's point
+                    // inside the window's shown cells
+                    // carries that press across the desk —
+                    // the press's place in the cells' own
+                    // reckoning (the shown region is the
+                    // text rows 10 to 20 and columns 14 to
+                    // 65, laid 1:1 at the window's second
+                    // column and third row, as onepaint
+                    // lays it), packed as the feather
+                    // expects: 1000 plus the row times 100
+                    // plus the column. The host reckons
+                    // nothing of what the press means; the
+                    // feather does, when the visit is
+                    // received below. A held drag paints as
+                    // it goes: each packet's press is
+                    // carried, and the feather lays its
+                    // cell. A window held by its title bar
+                    // is being dragged, not painted — the
+                    // drag's standing above says so, and no
+                    // press is carried while a drag stands.
+                    if dragwin == 0 {
+                        if andmask(btn, 1) == 1 {
+                            if pget(pixdesk, 272) == 1 {
+                                if pget(pixdesk, 276) == 1 {
+                                    let qx = paleft(pixdesk)
+                                    let qy = patop(pixdesk)
+                                    let prow = (my + 2) / 16 - qy - 2 + 10
+                                    let pcol = (mx + 2) / 16 - qx - 1 + 14
+                                    if prow >= 10 {
+                                        if prow <= 20 {
+                                            if pcol >= 14 {
+                                                if pcol <= 65 {
+                                                    paintask = 1000 + prow * 100 + pcol
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                     if btn != mbtn {
                         if andmask(btn, 1) == 1 {
                             if andmask(mbtn, 1) == 0 {
@@ -2722,6 +3066,10 @@ while true {
                                 let ey = edtop(pixdesk)
                                 let ew = edwide(pixdesk)
                                 let eh = edhigh(pixdesk)
+                                let qx = paleft(pixdesk)
+                                let qy = patop(pixdesk)
+                                let qw = pawide(pixdesk)
+                                let qh = pahigh(pixdesk)
                                 let acted = 0
                                 if acted == 0 {
                                     // The bar and its menu
@@ -2969,6 +3317,44 @@ while true {
                                         }
                                     }
                                 }
+                                if acted == 0 {
+                                    if pget(pixdesk, 272) == 1 {
+                                        if cxp >= (qx + qw - 2) * 16 {
+                                            if cxp < (qx + qw - 1) * 16 {
+                                                if cyp >= qy * 16 {
+                                                    if cyp < (qy + 1) * 16 {
+                                                        pset(pixdesk, 272, 0)
+                                                        if pget(pixdesk, 180) == 6 {
+                                                            if pget(pixdesk, 172) == 1 {
+                                                                pset(pixdesk, 180, 1)
+                                                            } else {
+                                                                if pget(pixdesk, 176) == 1 {
+                                                                    pset(pixdesk, 180, 2)
+                                                                } else {
+                                                                    if pget(pixdesk, 188) == 1 {
+                                                                        pset(pixdesk, 180, 3)
+                                                                    } else {
+                                                                        if pget(pixdesk, 208) == 1 {
+                                                                            pset(pixdesk, 180, 4)
+                                                                        } else {
+                                                                            if pget(pixdesk, 220) == 1 {
+                                                                                pset(pixdesk, 180, 5)
+                                                                            } else {
+                                                                                pset(pixdesk, 180, 0)
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                                 if acted == 1 {
                                     // A close mark's reckoning
                                     // above may have found
@@ -2981,6 +3367,17 @@ while true {
                                     if pget(pixdesk, 180) == 0 {
                                         if pget(pixdesk, 220) == 1 {
                                             pset(pixdesk, 180, 5)
+                                            paintwindows(pixdesk, cellblock, notesblock)
+                                        }
+                                    }
+                                    // The paint window joins
+                                    // the same reckoning (Stone
+                                    // 24): when it alone stands
+                                    // open, it comes forward in
+                                    // the closed window's place.
+                                    if pget(pixdesk, 180) == 0 {
+                                        if pget(pixdesk, 272) == 1 {
+                                            pset(pixdesk, 180, 6)
                                             paintwindows(pixdesk, cellblock, notesblock)
                                         }
                                     }
@@ -3140,6 +3537,37 @@ while true {
                                     }
                                 }
                                 if acted == 0 {
+                                    // A press inside the paint
+                                    // window's shown cells
+                                    // (Stone 24): the press has
+                                    // already been carried
+                                    // across the desk by the
+                                    // packet reckoning above —
+                                    // the feather will reckon
+                                    // what it means when the
+                                    // visit is received — and
+                                    // here the window simply
+                                    // comes forward, as a press
+                                    // on any window brings it.
+                                    if pget(pixdesk, 272) == 1 {
+                                        if pget(pixdesk, 276) == 1 {
+                                            let prow = cyp / 16 - qy - 2 + 10
+                                            let pcol = cxp / 16 - qx - 1 + 14
+                                            if prow >= 10 {
+                                                if prow <= 20 {
+                                                    if pcol >= 14 {
+                                                        if pcol <= 65 {
+                                                            pset(pixdesk, 180, 6)
+                                                            paintwindows(pixdesk, cellblock, notesblock)
+                                                            acted = 1
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
                                     // A press on a window's title
                                     // bar takes hold of it for a
                                     // drag (Stone 22): a close
@@ -3164,10 +3592,10 @@ while true {
                                     let fwd = pget(pixdesk, 180)
                                     let cand = fwd
                                     let tries = 0
-                                    while tries < 6 {
+                                    while tries < 7 {
                                         let took = 0
                                         if cand >= 1 {
-                                            if cand <= 5 {
+                                            if cand <= 6 {
                                                 if winopen(pixdesk, cand) == 1 {
                                                     let wl = winleft(pixdesk, cand)
                                                     let wt = wintop(pixdesk, cand)
@@ -3198,7 +3626,7 @@ while true {
                                             }
                                         }
                                         if acted == 1 {
-                                            tries = 6
+                                            tries = 7
                                         } else {
                                             if tries == 0 {
                                                 cand = 1
@@ -3299,6 +3727,21 @@ while true {
                                         }
                                     }
                                 }
+                                if acted == 0 {
+                                    if pget(pixdesk, 272) == 1 {
+                                        if cxp >= qx * 16 {
+                                            if cxp < (qx + qw) * 16 {
+                                                if cyp >= qy * 16 {
+                                                    if cyp < (qy + qh) * 16 {
+                                                        pset(pixdesk, 180, 6)
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                         mbtn = btn
@@ -3331,7 +3774,7 @@ while true {
         if pix == 1 {
             paintbase = blockaddr(cellblock)
         }
-        let how = runfeather(featherimg, feathergot, paintbase)
+        let how = runfeather(featherimg, feathergot, paintbase, 7)
         if how == 3 {
             if pix == 1 {
                 // The visit stands in the feather's window
@@ -3359,6 +3802,48 @@ while true {
                 pixline(pixdesk, (layrow(pixdesk, 21)) * 256 + (2), "The feather visited, and has gone home again.", 7)
             } else {
                 writeat(21, 2, "The feather visited, and has gone home again.", 7)
+            }
+        }
+    }
+
+    // A paint feather visit owed — the opening visit the
+    // word 'paint' asked for, or a press the pointer
+    // carried in (Stone 24) — is received here, through
+    // the same door and the same reckoning as the welcome
+    // feather's visits: the paint feather's own card is
+    // read and its bytes reckoned on EVERY visit, and
+    // only a whole feather is laid at the doorstep and
+    // called, with the gift the asking carries and the
+    // paint window's own cells named as its screen. A
+    // visit that stands leaves the feather's painting in
+    // those cells, and the window is painted again from
+    // them; a refusal is sounded and said in plain words,
+    // exactly as the feather's refusals are. (Presses are
+    // carried only once a first visit has stood — the
+    // pointer's asking below keeps that — so a disc whose
+    // paint feather is refused hears the refusal once, at
+    // its asking, and not once a press.)
+    if paintask != 0 {
+        let pgift = paintask
+        paintask = 0
+        if pix == 1 {
+            let phow = runfeather(paintimg, paintgot, blockaddr(paintblock), pgift)
+            if phow == 3 {
+                pset(pixdesk, 276, 1)
+                paintwindows(pixdesk, cellblock, notesblock)
+            }
+            if phow == 1 {
+                refusenote()
+                ansrow = printline(ansrow, "There is no paint feather on this disc to visit.", pix, pixdesk)
+            }
+            if phow == 2 {
+                refusenote()
+                ansrow = printline(ansrow, "The paint feather on this disc is not whole, so it was not let in.", pix, pixdesk)
+            }
+            if phow == 3 {
+                if pgift == 1 {
+                    ansrow = printline(ansrow, "The paint feather visited. Pick a color, then draw.", pix, pixdesk)
+                }
             }
         }
     }

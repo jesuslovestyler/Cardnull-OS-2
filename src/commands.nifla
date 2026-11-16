@@ -56,6 +56,12 @@
 //  14 — the editor window is opened and brought forward
 //       ('editor'; the window is the face of light's,
 //       Stone 21, and the doing is the main body's)
+//  15 — the paint feather is asked for ('paint'; the
+//       receiving through the door is the main body's,
+//       Stone 24 — the word opens the paint window and
+//       asks for the feather's opening visit, and the
+//       pointer's presses inside the window are carried
+//       to the feather as further visits)
 make wordkind(word) {
     if word == "" {
         give 0
@@ -101,6 +107,9 @@ make wordkind(word) {
     }
     if word == "editor" {
         give 14
+    }
+    if word == "paint" {
+        give 15
     }
     give 1
 }

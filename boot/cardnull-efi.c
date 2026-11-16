@@ -9,9 +9,12 @@
 // (boot/cardnull-boot.asm, Stone 11) does at its door,
 // and nothing more:
 //
-//   1. It reads the system and its three modules from
-//      the partition it stands on — \boot\cardnull.elf,
-//      \boot\settings.bin, \boot\feather.fea
+//   1. It reads the system and its modules from the
+//      partition it stands on — \boot\cardnull.elf,
+//      \boot\settings.bin, \boot\feather.fea, and
+//      \boot\paint.fea (Stone 24: the second feather,
+//      its own module with its own card, received
+//      through the same door as the first)
 //      — the copies the disc lays there for this door.
 //   2. When the system's own header asks for a picture
 //      screen (the multiboot video request, Stone 9), it
@@ -412,11 +415,12 @@ efi_status efi_main(efi_handle image, efi_system_table *table) {
         stop(L"the disc could not be read as its own.");
     }
 
-    u8 *kernel = 0, *settings = 0, *feather = 0;
-    u64 kernel_len = 0, settings_len = 0, feather_len = 0;
+    u8 *kernel = 0, *settings = 0, *feather = 0, *paint = 0;
+    u64 kernel_len = 0, settings_len = 0, feather_len = 0, paint_len = 0;
     read_file(root, L"\\boot\\cardnull.elf", &kernel, &kernel_len);
     read_file(root, L"\\boot\\settings.bin", &settings, &settings_len);
     read_file(root, L"\\boot\\feather.fea", &feather, &feather_len);
+    read_file(root, L"\\boot\\paint.fea", &paint, &paint_len);
     root->close(root);
 
     // The system's own asking, from its multiboot header
@@ -511,7 +515,7 @@ efi_status efi_main(efi_handle image, efi_system_table *table) {
     // page, and the modules' row at 0x300000.
     claim(0x4000, 6);
     claim(0x8F000, 1);
-    u64 mods_total = settings_len + feather_len;
+    u64 mods_total = settings_len + feather_len + paint_len;
     claim(0x300000, (mods_total + 4095) / 4096);
 
     // The handover's own low page (witness fix): the
@@ -557,11 +561,12 @@ efi_status efi_main(efi_handle image, efi_system_table *table) {
     }
 
     // The modules, in a row at 0x300000 — settings,
-    // feather, as at the BIOS door. (The feather carries
-    // its card at its own head — Nifla Stone 20 — so no
-    // card module rides anymore.)
+    // feather, paint feather, as at the BIOS door. (Each
+    // feather carries its card at its own head — Nifla
+    // Stone 20 — so no card module rides anymore.)
     bytecopy((void *)0x300000, settings, settings_len);
     bytecopy((void *)(0x300000 + settings_len), feather, feather_len);
+    bytecopy((void *)(0x300000 + settings_len + feather_len), paint, paint_len);
 
     // The multiboot information, in the BIOS doorman's
     // shape. What does not depend on the firmware's final
@@ -570,13 +575,14 @@ efi_status efi_main(efi_handle image, efi_system_table *table) {
     // loop below, from the map as it stands at the door.
     u32 *info = (u32 *)0x4000;
     byteset((void *)0x4000, 0, 0x6000);
-    info[5] = 2;                    // mods_count (+20)
+    info[5] = 3;                    // mods_count (+20)
     info[6] = 0x4400;               // mods_addr (+24)
     info[12] = 0x4800;              // mmap_addr (+48)
     u32 *mods = (u32 *)0x4400;
     u32 at = 0x300000;
     mods[0] = at; at += (u32)settings_len; mods[1] = at; mods[2] = 0; mods[3] = 0;
     mods[4] = at; at += (u32)feather_len;  mods[5] = at; mods[6] = 0; mods[7] = 0;
+    mods[8] = at; at += (u32)paint_len;    mods[9] = at; mods[10] = 0; mods[11] = 0;
     if (video_ok) {
         u64 *fbq = (u64 *)(0x4000 + 88);
         *fbq = fb_addr;
