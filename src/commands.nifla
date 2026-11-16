@@ -78,6 +78,14 @@
 //  19 — the verse window is opened and brought forward
 //       ('verse'; the window is the face of light's,
 //       Stone 29, and the doing is the main body's)
+//  20 — the calculator feather is asked for
+//       ('calculator'; the receiving through the door
+//       is the main body's, Stone 30 — the word opens
+//       the calculator window and asks for the
+//       feather's opening visit, and the pointer's
+//       presses inside the window are carried to the
+//       feather as further visits, as the paint
+//       feather's presses are)
 make wordkind(word) {
     if word == "" {
         give 0
@@ -138,6 +146,9 @@ make wordkind(word) {
     }
     if word == "verse" {
         give 19
+    }
+    if word == "calculator" {
+        give 20
     }
     give 1
 }

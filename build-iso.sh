@@ -11,6 +11,9 @@
 #   /boot/paint.fea       the paint feather (Stone 24),
 #                         its own module with its own card,
 #                         received through the same door
+#   /boot/calc.fea        the calculator feather (Stone 30),
+#                         its own module with its own card,
+#                         received through the same door
 #   /boot/boot.img        the BIOS boot image: Cardnull's
 #                         own bootloader (Stone 11 —
 #                         boot/cardnull-boot.asm)
@@ -60,7 +63,7 @@
 #
 # Overrides (used by prove-iso.sh to lay variant discs):
 #   ISO_OUT, KERNEL_FILE, SETTINGS_FILE, FEATHER_FILE,
-#   PAINT_FILE
+#   PAINT_FILE, CALC_FILE
 
 set -e
 cd "$(dirname "$0")"
@@ -72,6 +75,7 @@ KERNEL_FILE="${KERNEL_FILE:-build/cardnull.elf}"
 SETTINGS_FILE="${SETTINGS_FILE:-build/settings.bin}"
 FEATHER_FILE="${FEATHER_FILE:-build/welcome.feather}"
 PAINT_FILE="${PAINT_FILE:-build/paint.feather}"
+CALC_FILE="${CALC_FILE:-build/calculator.feather}"
 
 if command -v clang >/dev/null 2>&1; then
     CLANG=clang
@@ -96,6 +100,7 @@ cp "$KERNEL_FILE" "$WORK/root/boot/cardnull.elf"
 cp "$SETTINGS_FILE" "$WORK/root/boot/settings.bin"
 cp "$FEATHER_FILE" "$WORK/root/boot/feather.fea"
 cp "$PAINT_FILE" "$WORK/root/boot/paint.fea"
+cp "$CALC_FILE" "$WORK/root/boot/calc.fea"
 
 # The BIOS door: Cardnull's own bootloader (Stone 11),
 # assembled from boot/cardnull-boot.asm and linked flat at
@@ -136,6 +141,7 @@ cp "$KERNEL_FILE" "$WORK/esp/boot/cardnull.elf"
 cp "$SETTINGS_FILE" "$WORK/esp/boot/settings.bin"
 cp "$FEATHER_FILE" "$WORK/esp/boot/feather.fea"
 cp "$PAINT_FILE" "$WORK/esp/boot/paint.fea"
+cp "$CALC_FILE" "$WORK/esp/boot/calc.fea"
 dd if=/dev/zero of="$WORK/root/boot/efi.img" bs=1M count=8 2>/dev/null
 mformat -i "$WORK/root/boot/efi.img" ::
 mcopy -i "$WORK/root/boot/efi.img" -s "$WORK/esp/EFI" ::

@@ -11,6 +11,9 @@
 #   build/paint.feather — the paint feather (Stone 24), built
 #                        the same way, riding the disc as its
 #                        own module beside the welcome feather's.
+#   build/calculator.feather — the calculator feather
+#                        (Stone 30), built the same way again,
+#                        riding as its own module beside them.
 #
 # The compiler is Nifla's own `niflac`; it stays in the Nifla
 # repository and is never copied into this one. NIFLA_REPO names
@@ -87,6 +90,12 @@ if [ -f src/welcome-feather.nifla ]; then
     # through the same door.
     "$NIFLA_REPO/niflac" --bare --guest --feather src/paint-feather.nifla -o build/paint.feather
     echo "Built build/paint.feather (the paint feather, with its card)"
+    # The calculator feather (Stone 30): a third feather,
+    # built the same way — its own source, its own card,
+    # laid on the disc as its own module (calc.fea) and
+    # received through the same door.
+    "$NIFLA_REPO/niflac" --bare --guest --feather src/calculator-feather.nifla -o build/calculator.feather
+    echo "Built build/calculator.feather (the calculator feather, with its card)"
     # The one small module that still rides beside it on the
     # disc: the settings (Stone 4). The feather's card is no
     # longer a module of its own — it stands at the feather's

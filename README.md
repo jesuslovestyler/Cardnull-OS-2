@@ -121,6 +121,15 @@ To build the bootable witness disc (see "The witness disc" below):
                       # usual size and at large print, and
                       # closes it by Escape and by its close
                       # mark (Stone 29)
+./prove-stone30.sh    # opens the calculator window by its
+                      # word and from the bar's menu, presses
+                      # its painted keys with the pointer and
+                      # DECODES the sum's line off the
+                      # feather's cells after each press —
+                      # one of each working, a sum below
+                      # nothing, the remainder named, a
+                      # clear, and a sharing out by 0
+                      # answered in plain words (Stone 30)
 ./build-stick.sh      # makes dist/cardnull-stick.img (Stone 17)
 ```
 
@@ -2336,6 +2345,127 @@ it does not have. And the verse window lives on the
 **face of light only**, as every window does: on the
 text face the word `verse` is answered in plain
 words — "This face has no windows to open."
+
+### Stone 30 — A calculator feather
+
+A third feather, and the first that reckons: a real
+working calculator, a guest program written in Nifla
+(`src/calculator-feather.nifla`), built with the bare
+guest/feather toolchain like its sisters, riding the
+disc as its own module — `calc.fea`, a **fourth
+module** beside the settings, the welcome feather,
+and the paint feather — and received through the
+same door, by the same card and the same reckoning,
+as every feather. Both doormen grew to hand it over:
+at the BIOS door the paint feather's stage claim
+stands at 32 KiB (0x90000) and the calculator stages
+above it at **0x98000**, its 32 KiB claim ending at
+0xA0000 where the firmware's reserved ground begins,
+with a fourth entry in the module table; at the EFI
+door the doorman reads `\boot\calc.fea` the same way.
+The kernel's first-breath lift routes the fourth
+module by the name on its card, as it routes the
+paint feather; the name only routes — each feather
+is still let in by its own card's reckoning at the
+door, or not at all.
+
+The word **`calculator`** opens its window — title
+**Calculator** — and the bar's menu gains the choice
+with it: the menu stands at **eight choices** now,
+Calculator the seventh and Rest last, and the proofs
+that decode the menu (Stones 25 and 29) moved with
+it, as they have each time the menu grew. The window
+keeps the full discipline of its sisters: framed,
+titled, close mark, forward and Escape and dragging,
+Tab cycling eight windows, right at both print sizes
+with the carried cells at sixteen pixels.
+
+The contract's shape is Stone 24's, **unweakened**,
+and it is stated plainly, as Stone 24 stated its
+finding: a feather cannot receive live pointer input
+while it runs — each visit is one synchronous call,
+one number in, the painted cell block, one number
+back — and **every visit runs the full card parse
+and FNV-1a-64 reckoning before anything is laid at
+the doorstep**. So the person drives the calculator
+the way Paint is driven: the host carries each press
+of its painted keys across the desk as a fresh,
+checked visit — the gift 1000 plus the press's row
+times 100 plus its column, in the painted cells' own
+reckoning — and the feather itself reckons what the
+press means. Its standing lives where Paint's canvas
+lives: **in the painted cells**, in a row the window
+never shows — the sum's size laid byte by byte in
+base 256 with its sign beside it, the number being
+typed the same way, the working waiting, and the
+rest of the standing — held by the host between
+visits, and read back by the feather at the next
+visit's start. The sum is therefore truly kept
+across visits, not remembered by the host: the host
+reckons nothing of what a press means.
+
+Its face is plain: an invitation — "Press the keys
+to reckon a sum." — the sum's line standing black on
+light gray, the figure keys white on blue, the
+workings' keys white on purple and named in plain
+words — **Add**, **Take away**, **Times**, **Share
+out** — Equals white on green, and Clear white on
+red. The line shows the standing as it grows ("12",
+"12 add", "12 add 3"), and Equals paints the
+answered line whole ("12 add 3 is 15"). A working
+taken up against a standing reckoning reckons that
+reckoning first; Equals with no second number uses
+the sum as its own; a figure pressed after an
+answered sum starts a new reckoning; Clear starts
+again.
+
+Honest scope, stated exactly: the calculator reckons
+in **whole numbers**. A number being typed holds at
+most **six figures** — further figure presses are
+let go. An answer's size is held to
+**999,999,999,999**; a sum past that is answered
+**"That sum is too big."** and the next figure
+starts fresh. Sharing out answers **whole, with the
+remainder named** — "10 share 3 is 3, 1 left over" —
+the remainder reckoned on the numbers' sizes, so it
+is never below nothing; a sum below nothing is
+carried honestly ("5 take 9 is -4"). Sharing out by
+0 is checked **before any division is tried** — a
+division by nothing would fault the machine — and
+answered in plain words: **"Cannot share out by
+0."** Never a crash.
+
+And the honest limit of the road, in the open: the
+desktop's **typing line cannot reach the feather**.
+Typing speaks to the host, and no road in the
+contract carries typed figures across the desk — so
+the calculator is driven by presses on its painted
+keys, as Paint is driven by presses on its canvas,
+and not by typing on the line. On the text face the
+word `calculator` is answered in plain words, as its
+sisters are: "This face has no windows to open."
+
+Proven by `prove-stone30.sh` (60 checks): the disc
+is booted at the BIOS door, the word `calculator`
+opens the window, the door's plain-words line says
+the feather visited, its invitation and its keys'
+names and colors are **decoded letter by letter**
+off its painted cells, and then real pointer presses
+on its painted keys work real sums, the sum's line
+**decoded off the feather's cells after each press**
+— 7 add 5 is 12; 9 take away 4 is 5; 5 take away 9
+is -4; 6 times 7 is 42; 10 share out 3 is 3, 1 left
+over; a Clear after each; and 5 share out 0 answered
+"Cannot share out by 0.", the machine still
+standing. Escape closes the window; the bar's menu
+is opened, its **eight choices decoded**, a press on
+the Calculator choice opens the window again, and a
+press on its close mark closes it. The neighbouring
+proofs pass with it — Stones 23, 24, 25 (with its
+moved Rest reckoning), and 29 (with its grown menu),
+the featherpaint proof, the ISO proof, and the
+no-witness proof, the loaders and the disc having
+changed under them all.
 
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 

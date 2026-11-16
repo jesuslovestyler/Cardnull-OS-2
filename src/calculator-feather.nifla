@@ -1,0 +1,664 @@
+// The calculator feather — Cardnull OS 2's third
+// feather (Stone 30). This program is never booted:
+// like the welcome and paint feathers, it is built with
+// `niflac --bare --guest --feather` into a flat image
+// with its plain-text card at its head, laid on the disc
+// as its own module (calc.fea), and received by the
+// system through the same feather door as its sisters:
+// the card is read and the program bytes are reckoned
+// against it FIRST, and only a whole feather is laid at
+// the doorstep and called. It is a separate feather —
+// the door tells the three apart by the name on the
+// card (featherdoor.nifla's calcmark) — and neither's
+// check guards the others any less for sharing the door.
+//
+// What a feather can be handed, as the door stands: one
+// number across the desk (guestvalue), the screen it is
+// to paint named in the doorstep's top word (here, the
+// host's block of letter-and-color cells for the
+// calculator window, laid there by placefeather as for
+// any visit), and the way back (guestgive). A feather
+// does NOT own the machine: the timer, the keyboard, and
+// the mouse stay with the host, and the compiler refuses
+// those tools in a guest build. So this feather cannot
+// hear the pointer or the keys itself — and it does not
+// pretend to. (The desktop's typing line therefore
+// cannot reach it either: typing speaks to the host,
+// and the host has no road for carrying typed figures
+// across this desk. The keys below are pressed with the
+// pointer, as Paint is driven.)
+//
+// The reckoning is therefore a conversation of visits,
+// each one checked at the door like the first, exactly
+// as the paint feather's drawing is (Stone 24):
+//
+//   gift 1        — the opening visit: the feather
+//                   paints its whole window into the
+//                   cells: the invitation, the sum's
+//                   line standing at 0, and its keys.
+//   gift 1000 + row * 100 + col
+//                 — a pointer press the host carried
+//                   across the desk: the press's place
+//                   in the very cells this feather paints
+//                   (the text screen's reckoning, rows
+//                   10 to 20 and columns 14 to 65 — the
+//                   window's shown region, 1:1 as the
+//                   feather-paint fix established). The
+//                   host is a courier only: it says WHERE
+//                   the press fell, never what it means.
+//                   What a press means is this feather's
+//                   own reckoning, below: a press on a
+//                   figure key adds that figure to the
+//                   number being typed, a press on a
+//                   working's key takes that working up,
+//                   a press on Equals reckons the sum, a
+//                   press on Clear starts again, and a
+//                   press anywhere else in the window is
+//                   simply let go.
+//
+// The reckoning's standing must live somewhere that
+// stands between visits — a feather's own heap is fresh
+// each call, as the door's honesty states. It lives in
+// the cells themselves, in the letter bytes of row 0 of
+// the painted block, a row the calculator window never
+// shows (the paint feather keeps its chosen color the
+// same way, in one such cell):
+//   columns 0 to 7   the standing sum's size, byte by
+//                    byte in base 256, least first
+//   column 8         the sum's sign: 0 when it stands
+//                    at or above nothing, 1 below
+//   columns 9 to 16  the number being typed, the same
+//                    reckoning (never below nothing)
+//   column 17        the working taken up: 0 none,
+//                    1 add, 2 take away, 3 times,
+//                    4 share out
+//   column 18        1 while a number is being typed
+//   column 19        the trouble standing: 0 none,
+//                    1 sharing out by 0, 2 a sum too big
+//   column 20        how many figures the number being
+//                    typed holds (six at most)
+//
+// The window this feather paints, in the cells' own
+// reckoning (rows 10 to 20, columns 14 to 65):
+//   row 10        the invitation, in words
+//   row 11        the sum's line, black on light gray,
+//                 columns 16 to 64: the reckoning as it
+//                 stands — a number being typed, or a
+//                 sum and its working ("12 add"), or a
+//                 sum, its working, and the number
+//                 ("12 add 3") — and, when Equals is
+//                 pressed, the whole sum answered:
+//                 "12 add 3 is 15". Sharing out answers
+//                 in whole numbers with what is left
+//                 named: "10 share 3 is 3, 1 left over".
+//   rows 13 to 16 the figure keys (7 8 9, 4 5 6,
+//                 1 2 3, then 0), five cells wide from
+//                 column 16 with two cells between, and
+//                 the workings' keys at columns 34 to
+//                 47, named in plain words: Add, Take
+//                 away, Times, Share out
+//   row 16        Equals too, at columns 22 to 32
+//   row 17        Clear, at columns 16 to 32
+//
+// The honest scope, stated plainly: a number being
+// typed holds six figures at most (further figure
+// presses are simply let go), and a sum whose size
+// would pass 999,999,999,999 is not reckoned — the
+// sum's line says "That sum is too big." and the next
+// figure pressed starts again, as after any trouble.
+// Sharing out by 0 is answered the same kind way: the
+// line says "Cannot share out by 0.", never a crash —
+// the feather checks the sharing number before it ever
+// shares, so no division by nothing is ever tried.
+//
+// The drawing tools are this feather's own, as every
+// feather's are: the compiler refuses a feather build
+// that leans on the system's libraries.
+
+// The screen this feather is to paint: the doorstep word
+// (address 0x27FFF8), or the text screen's address when
+// no word was laid — its sisters' own reckoning.
+make paintbase() -> number {
+    give floor() {
+        mov rax, qword ptr [0x27FFF8]
+        test rax, rax
+        jnz pb_done
+        mov rax, 0xB8000
+    pb_done:
+    }
+}
+
+// Paints a filled rectangle of spaces in one color —
+// 'color' is the whole cell color byte (the ink's place
+// plus sixteen times the ground's), as the paint
+// feather's painter takes it.
+make paintrect(base: number, row: number, col: number, wide: number, high: number, color: number) {
+    floor(base, row, col, wide, high, color) {
+        mov rax, [r10]
+        mov rcx, [r10 + 8]
+        imul rcx, 160
+        add rax, rcx
+        mov rcx, [r10 + 16]
+        shl rcx, 1
+        add rax, rcx
+        mov rdi, rax
+        mov r8, [r10 + 32]
+        mov rdx, [r10 + 40]
+        shl rdx, 8
+        or rdx, 32
+        mov eax, edx
+    pr_row:
+        mov rcx, [r10 + 24]
+        rep stosw
+        mov rcx, [r10 + 24]
+        shl rcx, 1
+        mov rdx, 160
+        sub rdx, rcx
+        add rdi, rdx
+        dec r8
+        jnz pr_row
+    }
+}
+
+// Writes one line of text at (row, col) in one color,
+// from the words it is handed — its sisters' own
+// painter, carried here as every feather carries its
+// own tools.
+make paintline(base: number, row: number, col: number, color: number, text: text) {
+    floor(text, base, row, col, color) {
+        mov rax, [r10]
+        mov rcx, [r10 + 8]
+        imul rcx, 160
+        add rax, rcx
+        mov rcx, [r10 + 16]
+        shl rcx, 1
+        add rax, rcx
+        mov rdi, rax
+        mov rdx, [r10 + 24]
+        shl rdx, 8
+        mov rcx, 0
+    pl_loop:
+        cmp rcx, r12
+        jae pl_done
+        movzx eax, byte ptr [rbx + rcx]
+        or rax, rdx
+        mov word ptr [rdi + rcx * 2], ax
+        inc rcx
+        jmp pl_loop
+    pl_done:
+    }
+}
+
+// Lays one cell: the letter and the color byte named,
+// at (row, col) of the painted block.
+make setcell(base: number, row: number, col: number, letter: number, color: number) {
+    floor(base, row, col, letter, color) {
+        mov rax, [r10 + 8]
+        imul rax, 80
+        add rax, [r10 + 16]
+        shl rax, 1
+        add rax, [r10]
+        mov rdx, [r10 + 32]
+        shl rdx, 8
+        or rdx, [r10 + 24]
+        mov word ptr [rax], dx
+    }
+}
+
+// Reads one cell's letter byte back — how the feather
+// finds its own keeping in row 0 at the start of a
+// press's visit.
+make cellletter(base: number, row: number, col: number) -> number {
+    give floor(base, row, col) {
+        mov rax, [r10 + 8]
+        imul rax, 80
+        add rax, [r10 + 16]
+        shl rax, 1
+        add rax, [r10]
+        movzx eax, byte ptr [rax]
+    }
+}
+
+// A number's size, never below nothing.
+make absn(n: number) -> number {
+    if n < 0 { give 0 - n }
+    give n
+}
+
+// Reads a kept number's size from row 0: eight cells
+// from 'startcol', byte by byte in base 256, the least
+// first — the keeping storemag below lays.
+make loadmag(base: number, startcol: number) -> number {
+    let v = 0
+    let i = 7
+    while i >= 0 {
+        v = v * 256 + cellletter(base, 0, startcol + i)
+        i = i - 1
+    }
+    give v
+}
+
+// Lays a number's size into row 0, eight cells from
+// 'startcol', byte by byte in base 256, least first.
+make storemag(base: number, startcol: number, mag: number) {
+    let m = mag
+    let i = 0
+    while i < 8 {
+        let b = m - (m / 256) * 256
+        setcell(base, 0, startcol + i, b, 7)
+        m = m / 256
+        i = i + 1
+    }
+}
+
+// Paints one whole number on the sum's line at (row,
+// col) — its sign first when it stands below nothing,
+// then its figures, most first — figure by figure with
+// setcell, so no reckoning here leans on turning a
+// number into words. Gives back the column just past
+// the number's last figure.
+make paintnum(base: number, row: number, col: number, color: number, value: number) -> number {
+    let v = value
+    let c = col
+    if v < 0 {
+        setcell(base, row, c, 45, color)
+        c = c + 1
+        v = 0 - v
+    }
+    let digits = 1
+    let t = v
+    while t >= 10 {
+        t = t / 10
+        digits = digits + 1
+    }
+    let div = 1
+    let i = 1
+    while i < digits {
+        div = div * 10
+        i = i + 1
+    }
+    let d = div
+    let rest = v
+    while d > 0 {
+        let dig = rest / d
+        setcell(base, row, c, 48 + dig, color)
+        rest = rest - dig * d
+        d = d / 10
+        c = c + 1
+    }
+    give c
+}
+
+// Paints a working's name on the sum's line at 'col',
+// with its spaces around it — " add ", " take ",
+// " times ", " share " — the plain words the keys
+// themselves carry. Gives back the column just past it.
+make paintop(base: number, row: number, col: number, color: number, op: number) -> number {
+    if op == 1 {
+        paintline(base, row, col, color, " add ")
+        give col + 5
+    }
+    if op == 2 {
+        paintline(base, row, col, color, " take ")
+        give col + 6
+    }
+    if op == 3 {
+        paintline(base, row, col, color, " times ")
+        give col + 7
+    }
+    if op == 4 {
+        paintline(base, row, col, color, " share ")
+        give col + 7
+    }
+    give col
+}
+
+// Paints the sum's line (row 11) from the reckoning's
+// standing: the line is first wiped to its light-gray
+// ground (columns 16 to 64), then the standing is laid
+// at column 17 — a trouble's plain words when a trouble
+// stands, else the number being typed, or the sum with
+// its working, or the sum with its working and the
+// number being typed against it. (Equals paints its
+// own fuller line in the main body below; the next
+// press repaints this standing line, as a reckoning
+// carried on should.)
+make paintdisplay(base: number, acc: number, entry: number, pending: number, entering: number, err: number) {
+    paintrect(base, 11, 16, 49, 1, 112)
+    if err == 1 {
+        paintline(base, 11, 17, 112, "Cannot share out by 0.")
+    } else {
+        if err == 2 {
+            paintline(base, 11, 17, 112, "That sum is too big.")
+        } else {
+            if pending == 0 {
+                if entering == 1 {
+                    let c1 = paintnum(base, 11, 17, 112, entry)
+                } else {
+                    let c2 = paintnum(base, 11, 17, 112, acc)
+                }
+            } else {
+                let c3 = paintnum(base, 11, 17, 112, acc)
+                let c4 = paintop(base, 11, c3, 112, pending)
+                if entering == 1 {
+                    let c5 = paintnum(base, 11, c4, 112, entry)
+                }
+            }
+        }
+    }
+}
+
+// Paints the keys: the figure keys in blue (white on
+// blue, color 31), the workings' keys in purple (white
+// on purple, color 95), Equals in green (color 47),
+// and Clear in red (color 79) — the paint feather's
+// Clear ground. Each key's name stands on its ground.
+make paintkeys(base: number) {
+    // Row 13: 7, 8, 9, and Add.
+    paintrect(base, 13, 16, 5, 1, 31)
+    paintline(base, 13, 18, 31, "7")
+    paintrect(base, 13, 22, 5, 1, 31)
+    paintline(base, 13, 24, 31, "8")
+    paintrect(base, 13, 28, 5, 1, 31)
+    paintline(base, 13, 30, 31, "9")
+    paintrect(base, 13, 34, 14, 1, 95)
+    paintline(base, 13, 39, 95, "Add")
+    // Row 14: 4, 5, 6, and Take away.
+    paintrect(base, 14, 16, 5, 1, 31)
+    paintline(base, 14, 18, 31, "4")
+    paintrect(base, 14, 22, 5, 1, 31)
+    paintline(base, 14, 24, 31, "5")
+    paintrect(base, 14, 28, 5, 1, 31)
+    paintline(base, 14, 30, 31, "6")
+    paintrect(base, 14, 34, 14, 1, 95)
+    paintline(base, 14, 36, 95, "Take away")
+    // Row 15: 1, 2, 3, and Times.
+    paintrect(base, 15, 16, 5, 1, 31)
+    paintline(base, 15, 18, 31, "1")
+    paintrect(base, 15, 22, 5, 1, 31)
+    paintline(base, 15, 24, 31, "2")
+    paintrect(base, 15, 28, 5, 1, 31)
+    paintline(base, 15, 30, 31, "3")
+    paintrect(base, 15, 34, 14, 1, 95)
+    paintline(base, 15, 38, 95, "Times")
+    // Row 16: 0, Equals, and Share out.
+    paintrect(base, 16, 16, 5, 1, 31)
+    paintline(base, 16, 18, 31, "0")
+    paintrect(base, 16, 22, 11, 1, 47)
+    paintline(base, 16, 24, 47, "Equals")
+    paintrect(base, 16, 34, 14, 1, 95)
+    paintline(base, 16, 36, 95, "Share out")
+    // Row 17: Clear.
+    paintrect(base, 17, 16, 17, 1, 79)
+    paintline(base, 17, 22, 79, "Clear")
+}
+
+// Whether reckoning 'acc' by the working 'op' against
+// 'entry' can stand: 0 when it can, 1 when the working
+// shares out by nothing, 2 when the answer's size would
+// pass the kept measure (999,999,999,999). The sharing
+// check stands here so that no visit ever tries a
+// division by nothing; the size checks divide before
+// they would ever multiply past the measure.
+make checkapply(acc: number, op: number, entry: number) -> number {
+    if op == 4 {
+        if entry == 0 { give 1 }
+        give 0
+    }
+    if op == 3 {
+        let a = absn(acc)
+        if a == 0 { give 0 }
+        if absn(entry) > 999999999999 / a { give 2 }
+        give 0
+    }
+    if absn(acc) + absn(entry) > 999999999999 { give 2 }
+    give 0
+}
+
+// Reckons 'acc' by the working 'op' against 'entry' —
+// called only when checkapply has said the reckoning
+// can stand, so the sharing here never shares by
+// nothing. Sharing out answers whole: the quotient of
+// the sizes, signed as the sum stands (the number
+// being typed never stands below nothing, so the sign
+// is the sum's own).
+make applyop(acc: number, op: number, entry: number) -> number {
+    if op == 1 { give acc + entry }
+    if op == 2 { give acc - entry }
+    if op == 3 { give acc * entry }
+    let q = absn(acc) / absn(entry)
+    if acc < 0 { give 0 - q }
+    give q
+}
+
+// What sharing out leaves over, in whole numbers: the
+// sum's size less the whole answer times the sharing
+// number's size — never below nothing. Called only
+// when the sharing can stand.
+make remof(acc: number, entry: number) -> number {
+    let a = absn(acc)
+    let b = absn(entry)
+    give a - (a / b) * b
+}
+
+// The opening visit's whole painting: the reckoning's
+// keeping laid fresh in row 0 (nothing standing, no
+// working taken up, no trouble), the panel's ground
+// over the window's whole region, the invitation, the
+// sum's line standing at 0, and the keys.
+make paintall(base: number) {
+    storemag(base, 0, 0)
+    setcell(base, 0, 8, 0, 7)
+    storemag(base, 9, 0)
+    setcell(base, 0, 17, 0, 7)
+    setcell(base, 0, 18, 0, 7)
+    setcell(base, 0, 19, 0, 7)
+    setcell(base, 0, 20, 0, 7)
+    paintrect(base, 10, 14, 52, 11, 7)
+    paintline(base, 10, 16, 15, "Press the keys to reckon a sum.")
+    paintdisplay(base, 0, 0, 0, 0, 0)
+    paintkeys(base)
+}
+
+let gift = guestvalue()
+let base = paintbase()
+if gift == 1 {
+    // The opening visit.
+    paintall(base)
+}
+if gift >= 1000 {
+    // A press the host carried across the desk: its
+    // place in the painted cells, unpacked, and the
+    // reckoning's standing read back from its keeping
+    // in row 0 of the cells.
+    let v = gift - 1000
+    let row = v / 100
+    let col = v - row * 100
+    let accmag = loadmag(base, 0)
+    let acc = accmag
+    if cellletter(base, 0, 8) == 1 {
+        acc = 0 - accmag
+    }
+    let entry = loadmag(base, 9)
+    let pending = cellletter(base, 0, 17)
+    let entering = cellletter(base, 0, 18)
+    let err = cellletter(base, 0, 19)
+    let elen = cellletter(base, 0, 20)
+    // Which key the press fell on, if any: a figure
+    // (dval 0 to 9), a working (oval 1 to 4), Equals
+    // (iseq), or Clear (isclear). The key rows and
+    // columns are the painted keys' own places above.
+    let dval = 0 - 1
+    let oval = 0
+    let iseq = 0
+    let isclear = 0
+    if row >= 13 {
+        if row <= 15 {
+            if col >= 16 {
+                if col <= 20 { dval = (15 - row) * 3 + 1 }
+            }
+            if col >= 22 {
+                if col <= 26 { dval = (15 - row) * 3 + 2 }
+            }
+            if col >= 28 {
+                if col <= 32 { dval = (15 - row) * 3 + 3 }
+            }
+            if col >= 34 {
+                if col <= 47 { oval = row - 12 }
+            }
+        }
+    }
+    if row == 16 {
+        if col >= 16 {
+            if col <= 20 { dval = 0 }
+        }
+        if col >= 22 {
+            if col <= 32 { iseq = 1 }
+        }
+        if col >= 34 {
+            if col <= 47 { oval = 4 }
+        }
+    }
+    if row == 17 {
+        if col >= 16 {
+            if col <= 32 { isclear = 1 }
+        }
+    }
+    let found = 0
+    if dval >= 0 { found = 1 }
+    if oval != 0 { found = 1 }
+    if iseq == 1 { found = 1 }
+    if isclear == 1 { found = 1 }
+    if found == 1 {
+        // The press is reckoned. 'painted' stands when
+        // Equals has painted its own fuller line, so
+        // the standing line is not painted over it.
+        let painted = 0
+        if isclear == 1 {
+            acc = 0
+            entry = 0
+            pending = 0
+            entering = 0
+            err = 0
+            elen = 0
+        }
+        if dval >= 0 {
+            if err != 0 {
+                // After a trouble, a figure starts the
+                // reckoning again, fresh.
+                acc = 0
+                entry = dval
+                pending = 0
+                entering = 1
+                err = 0
+                elen = 1
+            } else {
+                if entering == 0 {
+                    if pending == 0 {
+                        // A figure after an answered sum
+                        // starts a new reckoning.
+                        acc = 0
+                    }
+                    entry = dval
+                    entering = 1
+                    elen = 1
+                } else {
+                    if elen < 6 {
+                        entry = entry * 10 + dval
+                        elen = elen + 1
+                    }
+                }
+            }
+        }
+        if oval != 0 {
+            if err == 0 {
+                if entering == 1 {
+                    if pending != 0 {
+                        // A working taken up against a
+                        // standing reckoning reckons that
+                        // reckoning first, in its turn.
+                        let e2 = checkapply(acc, pending, entry)
+                        if e2 != 0 {
+                            err = e2
+                        } else {
+                            acc = applyop(acc, pending, entry)
+                            pending = oval
+                            entering = 0
+                            entry = 0
+                            elen = 0
+                        }
+                    } else {
+                        acc = entry
+                        pending = oval
+                        entering = 0
+                        entry = 0
+                        elen = 0
+                    }
+                } else {
+                    pending = oval
+                }
+            }
+        }
+        if iseq == 1 {
+            if err == 0 {
+                if pending != 0 {
+                    let second = entry
+                    if entering == 0 {
+                        second = acc
+                    }
+                    let e3 = checkapply(acc, pending, second)
+                    if e3 != 0 {
+                        err = e3
+                    } else {
+                        let result = applyop(acc, pending, second)
+                        // The answered line, painted
+                        // whole before the standing moves
+                        // on: the sum, its working, the
+                        // number, "is", the answer — and,
+                        // for sharing out, what is left
+                        // over, named in plain words.
+                        paintrect(base, 11, 16, 49, 1, 112)
+                        let c1 = paintnum(base, 11, 17, 112, acc)
+                        let c2 = paintop(base, 11, c1, 112, pending)
+                        let c3 = paintnum(base, 11, c2, 112, second)
+                        paintline(base, 11, c3, 112, " is ")
+                        let c4 = paintnum(base, 11, c3 + 4, 112, result)
+                        if pending == 4 {
+                            let rem = remof(acc, second)
+                            if rem > 0 {
+                                paintline(base, 11, c4, 112, ", ")
+                                let c5 = paintnum(base, 11, c4 + 2, 112, rem)
+                                paintline(base, 11, c5, 112, " left over")
+                            }
+                        }
+                        painted = 1
+                        acc = result
+                        pending = 0
+                        entering = 0
+                        entry = 0
+                        elen = 0
+                    }
+                }
+            }
+        }
+        // The reckoning's new standing is laid back into
+        // its keeping in row 0, where the next visit will
+        // find it — the cells are the keeping, as they
+        // are for the paint feather's chosen color.
+        storemag(base, 0, absn(acc))
+        if acc < 0 {
+            setcell(base, 0, 8, 1, 7)
+        } else {
+            setcell(base, 0, 8, 0, 7)
+        }
+        storemag(base, 9, entry)
+        setcell(base, 0, 17, pending, 7)
+        setcell(base, 0, 18, entering, 7)
+        setcell(base, 0, 19, err, 7)
+        setcell(base, 0, 20, elen, 7)
+        if painted == 0 {
+            paintdisplay(base, acc, entry, pending, entering, err)
+        }
+    }
+}
+guestgive(30)

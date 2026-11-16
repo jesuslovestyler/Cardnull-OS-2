@@ -151,8 +151,22 @@
 //       by the main body when the window is opened,
 //       reckoned from the day — see verses.nifla).
 //       (180's forward reckoning grows again: 7 is the
-//       verse window.) The desk stands 352 bytes, as it
-//       has since Stone 28; 340 to 351 stand unused.
+//       verse window.)
+//  340  the calculator window's standing (Stone 30):
+//       whether it stands open (340), whether the
+//       calculator feather has visited (344), and its
+//       place (348 its left column, 352 its top row,
+//       in letter cells) — the eighth window's pair,
+//       laid at the face's rising and written by
+//       dragging, like the pairs at 236 to 332.
+//       (180's forward reckoning grows again: 8 is the
+//       calculator window.)
+//  356  the calculator feather's cell block's address
+//       (Stone 30): the block the calculator feather
+//       paints and the calculator window shows, found
+//       by its address as the paint cells' block is at
+//       288. The desk stands 368 bytes now; 360 to 367
+//       stand unused.
 //  320  the letter cell's size in pixels (Stone 28):
 //       sixteen at the words' usual size — the font's
 //       eight by eight drawn at twice size — and
