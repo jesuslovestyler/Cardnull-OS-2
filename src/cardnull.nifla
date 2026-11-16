@@ -27,6 +27,10 @@
 //   src/usbkey.nifla     ears on the USB road: a UHCI
 //                        host and a HID boot keyboard,
 //                        its estate in one desk of bytes
+//   src/xhcikey.nifla    ears on the modern USB road: an
+//                        xHCI host and a HID boot
+//                        keyboard, its estate in one
+//                        desk of bytes (Stone 32)
 //   src/rtclock.nifla    the real clock: reading the
 //                        machine's own CMOS clock, and
 //                        reckoning dates from it
@@ -495,6 +499,18 @@
 //          drags by its title bar, Tab reaches it, Escape
 //          and its close mark close it. Its standing lives
 //          in the desk at 360 to 372.
+// Stone 32: ears on the modern USB road — a second USB
+//          host driver (xhcikey.nifla) speaks to an xHCI
+//          controller, the USB 3 arrangement, and wakes a
+//          keyboard standing on it, feeding the same
+//          typing line through the same key numbering and
+//          the same shared shift standing as every road.
+//          Both USB roads may stand ready; the loop asks
+//          the UHCI road first, so when both carry a
+//          keyboard the UHCI road is the one heard first
+//          and the modern road is heard when it is quiet.
+//          Neither road disables the other, and neither
+//          disables the PS/2 road.
 //
 // The arrangement of the screen:
 //   row 0      the bar — "Cardnull" at the left, the date
@@ -3040,6 +3056,19 @@ if pix == 1 {
 let usbdesk = makebytes(16384)
 let usbup = usbinit(usbdesk)
 
+// Ears on the modern USB road (Stone 32): a second USB
+// driver's whole estate, in the same pattern — one desk
+// of bytes taken here and handed to its library
+// (xhcikey.nifla) at every asking. The raising walks the
+// bus for an xHCI controller, and wakes a keyboard if one
+// stands on a port. When no such controller stands in
+// the machine, or no keyboard is plugged into it, the
+// road is simply quiet and the other roads carry the
+// typing, exactly as before; neither USB road disables
+// the other, and neither disables the PS/2 road.
+let xdesk = makebytes(65536)
+let xup = xhinit(xdesk)
+
 // The pointer (Stone 13): a PS/2 mouse, woken only on
 // the face of light — the text face has no pointer, as
 // it never has. Its packet desk, its standing, the
@@ -3150,6 +3179,10 @@ if pix == 0 {
 if usbup == 1 {
     ansrow = printline(ansrow, "A USB keyboard is ready.", pix, pixdesk)
 }
+if xup == 1 {
+    ansrow = printline(ansrow, "A USB keyboard is ready on the modern USB road.", pix, pixdesk)
+}
+
 if diskup == 1 {
     if diskset == 0 {
         ansrow = printline(ansrow, "A hard disk is here. Type setup to let it remember your choices.", pix, pixdesk)
@@ -3224,6 +3257,16 @@ while true {
     if k == 0 {
         // The PS/2 road is quiet this pass; ask the USB road.
         k = usbpoll(usbdesk)
+    }
+    if k == 0 {
+        // Both of those are quiet this pass; ask the
+        // modern USB road (Stone 32). The asking order is
+        // the roads' hearing order: when more than one
+        // USB keyboard stands ready, the UHCI road — asked
+        // first — is the one the loop hears first, and
+        // this road is heard when it is quiet; the PS/2
+        // road stands before both, as it always has.
+        k = xhpoll(xdesk)
     }
     if k != 0 {
         // The shift keys and Caps Lock speak first (Stone
@@ -3793,12 +3836,23 @@ while true {
                     featherask = 1
                 }
                 if kind == 4 {
-                    // 'usb': the USB road reports its own
-                    // standing, from its ledger.
+                    // 'usb': the USB roads report their own
+                    // standings, from their ledgers — each
+                    // road that carries a keyboard names
+                    // itself in plain words and tells its
+                    // own count of the keys it has brought
+                    // (Stone 6 for the UHCI road, Stone 32
+                    // for the modern road).
                     if usbup == 1 {
                         ansrow = printline(ansrow, "A USB keyboard is ready. It has brought " + usbcount(usbdesk) + " keys so far.", pix, pixdesk)
-                    } else {
-                        ansrow = printline(ansrow, "No USB keyboard is plugged in.", pix, pixdesk)
+                    }
+                    if xup == 1 {
+                        ansrow = printline(ansrow, "A USB keyboard is ready on the modern USB road. It has brought " + xhcount(xdesk) + " keys so far.", pix, pixdesk)
+                    }
+                    if usbup == 0 {
+                        if xup == 0 {
+                            ansrow = printline(ansrow, "No USB keyboard is plugged in.", pix, pixdesk)
+                        }
                     }
                 }
                 if kind == 5 {

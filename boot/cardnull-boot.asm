@@ -59,19 +59,19 @@
 #   0x4400  the module table (four entries)
 #   0x4800  the memory map, as the BIOS gave it
 #   0x7C00  this loader (its stack grows down from here)
-#   0x40000 the system file, staged (up to 256 KiB)
-#   0x80000 the settings module, staged
-#   0x82000 the feather, staged (up to 56 KiB) — the
+#   0x40000 the system file, staged (up to 320 KiB)
+#   0x90000 the settings module, staged (up to 2 KiB)
+#   0x90800 the feather, staged (up to 6 KiB) — the
 #           feather carries its card at its own head
 #           (Nifla Stone 20); no card module rides anymore
-#   0x90000 the paint feather, staged (Stone 24: the
+#   0x92000 the paint feather, staged (Stone 24: the
 #           second feather, its own card at its own head,
 #           received through the same door) — its claim is
-#           32 KiB now (Stone 30)
-#   0x98000 the calculator feather, staged (Stone 30:
+#           8 KiB now (Stone 32)
+#   0x94000 the calculator feather, staged (Stone 30:
 #           the third feather, its own card at its own
 #           head, received through the same door), its
-#           32 KiB claim ending at 0xA0000
+#           16 KiB claim ending at 0x98000
 # (The modules' stages stand above the system's WHOLE
 # stage, all 256 KiB of its claim: the system's file is
 # staged entire, and any byte of it may be wanted by the
@@ -108,7 +108,21 @@
 # 32 KiB and the calculator feather stages at 0x98000,
 # its 32 KiB claim ending at 0xA0000, where the
 # firmware's reserved ground begins — no stage stands
-# inside another's claim, as always.)
+# inside another's claim, as always. The claim grew
+# again at Stone 32 (November 16, 2026), by the same
+# measure and for the same reason: Stone 32's modern
+# USB road carried the staged file's span past the
+# 256 KiB line, so the claim stands at 320 KiB now and
+# the module stages stand above the whole of it —
+# settings at 0x90000, the feather at 0x90800, the
+# paint feather at 0x92000, and the calculator feather
+# at 0x94000, its claim ending at 0x98000. Above the
+# raised claim there stand only 64 KiB before the
+# firmware's reserved ground at 0xA0000, so the
+# modules' claims stand at their tight measures now —
+# 2, 6, 8, and 16 KiB, each with room over its file as
+# it stands — and a module that outgrows its claim
+# must move the stages again, as always.)
 # and on the far side of the step into protected mode:
 #   0x300000 the four modules, laid in a row
 #
@@ -217,7 +231,7 @@ sec_known:
     mov si, offset name_settings
     call find_in_dir
     jc fail_files
-    mov edi, 0x80000
+    mov edi, 0x90000
     call stage_file
     jc fail_disc
     mov eax, [found_len]
@@ -226,7 +240,7 @@ sec_known:
     mov si, offset name_feather
     call find_in_dir
     jc fail_files
-    mov edi, 0x82000
+    mov edi, 0x90800
     call stage_file
     jc fail_disc
     mov eax, [found_len]
@@ -235,7 +249,7 @@ sec_known:
     mov si, offset name_paint
     call find_in_dir
     jc fail_files
-    mov edi, 0x90000
+    mov edi, 0x92000
     call stage_file
     jc fail_disc
     mov eax, [found_len]
@@ -244,7 +258,7 @@ sec_known:
     mov si, offset name_calc
     call find_in_dir
     jc fail_files
-    mov edi, 0x98000
+    mov edi, 0x94000
     call stage_file
     jc fail_disc
     mov eax, [found_len]
@@ -805,17 +819,17 @@ ph_next:
 ph_done:
 
     # The modules, in a row at 0x300000.
-    mov esi, 0x80000
+    mov esi, 0x90000
     mov edi, 0x300000
     mov ecx, [settings_len]
     rep movsb
-    mov esi, 0x82000
+    mov esi, 0x90800
     mov ecx, [feather_len]
     rep movsb
-    mov esi, 0x90000
+    mov esi, 0x92000
     mov ecx, [paint_len]
     rep movsb
-    mov esi, 0x98000
+    mov esi, 0x94000
     mov ecx, [calc_len]
     rep movsb
 

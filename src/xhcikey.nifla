@@ -1,0 +1,1230 @@
+// Cardnull OS 2's modern USB keyboard library — ears on
+// the modern USB road (Stone 32).
+//
+// A second USB host driver, standing beside the UHCI
+// driver of Stone 6 (src/usbkey.nifla), in the same
+// pattern: this file joins the system as a prelude, a
+// prelude may only make functions, and the driver's whole
+// estate lives in one block of bytes the main body takes
+// at boot and hands to every function here — the desk.
+// Its head is a ledger of numbers (each four bytes, at
+// the byte places named below); behind it stand the
+// controller's own fields — the device context list, the
+// command ring, the event ring and its one-row table,
+// the two transfer rings, the input and output contexts,
+// the control road's stage and the keyboard's latest
+// report. The controller is a DMA engine reached through
+// its memory door: it is told physical addresses, which
+// on this machine are the very addresses the program
+// sees, and its registers are read and written as memory
+// at the address its PCI card names (the BAR), never as
+// ports — the xHCI road has no I/O ports at all.
+//
+//   0  the controller's memory door (the BAR, 0 until found)
+//   4  the standing: 0 untouched, 1 the controller walks,
+//      2 a keyboard is ready, 255 the raising failed
+//   8  the port the keyboard stands on (the xHCI reckoning,
+//      counting from 1, as its port doors are numbered)
+//  12  the device's speed, in the controller's own numbers
+//      (1 full, 2 low, 3 high, 4 super)
+//  16  the slot the controller gave the keyboard
+//  20  the keyboard's interrupt door (its endpoint number)
+//  24  that door's packet bound
+//  28  that door's place in the device (its DCI: twice the
+//      endpoint number, plus one for an inward door)
+//  32  the aligned fields' place in the desk
+//  36  the command ring's next place   40  its cycle
+//  44  the event ring's next place     48  its cycle
+//  52  the control ring's next place   56  its cycle
+//  60  the interrupt ring's next place 64  its cycle
+//  68  how many keys this road has brought
+//  72  the waiting keys: the oldest one's place
+//  76  the waiting keys: the next one's place
+//  80  the waiting keys themselves (sixteen of them)
+//  96  the last report's six key places
+// 102  the last report's modifier byte
+// 104  the working doors' place (the capability length)
+// 108  the doorbell doors' place in the controller
+// 112  the running doors' place in the controller
+// 116  how many ports the controller has
+// 120  how many device places it has
+// 124  the control door's packet bound
+// 128  the interrupt door's declared interval
+// 132  the arrangement's number (for its setting)
+// 136  the keyboard interface's number
+// 140  the data stage's place in the desk
+// 144  the report's place
+// 148  the input context's place
+// 152  the output context's place
+// 156  the device context list's place
+// 160  the command ring's place
+// 164  the event ring's place
+// 168  the event table's place
+// 172  the control ring's place
+// 176  the interrupt ring's place
+// 180  the page scratch's place (for the memory map)
+// 184  the last event read: its four words, at 184..196
+// 200  the last command's answering slot
+// 204  the last transfer's unbrought remainder
+// 208  the context size the controller uses (32 or 64)
+// 212  the scratch list's place
+// 216  the scratch pages' place
+// 220  one transfer block staged for its ring: its four
+//      words, at 220, 224, 228, 232 (the cycle is laid by
+//      the ring's own hand, from the ring's standing)
+// 236  the setup room's place
+// 240  how many scratch pages the controller asks for
+// 244  the last port word read (kept for the telling)
+// 248  the interrupt door's reckoned interval
+//
+// The controller spoken is an xHCI — the eXtensible Host
+// Controller of the USB 3 years: the class the PCI bus
+// numbers serial bus (0x0C), USB (0x03), xHCI (0x30). Its
+// road is wholly its own: rings of sixteen-byte transfer
+// blocks the controller walks, a command ring for the
+// system's orders (a place given, a device addressed, a
+// door arranged), an event ring it answers on, and a
+// doorbell door for each device place. The keyboard
+// itself is spoken to exactly as the UHCI road speaks to
+// it — the HID boot keyboard the standard describes,
+// found by the same declared numbers in its arrangement,
+// set to its boot manner — and its reports are turned
+// into the same make codes the other roads speak by the
+// UHCI library's own translation (usagekey there), so
+// every road feeds the one typing line, and the shift
+// and Caps Lock standings are the shared ones of
+// Stone 12, resolved in the main body. The small ledger
+// hands (get32, put32, andmask, lobyte, hibyte) and the
+// resting hand (usbwait) are the UHCI library's too,
+// called here as they stand; this library adds only what
+// the modern road itself needs.
+//
+// The fields inside the desk (their places are reckoned
+// from the aligned base the ledger keeps at 32, and laid
+// by xbuild): the device context list (4096 bytes, one
+// eight-byte entry a device place and the scratch entry),
+// the command ring, the event ring, the event table's
+// one row, the control ring, the interrupt ring (each
+// ring 64 blocks, its last a link block back to its
+// head), the input and output contexts (4224 bytes each
+// — room for either context size, 32 or 64), the data
+// stage (4096), the setup room, the report, one page of
+// scratch for the memory map, and the scratch pages the
+// controller may ask for (four at most; the bench's
+// controller asks for none).
+
+// ---- finding the controller ----
+
+// Walks the PCI bus (bus 0, every device, every function)
+// asking for an xHCI: the class numbers above, and a
+// first base register naming a memory door standing
+// under the four-billion line (a 64-bit door whose high
+// word is not zero is beyond this system's reach, and is
+// passed by honestly). The first that answers is taken —
+// its memory door and its bus mastery switched on.
+// Gives back the door's address, or 0 when none answers.
+make xpcifind() -> number {
+    give floor() {
+        mov r8, 0
+    xf_dev:
+        cmp r8, 32
+        jae xf_none
+        mov r9, 0
+    xf_fn:
+        cmp r9, 8
+        jae xf_nextdev
+        mov eax, 0x80000000
+        mov rcx, r8
+        shl rcx, 11
+        or rax, rcx
+        mov rcx, r9
+        shl rcx, 8
+        or rax, rcx
+        mov r11, rax
+        mov dx, 0xCF8
+        out dx, eax
+        mov dx, 0xCFC
+        in eax, dx
+        and eax, 0xFFFF
+        cmp eax, 0xFFFF
+        je xf_nextfn
+        mov rax, r11
+        or rax, 8
+        mov dx, 0xCF8
+        out dx, eax
+        mov dx, 0xCFC
+        in eax, dx
+        mov ecx, eax
+        shr ecx, 24
+        cmp ecx, 0x0C
+        jne xf_nextfn
+        mov ecx, eax
+        shr ecx, 16
+        and ecx, 0xFF
+        cmp ecx, 0x03
+        jne xf_nextfn
+        mov ecx, eax
+        shr ecx, 8
+        and ecx, 0xFF
+        cmp ecx, 0x30
+        jne xf_nextfn
+        mov rax, r11
+        or rax, 0x10
+        mov dx, 0xCF8
+        out dx, eax
+        mov dx, 0xCFC
+        in eax, dx
+        test eax, 1
+        jnz xf_nextfn
+        mov ecx, eax
+        shr ecx, 1
+        and ecx, 3
+        cmp ecx, 0
+        je xf_bar32
+        cmp ecx, 2
+        jne xf_nextfn
+        mov rax, r11
+        or rax, 0x14
+        mov dx, 0xCF8
+        out dx, eax
+        mov dx, 0xCFC
+        in eax, dx
+        test eax, eax
+        jnz xf_nextfn
+    xf_bar32:
+        mov rax, r11
+        or rax, 0x10
+        mov dx, 0xCF8
+        out dx, eax
+        mov dx, 0xCFC
+        in eax, dx
+        and eax, 0xFFFFFFF0
+        test eax, eax
+        jz xf_nextfn
+        mov r15, rax
+        mov rax, r11
+        or rax, 4
+        mov dx, 0xCF8
+        out dx, eax
+        mov dx, 0xCFC
+        in eax, dx
+        or eax, 6
+        mov rcx, rax
+        mov rax, r11
+        or rax, 4
+        mov dx, 0xCF8
+        out dx, eax
+        mov eax, ecx
+        mov dx, 0xCFC
+        out dx, eax
+        mov rax, r15
+        jmp xf_done
+    xf_nextfn:
+        inc r9
+        jmp xf_fn
+    xf_nextdev:
+        inc r8
+        jmp xf_dev
+    xf_none:
+        xor eax, eax
+    xf_done:
+    }
+}
+
+// ---- the controller's door: its registers, in memory ----
+
+// Reads one of the controller's thirty-two-bit registers,
+// at a byte offset from the memory door the ledger keeps.
+make xmread(desk: bytes, off: number) -> number {
+    give floor(desk, off) {
+        mov eax, dword ptr [rbx]
+        mov rdx, [r10]
+        add rdx, rax
+        mov eax, dword ptr [rdx]
+        mov eax, eax
+    }
+}
+
+// Writes one of the controller's thirty-two-bit registers.
+make xmwrite(desk: bytes, off: number, value: number) {
+    floor(desk, off, value) {
+        mov eax, dword ptr [rbx]
+        mov rdx, [r10]
+        add rdx, rax
+        mov rax, [r10 + 8]
+        mov dword ptr [rdx], eax
+    }
+}
+
+// The memory door commonly stands above the first
+// gigabyte the boot stub maps (the bench's stands at
+// 0xFEBF0000, in the same quarter as its picture screen).
+// This hand lays one more page directory of the system's
+// own — in the desk's page scratch — covering the door's
+// whole gigabyte quarter, and enters it in the stub's
+// page directory pointer table, exactly as the face of
+// light's pixmap does for its screen; a quarter already
+// mapped (the stub's own first, or the face's) is left
+// exactly as it stands, since both lay the same identity
+// reckoning for the quarter.
+make xmmap(desk: bytes, scratchoff: number, bar: number) {
+    floor(desk, scratchoff, bar) {
+        mov eax, [r10 + 8]
+        shr eax, 30
+        mov r8d, eax
+        mov rsi, offset __pdpt
+        mov ecx, dword ptr [rsi + r8 * 8]
+        test ecx, 1
+        jnz xm_done
+        mov eax, ebx
+        mov ecx, [r10]
+        add eax, ecx
+        add eax, 4095
+        and eax, 0xFFFFF000
+        mov r9d, eax
+        mov r11d, r8d
+        shl r11d, 30
+        xor ecx, ecx
+    xm_fill:
+        mov eax, ecx
+        shl eax, 21
+        add eax, r11d
+        or eax, 0x83
+        mov dword ptr [r9 + rcx * 8], eax
+        mov dword ptr [r9 + rcx * 8 + 4], 0
+        inc ecx
+        cmp ecx, 512
+        jne xm_fill
+        mov eax, r9d
+        or eax, 3
+        mov dword ptr [rsi + r8 * 8], eax
+        mov dword ptr [rsi + r8 * 8 + 4], 0
+        mov rax, offset __pml4
+        mov cr3, rax
+    xm_done:
+    }
+}
+
+// ---- the desk's fields ----
+
+// Lays the driver's fields inside the desk: the aligned
+// base found inside it (the rings and the context list
+// must stand on sixty-four-byte boundaries, and the page
+// scratch on a page's), the places of every field written
+// into the ledger, and the four rings' standings at their
+// first pass — each next place 0, each cycle 1, the cycle
+// every xHCI road opens with. The desk the main body
+// hands over is fresh and zeroed, so the fields stand
+// clean; the contexts are wiped again at each use.
+make xbuild(desk: bytes) {
+    floor(desk) {
+        mov rax, rbx
+        and rax, 4095
+        mov rcx, 4096
+        sub rcx, rax
+        and rcx, 4095
+        add rcx, 256
+        mov dword ptr [rbx + 32], ecx
+    }
+    let b = get32(desk, 32)
+    put32(desk, 156, b)
+    put32(desk, 160, b + 4096)
+    put32(desk, 164, b + 5120)
+    put32(desk, 168, b + 6144)
+    put32(desk, 172, b + 6208)
+    put32(desk, 176, b + 7232)
+    put32(desk, 148, b + 8256)
+    put32(desk, 152, b + 12480)
+    put32(desk, 140, b + 16704)
+    put32(desk, 236, b + 20800)
+    put32(desk, 144, b + 20864)
+    put32(desk, 180, b + 20928)
+    put32(desk, 212, b + 29120)
+    put32(desk, 216, b + 29632)
+    put32(desk, 36, 0)
+    put32(desk, 40, 1)
+    put32(desk, 44, 0)
+    put32(desk, 48, 1)
+    put32(desk, 52, 0)
+    put32(desk, 56, 1)
+    put32(desk, 60, 0)
+    put32(desk, 64, 1)
+}
+
+// A field's own address in the machine, as the controller
+// must be told it: the desk's address plus the field's
+// place in it.
+make xphys(desk: bytes, place: number) -> number {
+    give blockaddr(desk) + place
+}
+
+// Wipes a stretch of the desk, byte by byte.
+make xzero(desk: bytes, off: number, count: number) {
+    let i = 0
+    while i < count {
+        desk[off + i] = 0
+        i = i + 1
+    }
+}
+
+// One register's named bits raised in a value the caller
+// holds (the surface has no OR of its own, so a bit is
+// added only when it stands clear).
+make xwithbit(v: number, bit: number) -> number {
+    if andmask(v, bit) == 0 {
+        give v + bit
+    }
+    give v
+}
+
+// ---- the rings ----
+
+// Stages one transfer block's four words in the ledger
+// (at 220), for the ring hand below to lay: the block's
+// own cycle is not among them — the ring's standing
+// supplies it, as the standard reckons.
+make xtrbset(desk: bytes, d0: number, d1: number, d2: number, d3: number) {
+    put32(desk, 220, d0)
+    put32(desk, 224, d1)
+    put32(desk, 228, d2)
+    put32(desk, 232, d3)
+}
+
+// Lays the staged block into one ring at its standing
+// place, with the ring's cycle laid into its fourth
+// word, and advances the standing: at the ring's last
+// usable place (62 of 64) a link block is laid behind it
+// — pointing home, its toggle raised so the controller
+// turns its own cycle as it crosses — and the standing
+// wraps to the head with its cycle turned.
+make xenq(desk: bytes, ring: number, idxoff: number, cycoff: number) {
+    let idx = get32(desk, idxoff)
+    let cyc = get32(desk, cycoff)
+    let at = ring + idx * 16
+    put32(desk, at, get32(desk, 220))
+    put32(desk, at + 4, get32(desk, 224))
+    put32(desk, at + 8, get32(desk, 228))
+    put32(desk, at + 12, get32(desk, 232) + cyc)
+    if idx == 62 {
+        let lat = ring + 63 * 16
+        put32(desk, lat, xphys(desk, ring))
+        put32(desk, lat + 4, 0)
+        put32(desk, lat + 8, 0)
+        put32(desk, lat + 12, cyc + 2 + 6 * 1024)
+        put32(desk, idxoff, 0)
+        put32(desk, cycoff, 1 - cyc)
+    } else {
+        put32(desk, idxoff, idx + 1)
+    }
+}
+
+// Rings one device place's doorbell: the command ring's
+// bell is place 0's, and a transfer ring's bell is rung
+// with its place in the device (its DCI) as the target.
+make xbell(desk: bytes, slot: number, target: number) {
+    xmwrite(desk, get32(desk, 108) + slot * 4, target)
+}
+
+// Reads the next event the controller has laid on the
+// event ring, if one stands there: an event stands when
+// its block's cycle matches the cycle this pass of the
+// ring expects. A read event is copied into the ledger
+// (at 184), the standing advances (turning its cycle at
+// the ring's end), and the controller is told where the
+// reading now stands — its dequeue door rewritten, with
+// the busy bit raised in the writing to clear it, and
+// the interrupter's pending mark cleared the same way.
+// Gives back 1 when an event was read, 0 when none stood.
+make xnextevt(desk: bytes) -> number {
+    let ring = get32(desk, 164)
+    let idx = get32(desk, 44)
+    let cyc = get32(desk, 48)
+    let at = ring + idx * 16
+    let d3 = get32(desk, at + 12)
+    if andmask(d3, 1) != cyc {
+        give 0
+    }
+    put32(desk, 184, get32(desk, at))
+    put32(desk, 188, get32(desk, at + 4))
+    put32(desk, 192, get32(desk, at + 8))
+    put32(desk, 196, d3)
+    let nidx = idx + 1
+    if nidx >= 64 {
+        nidx = 0
+        put32(desk, 48, 1 - cyc)
+    }
+    put32(desk, 44, nidx)
+    let rt = get32(desk, 112)
+    xmwrite(desk, rt + 32, 1)
+    xmwrite(desk, rt + 56, xphys(desk, ring) + nidx * 16 + 8)
+    xmwrite(desk, rt + 60, 0)
+    give 1
+}
+
+// An event's kind, from its copied fourth word.
+make xevtype(desk: bytes) -> number {
+    give andmask(get32(desk, 196) / 1024, 63)
+}
+
+// An event's completion reckoning, from its copied
+// third word: the code in its top byte.
+make xevcode(desk: bytes) -> number {
+    give andmask(get32(desk, 192) / 16777216, 255)
+}
+
+// Waits for the answering event of the command now
+// outstanding — the completion kind (33) — reading and
+// setting aside every other event on the way (a port's
+// tidings among them), until it comes or five seconds
+// pass. Gives back its completion code (1 is success),
+// or -1 when no answer came; the answering place is
+// kept at 200 in the ledger.
+make xwaitcmd(desk: bytes) -> number {
+    let deadline = ticks() + 500
+    while ticks() < deadline {
+        if xnextevt(desk) == 1 {
+            if xevtype(desk) == 33 {
+                put32(desk, 200, andmask(get32(desk, 196) / 16777216, 255))
+                give xevcode(desk)
+            }
+        } else {
+            waittick()
+        }
+    }
+    give 0 - 1
+}
+
+// Waits for the answering event of the transfer now
+// outstanding on one door of the keyboard's place —
+// the transfer kind (32) for that place and door —
+// setting every other event aside. Gives back its
+// completion code, or -1 when none came in five
+// seconds; the event's unbrought remainder is kept
+// at 204 in the ledger.
+make xwaitxfer(desk: bytes, epid: number) -> number {
+    let deadline = ticks() + 500
+    while ticks() < deadline {
+        if xnextevt(desk) == 1 {
+            if xevtype(desk) == 32 {
+                if andmask(get32(desk, 196) / 16777216, 255) == get32(desk, 16) {
+                    if andmask(get32(desk, 196) / 65536, 31) == epid {
+                        put32(desk, 204, andmask(get32(desk, 192), 16777215))
+                        give xevcode(desk)
+                    }
+                }
+            }
+        } else {
+            waittick()
+        }
+    }
+    give 0 - 1
+}
+
+// Issues one command on the command ring and waits for
+// its answer: the block staged from the words handed
+// (its kind and, for the commands that name one, its
+// device place in the fourth word's top byte), the
+// command doorbell rung, and the completion awaited.
+// Gives back the completion code (1 is success).
+make xcmd(desk: bytes, typ: number, d0: number, d1: number, slot: number) -> number {
+    xtrbset(desk, d0, d1, 0, typ * 1024 + slot * 16777216)
+    xenq(desk, get32(desk, 160), 36, 40)
+    xbell(desk, 0, 0)
+    give xwaitcmd(desk)
+}
+
+// ---- the control road ----
+
+// Stages a control conversation's opening packet in its
+// own room: the eight bytes every setup carries, laid in
+// two calls for the same six-words bound the UHCI road
+// met (see its stagesetup hands there).
+make xstagesetup1(desk: bytes, rt: number, req: number, value: number) {
+    let o = get32(desk, 236)
+    desk[o] = rt
+    desk[o + 1] = req
+    desk[o + 2] = lobyte(value)
+    desk[o + 3] = hibyte(value)
+}
+
+make xstagesetup2(desk: bytes, index: number, length: number) {
+    let o = get32(desk, 236)
+    desk[o + 4] = lobyte(index)
+    desk[o + 5] = hibyte(index)
+    desk[o + 6] = lobyte(length)
+    desk[o + 7] = hibyte(length)
+}
+
+// One control conversation, whole, on the keyboard's
+// control ring: a setup block (its packet carried in
+// the block itself, the immediate mark raised), the
+// data block when there is one (chained to what
+// follows, a short inward packet pardoned), and the
+// status block that closes it, its direction the
+// opposite of the data's and the answering event asked
+// of it. The control doorbell is rung for the control
+// door (place 1 in the device), and the transfer's
+// answer awaited. Comes home with the data stage's
+// true count, or -1 when the conversation did not
+// complete in success or in an honest short answer.
+make xcontrol(desk: bytes, hasdata: number, inward: number, datalen: number) -> number {
+    let s = get32(desk, 236)
+    let trt = 0
+    if hasdata == 1 {
+        trt = 2
+        if inward == 1 {
+            trt = 3
+        }
+    }
+    xtrbset(desk, get32(desk, s), get32(desk, s + 4), 8, 2 * 1024 + 64 + trt * 65536)
+    xenq(desk, get32(desk, 172), 52, 56)
+    if hasdata == 1 {
+        let dd3 = 3 * 1024 + 16
+        if inward == 1 {
+            dd3 = dd3 + 4 + 65536
+        }
+        xtrbset(desk, xphys(desk, get32(desk, 140)), 0, datalen, dd3)
+        xenq(desk, get32(desk, 172), 52, 56)
+    }
+    let sdir = 1
+    if hasdata == 1 {
+        sdir = 1 - inward
+    }
+    xtrbset(desk, 0, 0, 0, 4 * 1024 + 32 + sdir * 65536)
+    xenq(desk, get32(desk, 172), 52, 56)
+    xbell(desk, get32(desk, 16), 1)
+    let code = xwaitxfer(desk, 1)
+    if code == 1 {
+        if hasdata == 1 {
+            give datalen - get32(desk, 204)
+        }
+        give 0
+    }
+    if code == 13 {
+        if hasdata == 1 {
+            if inward == 1 {
+                give datalen - get32(desk, 204)
+            }
+        }
+    }
+    give 0 - 1
+}
+
+// Asks for a description at the keyboard's place: the
+// standard asking (number 6), with the kind in the
+// value's high byte. The bytes land at the stage's head;
+// the true count comes home.
+make xgetdesc(desk: bytes, kind: number, len: number) -> number {
+    xstagesetup1(desk, 128, 6, kind * 256)
+    xstagesetup2(desk, 0, len)
+    give xcontrol(desk, 1, 1, len)
+}
+
+// ---- waking a keyboard ----
+
+// The reckoned interval for an interrupt door, in the
+// controller's own reckoning (its periods are counted
+// in 125-microsecond steps, as powers of two): for a
+// high- or super-speed door the declared interval is
+// already that reckoning, one less in the field; for a
+// full- or low-speed door the declared count is of
+// whole milliseconds, eight steps to the millisecond,
+// and the field is the power of two not passing it.
+make xinterval(speed: number, declared: number) -> number {
+    if declared < 1 {
+        give 0
+    }
+    if speed >= 3 {
+        give declared - 1
+    }
+    let steps = declared * 8
+    let f = 0
+    let p = 1
+    while p * 2 <= steps {
+        p = p * 2
+        f = f + 1
+    }
+    give f
+}
+
+// Lays the input context for addressing the device on
+// the ledger's port: the slot's context (its speed and
+// its root port, one door reckoned so far) and the
+// control door's context (its error allowance, its
+// kind, its packet bound, and its ring, whose reading
+// opens at the first cycle). The context size the
+// controller declared is honored in every place.
+make xlayaddress(desk: bytes) {
+    let inp = get32(desk, 148)
+    let cs = get32(desk, 208)
+    xzero(desk, inp, 4224)
+    xzero(desk, get32(desk, 152), 4224)
+    put32(desk, inp + 4, 3)
+    put32(desk, inp + cs, get32(desk, 12) * 1048576 + 268435456)
+    put32(desk, inp + cs + 4, get32(desk, 8) * 65536)
+    put32(desk, inp + cs * 2 + 4, 6 + 32 + get32(desk, 124) * 65536)
+    put32(desk, inp + cs * 2 + 8, xphys(desk, get32(desk, 172)) + 1)
+    put32(desk, inp + cs * 2 + 16, 8)
+    let dcbaa = get32(desk, 156)
+    let slot = get32(desk, 16)
+    put32(desk, dcbaa + slot * 8, xphys(desk, get32(desk, 152)))
+    put32(desk, dcbaa + slot * 8 + 4, 0)
+}
+
+// Arms the keyboard's interrupt door: one plain block
+// on its ring, inward to the report's place, its length
+// the report's eight bytes, the answering event asked
+// of it and a short packet pardoned — then the door's
+// doorbell rung with the door's own place as its target.
+make xarm(desk: bytes) {
+    xtrbset(desk, xphys(desk, get32(desk, 144)), 0, 8, 1024 + 32 + 4)
+    xenq(desk, get32(desk, 176), 60, 64)
+    xbell(desk, get32(desk, 16), get32(desk, 28))
+}
+
+// Wakes the device standing on the ledger's port, whose
+// reset has already been made by the raising below, and
+// arranges it: a place given it by the controller, the
+// device addressed with its control door, its
+// description read (and its control door's true packet
+// bound learned from the description's own seventh
+// byte, the door re-valued by the controller's own
+// reckoning when the first guess stood wrong), its
+// whole arrangement read descriptor by descriptor — a
+// boot keyboard's interface found by its declared
+// numbers, as on the UHCI road, and its inward
+// interrupt door taken with its packet bound and its
+// declared interval — that door arranged with the
+// controller, the arrangement set, the keyboard set to
+// its boot manner, and its report door armed. Comes
+// home with the verdict: 2 — it did not answer its
+// waking; 3 — it answered, and declared another kind;
+// 4 — a keyboard, ready.
+make xwake(desk: bytes) -> number {
+    let d = get32(desk, 140)
+    if xcmd(desk, 9, 0, 0, 0) != 1 {
+        give 2
+    }
+    put32(desk, 16, get32(desk, 200))
+    if get32(desk, 16) < 1 {
+        give 2
+    }
+    // The control door's bound, first guessed from the
+    // speed, as the standard prescribes: 8 for a low
+    // door, 64 for full and high, 512 for super.
+    let guess = 64
+    if get32(desk, 12) == 2 {
+        guess = 8
+    }
+    if get32(desk, 12) == 4 {
+        guess = 512
+    }
+    put32(desk, 124, guess)
+    xlayaddress(desk)
+    if xcmd(desk, 11, xphys(desk, get32(desk, 148)), 0, get32(desk, 16)) != 1 {
+        give 2
+    }
+    usbwait(1)
+    if xgetdesc(desk, 1, 8) < 8 {
+        give 2
+    }
+    let real = desk[d + 7]
+    if real != guess {
+        if real >= 8 {
+            put32(desk, 124, real)
+            let inp = get32(desk, 148)
+            let cs = get32(desk, 208)
+            xzero(desk, inp, 4224)
+            put32(desk, inp + 4, 2)
+            put32(desk, inp + cs * 2 + 4, 6 + 32 + real * 65536)
+            put32(desk, inp + cs * 2 + 8, xphys(desk, get32(desk, 172)) + 1)
+            put32(desk, inp + cs * 2 + 16, 8)
+            if xcmd(desk, 13, xphys(desk, inp), 0, get32(desk, 16)) != 1 {
+                give 2
+            }
+        }
+    }
+    if xgetdesc(desk, 1, 18) < 18 {
+        give 2
+    }
+    if xgetdesc(desk, 2, 9) < 9 {
+        give 2
+    }
+    let total = desk[d + 2] + desk[d + 3] * 256
+    if total < 9 {
+        give 2
+    }
+    if total > 2048 {
+        give 2
+    }
+    if xgetdesc(desk, 2, total) < total {
+        give 2
+    }
+    let cfgval = desk[d + 5]
+    let off = 0
+    let inhid = 0
+    let ifnum = 0
+    let ep = 0
+    let epmax = 0
+    let epint = 0
+    while off + 2 <= total {
+        let len = desk[d + off]
+        let kind = desk[d + off + 1]
+        if len < 2 {
+            off = total + 1
+        } else {
+            if kind == 4 {
+                if len >= 9 {
+                    let match = 0
+                    if desk[d + off + 5] == 3 {
+                        if desk[d + off + 6] == 1 {
+                            if desk[d + off + 7] == 1 {
+                                match = 1
+                            }
+                        }
+                    }
+                    inhid = match
+                    if match == 1 {
+                        ifnum = desk[d + off + 2]
+                    }
+                }
+            }
+            if kind == 5 {
+                if inhid == 1 {
+                    if len >= 7 {
+                        let attr = desk[d + off + 3]
+                        if attr - (attr / 4) * 4 == 3 {
+                            let door = desk[d + off + 2]
+                            if door >= 128 {
+                                ep = door - (door / 16) * 16
+                                epmax = desk[d + off + 4] + desk[d + off + 5] * 256
+                                epint = desk[d + off + 6]
+                            }
+                        }
+                    }
+                }
+            }
+            off = off + len
+        }
+    }
+    if ep == 0 {
+        give 3
+    }
+    put32(desk, 20, ep)
+    put32(desk, 24, epmax)
+    put32(desk, 28, ep * 2 + 1)
+    put32(desk, 128, epint)
+    put32(desk, 132, cfgval)
+    put32(desk, 136, ifnum)
+    put32(desk, 248, xinterval(get32(desk, 12), epint))
+    // Arrange the interrupt door with the controller:
+    // the input carries the slot's context copied from
+    // the output the addressing laid, its door count
+    // grown to this door's place, and this door's own
+    // context — and the command names both in its flags.
+    let inp = get32(desk, 148)
+    let outp = get32(desk, 152)
+    let cs = get32(desk, 208)
+    let dci = get32(desk, 28)
+    xzero(desk, inp, 4224)
+    let ci = 0
+    while ci < 32 {
+        desk[inp + cs + ci] = desk[outp + ci]
+        ci = ci + 1
+    }
+    let dw0 = get32(desk, inp + cs)
+    put32(desk, inp + cs, dw0 - (dw0 / 268435456) * 268435456 + dci * 268435456)
+    let addflags = 1
+    let bit = 1
+    let bi = 0
+    while bi < dci {
+        bit = bit * 2
+        bi = bi + 1
+    }
+    addflags = addflags + bit
+    put32(desk, inp + 4, addflags)
+    let eoff = inp + cs * (1 + dci)
+    put32(desk, eoff, get32(desk, 248) * 65536)
+    put32(desk, eoff + 4, 6 + 56 + epmax * 65536)
+    put32(desk, eoff + 8, xphys(desk, get32(desk, 176)) + 1)
+    put32(desk, eoff + 16, 8 + epmax * 65536)
+    if xcmd(desk, 12, xphys(desk, inp), 0, get32(desk, 16)) != 1 {
+        give 2
+    }
+    xstagesetup1(desk, 0, 9, cfgval)
+    xstagesetup2(desk, 0, 0)
+    if xcontrol(desk, 0, 1, 0) < 0 {
+        give 2
+    }
+    usbwait(1)
+    xstagesetup1(desk, 33, 11, 0)
+    xstagesetup2(desk, ifnum, 0)
+    if xcontrol(desk, 0, 1, 0) < 0 {
+        give 2
+    }
+    xstagesetup1(desk, 33, 10, 0)
+    xstagesetup2(desk, ifnum, 0)
+    if xcontrol(desk, 0, 1, 0) < 0 {
+        give 2
+    }
+    put32(desk, 4, 2)
+    xarm(desk)
+    give 4
+}
+
+// One port's reset, and the settling after: the reset
+// bit held in the port's door (the warm door, bit 31,
+// for a super-speed standing; the plain door, bit 4,
+// for the rest), the port's own word watched until the
+// reset stands complete — its completion bit raised,
+// or its reset bit fallen with the port enabled — and
+// the change bits the reset raised cleared by writing
+// them back, as the standard prescribes. The ledger
+// learns the device's speed from the port's word.
+// Gives back 1 when a device stands enabled after it.
+make xresetport(desk: bytes, port: number) -> number {
+    let op = get32(desk, 104)
+    let poff = op + 1024 + (port - 1) * 16
+    let sc = xmread(desk, poff)
+    put32(desk, 244, sc)
+    let v = sc - andmask(sc, 16646144)
+    if andmask(sc / 1024, 15) == 4 {
+        v = xwithbit(v, 2147483648)
+    } else {
+        v = xwithbit(v, 16)
+    }
+    xmwrite(desk, poff, v)
+    let waited = 0
+    let doneflag = 0
+    while doneflag == 0 {
+        let now = xmread(desk, poff)
+        put32(desk, 244, now)
+        if andmask(now, 2097152) != 0 {
+            doneflag = 1
+        }
+        if andmask(now, 16) == 0 {
+            if andmask(now, 1) != 0 {
+                if andmask(now, 2147483648) == 0 {
+                    if andmask(now, 2) != 0 {
+                        doneflag = 1
+                    }
+                    if andmask(now / 1024, 15) == 4 {
+                        doneflag = 1
+                    }
+                }
+            }
+        }
+        if waited > 200 {
+            doneflag = 1
+        }
+        if doneflag == 0 {
+            usbwait(1)
+            waited = waited + 1
+        }
+    }
+    usbwait(5)
+    let after = xmread(desk, poff)
+    put32(desk, 244, after)
+    xmwrite(desk, poff, xwithbit(xwithbit(after, 2097152), 131072))
+    put32(desk, 12, andmask(after / 1024, 15))
+    if andmask(after, 1) == 0 {
+        give 0
+    }
+    if andmask(after / 1024, 15) == 0 {
+        give 0
+    }
+    if andmask(after / 1024, 15) == 4 {
+        give 1
+    }
+    if andmask(after, 2) != 0 {
+        give 1
+    }
+    give 0
+}
+
+// Raises the whole road, once: the controller found and
+// its memory door mapped, the controller stilled and
+// reset and set walking with the fields this library
+// built — the device context list, the command ring
+// with its first cycle standing, the one interrupter's
+// event ring and its table — then each port asked in
+// turn whether anything stands on it, anything standing
+// reset, and the first that wakes as a keyboard taken.
+// Comes home 1 when a keyboard stands ready, 0 when the
+// road is not there to be walked.
+make xhinit(desk: bytes) -> number {
+    let st = get32(desk, 4)
+    if st == 2 {
+        give 1
+    }
+    if st != 0 {
+        give 0
+    }
+    let bar = xpcifind()
+    if bar == 0 {
+        put32(desk, 4, 255)
+        give 0
+    }
+    put32(desk, 0, bar)
+    xbuild(desk)
+    xmmap(desk, get32(desk, 180), bar)
+    let caplen = andmask(xmread(desk, 0), 255)
+    if caplen < 32 {
+        put32(desk, 4, 255)
+        give 0
+    }
+    put32(desk, 104, caplen)
+    put32(desk, 108, andmask(xmread(desk, 20), 4294967264))
+    put32(desk, 112, andmask(xmread(desk, 24), 4294967264))
+    let hcs1 = xmread(desk, 4)
+    put32(desk, 120, andmask(hcs1, 255))
+    put32(desk, 116, andmask(hcs1 / 16777216, 255))
+    let hcs2 = xmread(desk, 8)
+    let scratch = andmask(hcs2 / 134217728, 31) * 32 + andmask(hcs2 / 2097152, 31)
+    put32(desk, 240, scratch)
+    if scratch > 4 {
+        put32(desk, 4, 255)
+        give 0
+    }
+    let hcc1 = xmread(desk, 16)
+    if andmask(hcc1, 4) != 0 {
+        put32(desk, 208, 64)
+    } else {
+        put32(desk, 208, 32)
+    }
+    let op = caplen
+    // The page measure the controller walks by must be
+    // the four-thousand one this system's fields assume.
+    if andmask(xmread(desk, op + 8), 1) == 0 {
+        put32(desk, 4, 255)
+        give 0
+    }
+    // Still it, if it walks, and wait for the stilling.
+    if andmask(xmread(desk, op + 4), 1) == 0 {
+        xmwrite(desk, op, andmask(xmread(desk, op), 4294967294))
+        let w1 = 0
+        while andmask(xmread(desk, op + 4), 1) == 0 {
+            if w1 > 200 {
+                put32(desk, 4, 255)
+                give 0
+            }
+            usbwait(1)
+            w1 = w1 + 1
+        }
+    }
+    // Reset it, and wait for the reset to clear and the
+    // controller to stand ready to be told things.
+    xmwrite(desk, op, xwithbit(xmread(desk, op), 2))
+    let w2 = 0
+    let resetting = 1
+    while resetting == 1 {
+        if andmask(xmread(desk, op), 2) == 0 {
+            if andmask(xmread(desk, op + 4), 2048) == 0 {
+                resetting = 0
+            }
+        }
+        if w2 > 500 {
+            put32(desk, 4, 255)
+            give 0
+        }
+        if resetting == 1 {
+            usbwait(1)
+            w2 = w2 + 1
+        }
+    }
+    usbwait(2)
+    // The fields, told to the controller: how many
+    // device places stand open, where the context list
+    // stands (its first entry the scratch list, when the
+    // controller asks for scratch pages), where the
+    // command ring stands with its cycle standing, and
+    // the one interrupter's event ring and its table.
+    xmwrite(desk, op + 56, get32(desk, 120))
+    let dcbaa = get32(desk, 156)
+    if scratch > 0 {
+        let arr = get32(desk, 212)
+        let pages = get32(desk, 216)
+        let si = 0
+        while si < scratch {
+            put32(desk, arr + si * 8, xphys(desk, pages + si * 4096))
+            put32(desk, arr + si * 8 + 4, 0)
+            si = si + 1
+        }
+        put32(desk, dcbaa, xphys(desk, arr))
+        put32(desk, dcbaa + 4, 0)
+    }
+    xmwrite(desk, op + 48, xphys(desk, dcbaa))
+    xmwrite(desk, op + 52, 0)
+    xmwrite(desk, op + 24, xphys(desk, get32(desk, 160)) + 1)
+    xmwrite(desk, op + 28, 0)
+    let rt = get32(desk, 112)
+    let erst = get32(desk, 168)
+    put32(desk, erst, xphys(desk, get32(desk, 164)))
+    put32(desk, erst + 4, 0)
+    put32(desk, erst + 8, 64)
+    put32(desk, erst + 12, 0)
+    xmwrite(desk, rt + 40, 1)
+    xmwrite(desk, rt + 48, xphys(desk, erst))
+    xmwrite(desk, rt + 52, 0)
+    xmwrite(desk, rt + 56, xphys(desk, get32(desk, 164)))
+    xmwrite(desk, rt + 60, 0)
+    xmwrite(desk, rt + 36, 0)
+    xmwrite(desk, rt + 32, 1)
+    // Set it walking, and wait for the walking to stand.
+    xmwrite(desk, op, xwithbit(xmread(desk, op), 1))
+    let w3 = 0
+    while andmask(xmread(desk, op + 4), 1) != 0 {
+        if w3 > 200 {
+            put32(desk, 4, 255)
+            give 0
+        }
+        usbwait(1)
+        w3 = w3 + 1
+    }
+    put32(desk, 4, 1)
+    let ready = 0
+    let p = 1
+    while p <= get32(desk, 116) {
+        if ready == 0 {
+            let poff = op + 1024 + (p - 1) * 16
+            if andmask(xmread(desk, poff), 1) != 0 {
+                put32(desk, 8, p)
+                if xresetport(desk, p) == 1 {
+                    if xwake(desk) == 4 {
+                        ready = 1
+                    }
+                }
+            }
+        }
+        p = p + 1
+    }
+    give ready
+}
+
+// ---- the keys themselves ----
+
+// Lays one key number in the waiting queue, in the order
+// the keys were pressed; 'counted' says whether the
+// road's ledger of keys brought counts it — the letters
+// and their kin are counted, the shift standings are
+// not, exactly as the UHCI road keeps its count.
+make xpush(desk: bytes, code: number, counted: number) {
+    let tail = get32(desk, 76)
+    let slot = tail - (tail / 16) * 16
+    desk[80 + slot] = code
+    put32(desk, 76, tail + 1)
+    if counted == 1 {
+        put32(desk, 68, get32(desk, 68) + 1)
+    }
+}
+
+// Reads one completed report: the usages standing in it
+// that were not standing in the last one are new
+// presses — each translated by the UHCI library's own
+// table, counted in this road's ledger, and laid in the
+// waiting queue — and the report becomes the last one.
+// Before the keys, the report's first byte is read, as
+// on the UHCI road (Stone 12): when the shift standing
+// has changed, the change itself is queued first, in
+// the shared numbers for the left shift (42 down, 170
+// up), so the main body keeps one shift standing for
+// every road.
+make xnewkeys(desk: bytes) {
+    let r = get32(desk, 144)
+    let mods = desk[r]
+    let shnow = 0
+    if andmask(mods, 34) != 0 {
+        shnow = 1
+    }
+    let shwas = 0
+    if andmask(desk[102], 34) != 0 {
+        shwas = 1
+    }
+    if shnow != shwas {
+        if shnow == 1 {
+            xpush(desk, 42, 0)
+        }
+        if shnow == 0 {
+            xpush(desk, 170, 0)
+        }
+    }
+    desk[102] = mods
+    let i = 2
+    while i < 8 {
+        let u = desk[r + i]
+        if u >= 4 {
+            let seen = 0
+            let j = 0
+            while j < 6 {
+                if desk[96 + j] == u {
+                    seen = 1
+                }
+                j = j + 1
+            }
+            if seen == 0 {
+                let code = usagekey(u)
+                if code != 0 {
+                    xpush(desk, code, 1)
+                }
+            }
+        }
+        i = i + 1
+    }
+    let j2 = 0
+    while j2 < 6 {
+        desk[96 + j2] = desk[r + 2 + j2]
+        j2 = j2 + 1
+    }
+}
+
+// The main loop's asking, once a pass: if the controller
+// has laid an event — and it is the keyboard's interrupt
+// door answering — the report that came with it is read
+// and the door armed again for the next; every other
+// event is set aside as it is read. Then one waiting
+// key is handed out, in the order the keys were pressed.
+// Gives back a key number in the system's own numbering,
+// or 0 when this road has nothing this pass.
+make xhpoll(desk: bytes) -> number {
+    if get32(desk, 4) != 2 {
+        give 0
+    }
+    if xnextevt(desk) == 1 {
+        if xevtype(desk) == 32 {
+            if andmask(get32(desk, 196) / 16777216, 255) == get32(desk, 16) {
+                if andmask(get32(desk, 196) / 65536, 31) == get32(desk, 28) {
+                    let code = xevcode(desk)
+                    if code == 1 {
+                        xnewkeys(desk)
+                    }
+                    if code == 13 {
+                        xnewkeys(desk)
+                    }
+                    xarm(desk)
+                }
+            }
+        }
+    }
+    let head = get32(desk, 72)
+    let tail = get32(desk, 76)
+    if head == tail {
+        give 0
+    }
+    let slot = head - (head / 16) * 16
+    let code = desk[80 + slot]
+    put32(desk, 72, head + 1)
+    give code
+}
+
+// Whether a keyboard stands ready on the modern road.
+make xhready(desk: bytes) -> number {
+    if get32(desk, 4) == 2 {
+        give 1
+    }
+    give 0
+}
+
+// How many keys the modern road has brought since boot.
+make xhcount(desk: bytes) -> number {
+    give get32(desk, 68)
+}

@@ -137,6 +137,16 @@ To build the bootable witness disc (see "The witness disc" below):
                       # usual size and at large print,
                       # turning its pages by its foot and
                       # by the arrow keys (Stone 31)
+./prove-stone32.sh    # boots with a modern (xHCI) USB
+                      # controller and a keyboard on it:
+                      # the ready word stands for the
+                      # modern road, shifted letters and
+                      # Caps Lock type on it, and the
+                      # 'usb' word's own count for that
+                      # road proves it carried the keys;
+                      # then the controller with no
+                      # keyboard, and no controller at
+                      # all, unbothered (Stone 32)
 ./build-stick.sh      # makes dist/cardnull-stick.img (Stone 17)
 ```
 
@@ -358,6 +368,14 @@ six words' worth of values, so two of the driver's layings are
 done in two calls each; and the driver's signatures carry
 Stone 18 kind marks, so the shapes its floor desks are handed
 are known from the start.
+
+*A later word (November 16, 2026): the USB 3.0
+arrangement named above as not covered by this stone
+is covered now — Stone 32 adds the xHCI road beside
+this one, in its own library, feeding the same typing
+line. This section's words stand as the record of
+Stone 6; the coverage as it now stands is told in
+Stone 32's section.*
 
 ### Stone 7 — A true clock
 
@@ -2580,6 +2598,157 @@ account of each window and word stands in the
 stones' sections above, and the window's plain
 lines point a neighbor truly, not exhaustively.
 
+### Stone 32 — Ears on the modern USB road
+
+A third road for typing. `src/xhcikey.nifla` is a
+second USB host driver written in Nifla, standing
+beside the UHCI driver of Stone 6 in the same pattern
+— its whole estate in one desk of bytes the main body
+hands it — but speaking to a wholly different
+controller: an **xHCI**, the eXtensible Host
+Controller of the USB 3 years, found on the PCI bus
+by its class numbers (serial bus 0x0C, USB 0x03,
+xHCI 0x30). Where the UHCI road speaks through I/O
+ports, this controller is reached through its
+**memory door** — the address its card names (its
+BAR) — so the driver reads and writes its registers
+as memory, and first lays the page-table reach to
+the door's gigabyte quarter when that quarter stands
+above the waking map, the very reckoning the face of
+light's pixmap lays for its screen (the bench's door
+stands at 0xFEBF0000, in the screen's own quarter).
+The raising stills the controller, resets it, and
+sets it walking with the fields the standard
+prescribes: the device context list, a command ring,
+one event ring with its table (polled, as every road
+here is polled — no interrupts are taken), and the
+run word. Each port is then asked in turn whether
+anything stands on it; anything standing is reset
+(the warm door for a super-speed standing, the plain
+door for the rest), and the first device that wakes
+as a keyboard is taken.
+
+The waking itself follows the modern road's own
+order: the controller is asked for a device place
+(its Enable Slot order), the device is addressed
+with its control door (the Address Device order —
+the control door's packet bound first guessed from
+the device's speed, then learned truly from the
+description's own seventh byte and re-valued by the
+Evaluate order when the guess stood wrong), its
+whole arrangement is read descriptor by descriptor
+until a boot keyboard's interface is found **by the
+same declared numbers the UHCI road reads** (the
+HID class 3, the boot subclass 1, the keyboard
+protocol 1) with its inward interrupt door, that
+door is arranged with the controller (the Configure
+Endpoint order), the arrangement is set, the
+keyboard is set to its boot manner, and its report
+door is armed with one plain transfer block. The
+main loop then reads the controller's event ring
+once a pass: when the keyboard's door answers, the
+report is read and the door armed again, and the
+report's presses are turned into the same make codes
+every road speaks **by the UHCI library's own
+translation** — so all roads feed the one typing
+line, and the shift keys and Caps Lock are resolved
+by the one shared standing in the main body, exactly
+as Stone 12 settled for both roads then standing.
+When a keyboard is ready on this road the desktop
+says so at boot ("A USB keyboard is ready on the
+modern USB road."), and the word `usb` reports this
+road's standing in its own line beside the UHCI
+road's, with **its own count** of the keys it has
+brought.
+
+**The hearing order, stated plainly:** the loop asks
+the PS/2 road first, then the UHCI road, then the
+modern road — so when more than one USB keyboard
+stands ready, the first road in that order with a
+key waiting is the one heard that pass; in practice
+the UHCI road, asked first, is the one the loop
+hears when both carry keyboards. Both USB roads may
+stand ready together; neither disables the other,
+and neither disables the PS/2 road. With no xHCI
+controller, or a controller but no keyboard on it,
+the desktop comes up exactly as before and the other
+roads carry on — the raising's every wait is
+bounded, and a controller that will not raise leaves
+the road quiet and the desktop unbothered.
+
+**Which USB this covers, plainly, as it now
+stands:** the UHCI companion road of Stone 6 (in
+UTM, the **USB 2.0** arrangement, whose keyboards
+stand on UHCI companions) and now the xHCI road (in
+UTM, the **USB 3.0** arrangement) are both covered. A
+**standalone EHCI controller is still not covered**:
+a machine offering only an EHCI host and no UHCI
+companion would find no controller either driver
+speaks, and the PS/2 road would carry typing alone.
+One building measure, in the open: this stone's
+growth carried the kernel's staged segment end from
+260,128 to **285,795 bytes**, past the BIOS
+doorman's 256 KiB claim — so the claim was raised
+the established way, to **320 KiB**, and the module
+stages moved above the whole claim: settings at
+0x90000 (a 2 KiB claim), the feather at 0x90800
+(6 KiB), the paint feather at 0x92000 (8 KiB), and
+the calculator feather at 0x94000 (16 KiB, ending at
+0x98000). Above the raised claim only 64 KiB stand
+before the firmware's reserved ground, so the
+modules' claims stand at their tight measures now,
+each with room over its file as it stands; the
+headroom under the 320 KiB claim is 41,885 bytes.
+The EFI doorman was checked and needed no move: it
+stages no file — it reads the system and its modules
+from its partition directly to their row at
+0x300000 — so no claim of its own stands to grow.
+
+Proven by `prove-stone32.sh`, three boots, all PASS
+(16 checks): with an xHCI controller (the bench's
+`qemu-xhci`) and a USB keyboard on it, the modern
+ready word stands on the desktop, a shifted word
+stands capital on the typing line, the `usb` word's
+count for the modern road reads **10** — the ten
+presses of the typed words and their Enters, carried
+by the modern road itself (the count is this road's
+own; no other road can raise it) — Caps Lock makes
+its capitals by its usage, and small letters answer
+again when it is turned off. With the controller but
+no keyboard, and with no controller at all, the
+desktop comes up unbothered, the PS/2 road answers
+as always, and `usb` answers plainly that no USB
+keyboard is plugged in. The neighbouring proofs pass
+beside it: Stones 6, 12, 18, and 9, the ISO proof,
+and the no-witness proof, all on the same build with
+the doorman's stages in their new places.
+
+Honest limits: the road is proven on the bench's
+controller in the shape the bench offers it — QEMU's
+`qemu-xhci` (its capability words read on the bench:
+sixty-four device places, eight ports, no scratch
+pages asked, the thirty-two-byte context size), with
+the keyboard standing at **high speed** on one of its
+ports. The driver honors the other context size (64)
+and up to four scratch pages in its layings, but
+those shapes are **not proven** here, and neither is
+a keyboard that itself stands at super speed — the
+warm reset door for one is laid, untested by any
+device the bench has. A memory door whose high word
+is not zero (a 64-bit door standing above the
+four-billion line) is passed by, as beyond this
+system's present reach, and a controller that does
+not walk by the four-thousand-byte page measure
+leaves the road quiet, said in its standing rather
+than guessed at. One keyboard is woken, the first
+that answers; a keyboard standing **behind a hub**
+is not woken — no hub is spoken to on either USB
+road. A USB mouse on this road is not spoken either:
+the pointer remains the PS/2 mouse of Stone 13. And
+the road polls its event ring once a pass of the
+loop, as the UHCI road polls its door — a key is
+heard at the loop's own pace, not an interrupt's.
+
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 
 This is not one of this system's own stones; it is the
@@ -3024,6 +3193,12 @@ was split by duty, without changing its behavior:
   host and the HID boot keyboard it wakes, its whole estate in
   one desk of bytes the main body hands it at every asking
   (usbinit, usbpoll, and their helpers).
+- `src/xhcikey.nifla` — ears on the modern USB road (Stone 32):
+  the xHCI host and the HID boot keyboard it wakes, its whole
+  estate in one desk of bytes the main body hands it at every
+  asking (xhinit, xhpoll, and their helpers); its small ledger
+  hands and its HID translation are the UHCI library's own,
+  called as they stand.
 - `src/rtclock.nifla` — the real clock (Stone 7): reading the
   machine's own CMOS clock into a block the main body hands
   it, and the calendar reckoning that turns a reading into a

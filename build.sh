@@ -42,6 +42,7 @@ mkdir -p build
 #   featherdoor  the feather door (Stone 5)
 #   commands   deciding what a typed word is answered with
 #   usbkey     ears on the USB road (Stone 6)
+#   xhcikey    ears on the modern USB road (Stone 32)
 #   rtclock    the real clock: the CMOS reading and the
 #              calendar reckoning (Stone 7)
 #   diskkeep   what the system remembers on a hard disk
@@ -60,7 +61,7 @@ mkdir -p build
 #              shows, and the day's reckoning (Stone 29)
 #   helpwords  the plain words the help window shows,
 #              in five short pages (Stone 31)
-LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/featherdoor.nifla src/commands.nifla src/usbkey.nifla src/rtclock.nifla src/diskkeep.nifla src/font.nifla src/pixface.nifla src/mouse.nifla src/speaker.nifla src/rest.nifla src/verses.nifla src/helpwords.nifla"
+LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/featherdoor.nifla src/commands.nifla src/usbkey.nifla src/xhcikey.nifla src/rtclock.nifla src/diskkeep.nifla src/font.nifla src/pixface.nifla src/mouse.nifla src/speaker.nifla src/rest.nifla src/verses.nifla src/helpwords.nifla"
 PRELUDE=""
 for lib in $LIBRARIES; do
     # Word splitting is intended: one --prelude pair per file.
