@@ -61,14 +61,14 @@ def decode(d, prow, pcol, text, ink):
 
 def desktop_up(d):
     return (d is not None and d[0] == 1024
-            and pixel(d, 10, 8) == BLUE
+            and pixel(d, 300, 760) == BLUE
             and decode(d, 5, 7, "Welcome", WHITE) == "Welcome")
 
 
 # Places on this face, as in boot 1: the files window
 # at left cell 5, top row 32; the rest panel centered —
 # left cell 24, top row 22, its words at its left + 1.
-FX, FY = 5, 32
+FX, FY = 5, 31
 RL, RT = 24, 22
 NOTE = "still here after rest"
 
@@ -115,7 +115,7 @@ while time.time() < end and not fell:
         d = dump()
     except Exception:
         d = None
-    if d is None or d[0] != 1024 or pixel(d, 10, 8) != BLUE:
+    if d is None or d[0] != 1024 or pixel(d, 300, 760) != BLUE:
         fell = True
     time.sleep(0.3)
 expect(fell, "the desktop fell: the machine truly reset")

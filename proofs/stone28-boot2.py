@@ -65,19 +65,19 @@ def click(x, y):
     mousebutton(0)
 
 
-UX, UY = 5, 32
-LX, LY = 1, 16
+UX, UY = 5, 30
+LX, LY = 1, 14
 
 d = waitdump(lambda d: d is not None and d[0] == 1024
              and count(d, BLUE) > 5000, 40)
 expect(d is not None, "the desktop is drawn")
 if d:
-    said = decode(d, 0, 1, "Cardnull", WHITE, 3)
+    said = decode(d, 31, 2, "Cardnull", WHITE, 3)
     expect(said == "Cardnull", f"the desktop rose large from the card (read: {said!r})")
-    said = decode(d, 0, 34, "19:", WHITE, 3)
+    said = decode(d, 31, 34, "19:", WHITE, 3)
     expect(said == "19:", f"the bar clock stands large from the card (read: {said!r})")
-    expect(pixel(d, 300, 23) == BLUE and pixel(d, 300, 24) == BLACK,
-           "the bar stands twenty-four pixels tall: large print persisted")
+    expect(pixel(d, 300, 767) == BLUE and pixel(d, 300, 719) == BLACK,
+           "the bar stands at the screen's foot, two large rows tall: large print persisted")
 
 typewrite("settings")
 enter()
@@ -97,17 +97,17 @@ if d:
 # A press on the 'Usual size' row at the large size
 # (row 27; its point at (252, 660)): the desktop must
 # stand at the usual size at once.
-click(252, 660)
+click(252, 612)
 d = waitdump(lambda d: d is not None
              and decode(d, UY + 11, UX + 4, "Usual size", WHITE, 2)
              == "Usual size", 25)
 expect(d is not None, "clicking 'Usual size' at the large size restored the usual size at once")
 if d:
-    said = decode(d, 0, 56, "19:", WHITE, 2)
+    said = decode(d, 47, 56, "19:", WHITE, 2)
     expect(said == "19:", f"the bar clock stands at the usual size again (read: {said!r})")
     said = decode(d, UY, UX + 1, "Settings", WHITE, 2)
     expect(said == "Settings", f"the window's title stands at the usual size again (read: {said!r})")
-    expect(pixel(d, 300, 15) == BLUE and pixel(d, 300, 16) == BLACK,
-           "the bar stands sixteen pixels tall again")
+    expect(pixel(d, 300, 767) == BLUE and pixel(d, 1016, 735) == BLACK,
+           "the bar stands at the screen's foot again, two rows tall")
 
 done()

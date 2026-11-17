@@ -86,7 +86,7 @@ make helptext(idx: number) -> text {
     if idx == 44 { give "Moving and resting" }
     if idx == 45 { give "usb tells if a USB keyboard" }
     if idx == 46 { give "is plugged in and ready." }
-    if idx == 47 { give "Press the top bar for the menu." }
+    if idx == 47 { give "The round button opens the menu." }
     if idx == 48 { give "Tab brings the next window up." }
     if idx == 49 { give "Escape closes the front window." }
     if idx == 50 { give "The small x closes its window." }

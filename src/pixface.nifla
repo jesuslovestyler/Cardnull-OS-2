@@ -1,5 +1,10 @@
 // Cardnull OS 2's pixel-face library — drawing the desktop
 // as light on the machine's picture screen (Stone 9).
+// Stone 33 gives this library the glass drawing: the bar
+// at the screen's foot with its sheen and tint, the round
+// start button carrying the pixel-drawn cardinal, the
+// windows' rounded corners, title sheens, and soft
+// shadows — all drawn here, in Cardnull's own hand.
 //
 // Like the other libraries, this file joins the system as
 // a prelude when it is built (build.sh names it); a prelude
@@ -311,6 +316,64 @@ make pixpaper(desk: bytes, idx: number) {
     pset(desk, 60, pget(desk, 64 + idx * 4))
 }
 
+// ---- the glass colors (Stone 33) ----
+//
+// The glass face is drawn in colors the sixteen-color
+// palette does not hold — the sheen's pale blue-green, the
+// frame tint, the start button's stained glass — composed
+// for this screen from a packed red-green-blue number
+// (red in the high byte, then green, then blue, the
+// packing vgargb uses), each part moved to the place the
+// loader's answer said its field stands, the reckoning
+// pixcompose does for the palette. The glass is Cardnull's
+// own drawing in the style of a glass desktop — no other
+// system's artwork stands in it.
+
+// Doubles a number 'n' times: the shift the field places
+// ask for, as multiplication, which is what the bare
+// language offers.
+make shlval(v: number, n: number) -> number {
+    let r = v
+    let i = 0
+    while i < n {
+        r = r * 2
+        i = i + 1
+    }
+    give r
+}
+
+// Composes one packed color for this screen.
+make pixcomp(desk: bytes, rgb: number) -> number {
+    let r = rgb / 65536
+    let g = (rgb - r * 65536) / 256
+    let b = rgb - r * 65536 - g * 256
+    give shlval(r, pget(desk, 16)) + shlval(g, pget(desk, 20)) + shlval(b, pget(desk, 24))
+}
+
+// Sets the pen from a packed color, composed for this
+// screen — pixink's shape, for a glass color.
+make pixinkrgb(desk: bytes, rgb: number) {
+    pset(desk, 56, pixcomp(desk, rgb))
+}
+
+// The glass colors themselves, packed as vgargb packs:
+// the sheen's pale light and its middle band, the calm
+// blue-green tint of the frames, the start button's deep
+// glass, the soft shadow's near-black, and the cardinal's
+// stained glass — its lead, its deep red and bright red,
+// its gold, and its beak's orange.
+make glasssheen() -> number { give 10147550 }
+make glassmid() -> number { give 6270654 }
+make glasstint() -> number { give 3047060 }
+make glassbase() -> number { give 2055790 }
+make glassshadow() -> number { give 659990 }
+make glasslead() -> number { give 1579040 }
+make glassred() -> number { give 12588578 }
+make glassbright() -> number { give 15219266 }
+make glassgold() -> number { give 15315514 }
+make glassbeak() -> number { give 15760926 }
+make glasspale() -> number { give 13162716 }
+
 // ---- the page tables ----
 //
 // The boot stub's own tables map the first gigabyte of the
@@ -401,7 +464,11 @@ make pixbegin(desk: bytes) -> number {
     }
     pset(desk, 128, layrow(desk, 13))
     pset(desk, 132, layrow(desk, 22))
-    pset(desk, 136, layrow(desk, 24))
+    // The typing line's row (Stone 33): the bar stands at
+    // the screen's foot now, two rows tall, so the typing
+    // line stands just above it — the grid's third row
+    // from the foot — where the bar can never cover it.
+    pset(desk, 136, pget(desk, 32) - 3)
     pset(desk, 140, laycol(desk, 8))
     pset(desk, 144, layrow(desk, 3))
     pset(desk, 148, laycol(desk, 72) - laycol(desk, 8))
@@ -446,6 +513,212 @@ make pixfill(desk: bytes, x: number, y: number, w: number, h: number) {
         jmp pfl_row
     pfl_done:
     }
+}
+
+// ---- the glass drawing (Stone 33) ----
+
+// The bar's top edge, in pixels: the bar stands at the
+// screen's foot, two letter rows tall (see pixbar below),
+// and everything else on the desktop stands above it.
+make pixbartop(desk: bytes) -> number {
+    give (pget(desk, 32) - 2) * pget(desk, 320)
+}
+
+// Fills a disc of the pen's color: its center and its
+// radius, in pixels. The glass face's round shapes — the
+// start button, the windows' rounded corners — are drawn
+// with it, one pixel at a time.
+make pixdisc(desk: bytes, cx: number, cy: number, r: number) {
+    let dy = 0 - r
+    while dy <= r {
+        let dx = 0 - r
+        while dx <= r {
+            if dx * dx + dy * dy <= r * r {
+                pixfill(desk, cx + dx, cy + dy, 1, 1)
+            }
+            dx = dx + 1
+        }
+        dy = dy + 1
+    }
+}
+
+// Lays a window's soft shadow: a dark band along its
+// right edge and under its foot, offset a few pixels, in
+// the shadow's near-black. The shadow never falls on the
+// bar: its bands are clipped at the bar's top edge, so
+// the ground a shadow stood on is always desktop ground
+// the wash below can make whole again.
+make pixshadow(desk: bytes, x: number, y: number, w: number, h: number) {
+    let bt = pixbartop(desk)
+    let sw = pget(desk, 8)
+    pixinkrgb(desk, glassshadow())
+    if x + w + 5 <= sw {
+        if y + 5 < bt {
+            let hh = h - 5
+            if y + 5 + hh > bt {
+                hh = bt - (y + 5)
+            }
+            if hh > 0 {
+                pixfill(desk, x + w, y + 5, 5, hh)
+            }
+        }
+    }
+    if y + h < bt {
+        let hh2 = 5
+        if y + h + hh2 > bt {
+            hh2 = bt - (y + h)
+        }
+        if hh2 > 0 {
+            pixfill(desk, x + 5, y + h, w - 5, hh2)
+            if x + w + 5 <= sw {
+                pixfill(desk, x + w, y + h, 5, hh2)
+            }
+        }
+    }
+}
+
+// Wipes one window's whole place back to the plain
+// desktop: its frame's place and its shadow's, the six
+// pixels the shadow reaches past the frame's right and
+// foot — clipped at the bar's top and the screen's right
+// edge, the very places the shadow itself is clipped to,
+// so a closed or dragged-away window leaves the desktop
+// exactly as it found it, and the bar untouched.
+make pixwashwin(desk: bytes, gx: number, gy: number, gw: number, gh: number) {
+    let cs = pget(desk, 320)
+    let bt = pixbartop(desk)
+    let y0 = gy * cs
+    let hh = gh * cs + 6
+    if y0 + hh > bt {
+        hh = bt - y0
+    }
+    let ww = gw * cs + 6
+    if gx * cs + ww > pget(desk, 8) {
+        ww = pget(desk, 8) - gx * cs
+    }
+    pixink(desk, 0)
+    if hh > 0 {
+        pixfill(desk, gx * cs, y0, ww, hh)
+    }
+}
+
+// ---- the cardinal on the start button (Stone 33) ----
+//
+// The start button carries Cardnull's own mark — the
+// stained-glass cardinal of the Cardnull logo — reduced
+// honestly to a small pixel drawing in this library's own
+// hand, the pattern of font.nifla's hand-drawn shapes and
+// of the pointer's arrow above: twenty-four rows of
+// twenty-four, one letter a pixel, standing here exactly
+// as drawn. The letters name the stained glass's colors:
+//   K  the lead — the dark divisions between the glass
+//   R  the bird's deep red        r  its bright red
+//   G  the wing's gold            O  the beak's orange
+//   W  the eye's one white spark  .  no glass — the
+//      button's own glass stands there instead
+// The bird faces right, as the logo's does: its crest
+// swept up at the back, its black mask and orange beak at
+// the front, its gold wing on its side, and its long tail
+// down behind it.
+
+make birdrow(r: number) -> text {
+    if r == 0 { give "......KK................" }
+    if r == 1 { give ".....KRrK..............." }
+    if r == 2 { give "....KRrRK..............." }
+    if r == 3 { give "....KRRRK...KKKK........" }
+    if r == 4 { give "...KRRRKKKKRRRRRK......." }
+    if r == 5 { give "..KRRRRRRRRRRRKKKK......" }
+    if r == 6 { give "..KRRRRRRRRRRKWKKOOOO..." }
+    if r == 7 { give "..KRRRRRRRRRRRKKKOOOOOO." }
+    if r == 8 { give "..KRRRRRRRRRRRK.KOOO..." }
+    if r == 9 { give "..KRRRRRRRRRRRKK........" }
+    if r == 10 { give ".KRRRRRRRRRRRRrRK......." }
+    if r == 11 { give ".KRRKKKKKRRRRRrrK......." }
+    if r == 12 { give ".KRKGGGGGKRRRrrK........" }
+    if r == 13 { give ".KRKGGGGGGKRRrrK........" }
+    if r == 14 { give "..KKGGGGGGKKRrK........." }
+    if r == 15 { give "...KGGGGGK.KRK.........." }
+    if r == 16 { give "...KKKKKK..KRRK........." }
+    if r == 17 { give "..KRRK....KRRRK........." }
+    if r == 18 { give ".KRRRK....KRRK.........." }
+    if r == 19 { give ".KRRK......KK..........." }
+    if r == 20 { give "KRRRK..................." }
+    if r == 21 { give "KRRK...................." }
+    if r == 22 { give ".KK....................." }
+    give "........................"
+}
+
+// Draws the cardinal at a pixel corner, each of its
+// pixels laid 'sc' pixels square (one at the sizes the
+// face stands at today — the button's measure, below).
+make pixbird(desk: bytes, x: number, y: number, sc: number) {
+    let r = 0
+    while r < 24 {
+        let row = birdrow(r)
+        let c = 0
+        while c < 24 {
+            let ch = textbyte(row, c)
+            if ch != 46 {
+                if ch == 75 { pixinkrgb(desk, glasslead()) }
+                if ch == 82 { pixinkrgb(desk, glassred()) }
+                if ch == 114 { pixinkrgb(desk, glassbright()) }
+                if ch == 71 { pixinkrgb(desk, glassgold()) }
+                if ch == 79 { pixinkrgb(desk, glassbeak()) }
+                if ch == 87 { pixinkrgb(desk, 16777215) }
+                pixfill(desk, x + c * sc, y + r * sc, sc, sc)
+            }
+            c = c + 1
+        }
+        r = r + 1
+    }
+}
+
+// Draws the round start button on the bar, at its left:
+// a lead-rimmed disc of deep glass with a sheen standing
+// in its upper part, and the cardinal on it. The button's
+// measure is the bar's own: its center stands one letter
+// cell in from the screen's left and at the bar's middle,
+// and its radius is a cell less two pixels, so the disc
+// stands within the bar's two rows with its rim showing.
+// The pointer's pressing reads this same measure in the
+// main body (the start button's reckoning there).
+make pixstartbutton(desk: bytes) {
+    let cs = pget(desk, 320)
+    let cx = cs
+    let cy = pixbartop(desk) + cs
+    let r = cs - 2
+    pixinkrgb(desk, glassshadow())
+    pixdisc(desk, cx + 2, cy + 3, r)
+    pixinkrgb(desk, glasslead())
+    pixdisc(desk, cx, cy, r)
+    pixinkrgb(desk, glassbase())
+    pixdisc(desk, cx, cy, r - 2)
+    pixinkrgb(desk, glasssheen())
+    pixdisc(desk, cx, cy - r / 2, r / 2)
+    pixbird(desk, cx - 12, cy - 12, 1)
+}
+
+// Draws the bar itself (Stone 33): it stands at the
+// screen's foot, two letter rows tall, in the bar's blue
+// with a glass sheen across its upper part — a pale band,
+// a middle band, and the calm blue-green tint where the
+// sheen meets the blue — and the round start button at
+// its left. The bar's lower row keeps the bar's own blue
+// whole, so the name and the clock the main body draws
+// there stand on the color they have always stood on.
+make pixbar(desk: bytes) {
+    let cs = pget(desk, 320)
+    let w = pget(desk, 8)
+    let top = pixbartop(desk)
+    pixink(desk, 1)
+    pixfill(desk, 0, top, w, cs * 2)
+    pixinkrgb(desk, glasssheen())
+    pixfill(desk, 0, top, w, cs / 2)
+    pixinkrgb(desk, glassmid())
+    pixfill(desk, 0, top + cs / 2, w, cs / 2)
+    pixinkrgb(desk, glasstint())
+    pixfill(desk, 0, top + cs, w, cs / 4)
+    pixstartbutton(desk)
 }
 
 // Draws one letter at a pixel corner with the pen's color:

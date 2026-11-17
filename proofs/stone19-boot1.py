@@ -62,11 +62,14 @@ def decode(d, prow, pcol, text, ink):
 # The files window's place on this face (1024x768,
 # sixty-four cells across): fifty-four wide, centered —
 # left at cell 5, top at the layout's row for the text
-# face's row 17 (cell row 32). Title at row 32, heading
-# at 34, the list at rows 35 onward (entries' words at
-# column 9), the picked note's label at row 43 and its
-# words at row 44 (column 7).
-GX, GY = 5, 32
+# face's row 17 — cell row 31 since Stone 33, whose
+# bar at the screen's foot took the foot's two rows and
+# the taller windows' first places rose to stand above
+# it. Title at row 31, heading at 33, the list at rows
+# 34 onward (entries' words at column 9), the picked
+# note's label at row 42 and its words at row 43
+# (column 7).
+GX, GY = 5, 31
 NOTES = ["remember the garden",
          "call billy about the roof",
          "pray for quinton"]
@@ -110,9 +113,9 @@ if d:
 
 # A press of the pointer on the third entry's row picks
 # it: the arrow's point stands at (506, 378); a move of
-# (-306, +222) lays it at (200, 600), on the third
-# entry's row (cell row 37).
-mousemove(-306, 222)
+# (-306, +206) lays it at (200, 584), on the third
+# entry's row (cell row 36).
+mousemove(-306, 206)
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None

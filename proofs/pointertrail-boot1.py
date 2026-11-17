@@ -10,7 +10,8 @@
 # steps out and back — and home to the middle again,
 # each stop confirmed by the arrow standing there. A
 # second picture is then taken, and the two pictures
-# must agree at EVERY pixel below the top bar (the bar
+# must agree at EVERY pixel but the bottom bar's clock
+# ground (the bar stands at the foot since Stone 33 and
 # carries the clock, whose seconds honestly advance
 # between the two pictures; nothing else on the desktop
 # moves on its own). The bottom row of every stop's
@@ -53,17 +54,21 @@ def arrow_white(d, x0, y0):
 
 
 def frame_diff(a, b):
-    """Every pixel where two pictures disagree, below
-    the top bar (y 16 and down: the bar's clock is the
-    one honest difference time makes)."""
+    """Every pixel where two pictures disagree, leaving
+    out the bottom bar's clock ground (Stone 33: the
+    bar stands at the foot now — its right end, the
+    clock's cells on its lower row, is the one honest
+    difference time makes)."""
     out = []
     w, h, pa = a
     _, _, pb = b
-    for y in range(16, h):
+    for y in range(0, h):
+        if y >= 752:
+            xs = range(0, 380)
+        else:
+            xs = range(0, w)
         base = y * w * 3
-        if pa[base:base + w * 3] == pb[base:base + w * 3]:
-            continue
-        for x in range(w):
+        for x in xs:
             o = base + x * 3
             if pa[o:o + 3] != pb[o:o + 3]:
                 out.append((x, y))

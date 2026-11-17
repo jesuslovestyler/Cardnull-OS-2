@@ -100,13 +100,13 @@ def click(x, y):
 
 # The settings window's place at the usual size, and
 # at the large size after the press, as in Stone 28.
-UX, UY = 5, 32
-LX, LY = 1, 16
+UX, UY = 5, 30
+LX, LY = 1, 14
 # The verse window's place at the large size: left
-# cell 1, top row 20, forty wide, twelve high, its
+# cell 1, top row 18, forty wide, twelve high, its
 # verse at its left + 2 wrapped at thirty-six letters,
 # its reference at its top + 10.
-VX, VY = 1, 20
+VX, VY = 1, 18
 LINES = wrap(VERSE, 36)
 
 d = waitdump(lambda d: d is not None and d[0] == 1024
@@ -119,7 +119,7 @@ d = waitdump(lambda d: d is not None
              and decode(d, UY, UX + 1, "Settings", WHITE, 2) == "Settings", 25)
 expect(d is not None, "the settings window opened at the usual size")
 
-click(168, 712)
+click(168, 680)
 d = waitdump(lambda d: d is not None
              and decode(d, LY + 12, LX + 4, "Large", WHITE, 3) == "Large", 25)
 expect(d is not None, "a press on the Large row stood the words large")
@@ -135,8 +135,8 @@ expect(d is not None, "Escape closed the settings window")
 # left, off the window's words — left where the Large
 # press put it, it would rest on the reference's own
 # letters and spoil their decoding.
-mousemove(-54, -326)
-mousemove(-54, -326)
+mousemove(-54, -310)
+mousemove(-54, -310)
 typewrite("verse")
 enter()
 d = waitdump(lambda d: d is not None

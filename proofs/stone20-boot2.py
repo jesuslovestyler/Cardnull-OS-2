@@ -52,13 +52,13 @@ def decode(d, prow, pcol, text, ink):
     return "".join(out)
 
 
-GX, GY = 5, 32
+GX, GY = 5, 30
 
 d = waitdump(lambda d: d is not None and d[0] == 1024
              and count(d, BLUE) > 5000, 40)
 expect(d is not None, "the desktop is drawn")
 if d:
-    said = decode(d, 0, 56, "00:", WHITE)
+    said = decode(d, 47, 56, "00:", WHITE)
     expect(said == "00:",
            f"the bar clock stands on the world's standard time from the disk's card (read: {said!r})")
 

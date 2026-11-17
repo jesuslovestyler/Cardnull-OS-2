@@ -86,22 +86,24 @@ def click(x, y):
 
 
 # The settings window's places: at the usual size,
-# left cell 5, top row 32 (fifty-four wide); at the
-# large size, left cell 1, top row 16 (forty large
+# left cell 5, top row 30 (fifty-four wide; top row
+# 32 until Stone 33, whose bar at the screen's foot
+# rose the taller windows' first places); at the
+# large size, left cell 1, top row 14 (forty large
 # cells wide on the forty-two-cell grid).
-UX, UY = 5, 32
-LX, LY = 1, 16
+UX, UY = 5, 30
+LX, LY = 1, 14
 
 d = waitdump(lambda d: d is not None and d[0] == 1024
              and count(d, BLUE) > 5000, 40)
 expect(d is not None, "the desktop is drawn")
 if d:
-    said = decode(d, 0, 56, "19:", WHITE, 2)
+    said = decode(d, 47, 56, "19:", WHITE, 2)
     expect(said == "19:", f"the bar clock starts on Eastern time at the usual size (read: {said!r})")
-    said = decode(d, 0, 1, "Cardnull", WHITE, 2)
+    said = decode(d, 47, 2, "Cardnull", WHITE, 2)
     expect(said == "Cardnull", f"the bar's title stands at the usual size (read: {said!r})")
-    expect(pixel(d, 300, 15) == BLUE and pixel(d, 300, 16) == BLACK,
-           "the bar stands sixteen pixels tall at the usual size")
+    expect(pixel(d, 300, 767) == BLUE and pixel(d, 300, 735) == BLACK,
+           "the bar stands at the screen's foot at the usual size, two rows tall")
 
 typewrite("settings")
 enter()
@@ -120,21 +122,21 @@ if d:
     expect(said == "Your choices are kept on the disk.",
            f"the window says the choices are kept on the disk (read: {said!r})")
 
-# A press on the Large row (row 44 at the usual size;
-# its point at (168, 712)): the whole desktop must
+# A press on the Large row (row 42 at the usual size;
+# its point at (168, 680)): the whole desktop must
 # stand at the large size at once.
-click(168, 712)
+click(168, 680)
 d = waitdump(lambda d: d is not None
              and decode(d, LY + 12, LX + 4, "Large", WHITE, 3)
              == "Large", 25)
 expect(d is not None, "clicking 'Large' repainted the window at the large size, 'Large' standing picked")
 if d:
-    said = decode(d, 0, 1, "Cardnull", WHITE, 3)
+    said = decode(d, 31, 2, "Cardnull", WHITE, 3)
     expect(said == "Cardnull", f"the bar's title stands large (read: {said!r})")
-    said = decode(d, 0, 34, "19:", WHITE, 3)
+    said = decode(d, 31, 34, "19:", WHITE, 3)
     expect(said == "19:", f"the bar clock stands large at its narrow-grid place (read: {said!r})")
-    expect(pixel(d, 300, 23) == BLUE and pixel(d, 300, 24) == BLACK,
-           "the bar stands twenty-four pixels tall at the large size")
+    expect(pixel(d, 300, 767) == BLUE and pixel(d, 1016, 719) == BLACK,
+           "the bar stands at the screen's foot at the large size, two rows tall")
     said = decode(d, LY, LX + 1, "Settings", WHITE, 3)
     expect(said == "Settings", f"the window's title stands large (read: {said!r})")
     said = decode(d, LY + 2, LX + 2, "Time zone:", GRAY, 3)
@@ -148,8 +150,10 @@ if d:
     said = decode(d, LY + 14, LX + 2, "Your choices are kept on the disk.", GRAY, 3)
     expect(said == "Your choices are kept on the disk.",
            f"the keeping word stands large (read: {said!r})")
-    expect(pixel(d, 25, 492) == DARK and pixel(d, 985, 492) == BLACK,
-           "the settings window's frame spans forty large cells (x 24 to 983)")
+    expect(pixel(d, 25, 492) == DARK and pixel(d, 985, 492) == (10, 18, 22)
+           and pixel(d, 995, 492) == BLACK,
+           "the settings window's frame spans forty large cells (x 24 to 983), "
+           "its Stone 33 shadow standing just past its right edge")
 
 # Escape closes the settings window; the welcome
 # window is then dragged at the large size: its point
@@ -178,15 +182,15 @@ if d:
            "the ground the welcome window stood on is plain desktop again")
 
 # The settings window again, at the large size: a
-# press on the chime-off row (row 24 at this size; its
-# point at (252, 588)) must land where the words stand.
+# press on the chime-off row (row 22 at this size; its
+# point at (252, 540)) must land where the words stand.
 typewrite("settings")
 enter()
 d = waitdump(lambda d: d is not None
              and decode(d, LY + 7, LX + 4, "Chime on", WHITE, 3)
              == "Chime on", 25)
 expect(d is not None, "the settings window reopened at the large size, the chime standing on")
-click(252, 588)
+click(252, 540)
 d = waitdump(lambda d: d is not None
              and decode(d, LY + 8, LX + 4, "Chime off", WHITE, 3)
              == "Chime off", 25)
@@ -197,13 +201,13 @@ if d:
 
 # The typing line and an answer, at the large size:
 # Escape closes the window, 'hello' is typed (its echo
-# decoded on the typing line, row 30 at this size) and
+# decoded on the typing line, row 29 at this size) and
 # answered (the answer decoded in the answers region,
 # whose first row is row 16 at this size).
 sendkey("esc")
 typewrite("hello")
 d = waitdump(lambda d: d is not None
-             and decode(d, 30, 2, "hello", GRAY, 3) == "hello", 15)
+             and decode(d, 29, 2, "hello", GRAY, 3) == "hello", 15)
 expect(d is not None, "the typing line echoes at the large size")
 enter()
 d = waitdump(lambda d: d is not None

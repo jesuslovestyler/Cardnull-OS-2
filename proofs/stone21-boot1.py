@@ -221,14 +221,19 @@ expect(d is not None, "Enter kept the change back to the same place in the list"
 
 # The files window reckons from the same store: opened
 # now, it lists the same two notes, the changed words
-# standing in it.
+# standing in it. Its first place stands one row above
+# the editor's since Stone 33 (top row 31 to the
+# editor's 32 — the taller files window rose to stand
+# above the bar at the screen's foot), so its rows are
+# read at FY, one less than the editor's GY.
+FY = GY - 1
 typewrite("files")
 enter()
 d = waitdump(lambda d: d is not None
-             and decode(d, GY + 4, GX + 4, CHANGED, GRAY) == CHANGED, 15)
+             and decode(d, FY + 4, GX + 4, CHANGED, GRAY) == CHANGED, 15)
 expect(d is not None, "the files window lists the changed note from the same store")
 if d:
-    said = decode(d, GY + 3, GX + 4, OLD, WHITE)
+    said = decode(d, FY + 3, GX + 4, OLD, WHITE)
     expect(said == OLD,
            f"the files window lists the first note, picked (read: {said!r})")
 
@@ -246,7 +251,7 @@ expect(d is not None, "Tab brought the editor window forward among the five")
 # stood.
 sendkey("esc")
 d = waitdump(lambda d: d is not None
-             and decode(d, GY + 2, GX + 2, "Notes kept on the disk:", GRAY)
+             and decode(d, FY + 2, GX + 2, "Notes kept on the disk:", GRAY)
              == "Notes kept on the disk:", 15)
 expect(d is not None, "Escape closed the editor: the files window stands in its place")
 

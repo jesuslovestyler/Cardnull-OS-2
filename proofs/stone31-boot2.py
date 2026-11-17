@@ -1,7 +1,7 @@
 # Stone 31 proof, boot 2: the help window at the
 # LARGE size, with no disk fitted. The settings
 # window's Large row is pressed first (its point at
-# (168, 712), as in Stone 28's boots), Escape closes
+# (168, 680), as in Stone 28's boots), Escape closes
 # the settings window, and the word 'help' opens the
 # help window on the narrow large face (forty-two
 # cells across): left cell 1, top row 16 — the
@@ -100,13 +100,13 @@ def click(x, y):
 
 # The settings window's place at the usual size, and
 # at the large size after the press, as in Stone 28.
-UX, UY = 5, 32
-LX, LY = 1, 16
+UX, UY = 5, 30
+LX, LY = 1, 14
 # The help window's place at the large size: left
 # cell 1, top row 16, forty wide, sixteen high, its
 # page's lines at its left + 2, its foot at its
 # top + 14 — its turning word at its left + 34.
-HX, HY = 1, 16
+HX, HY = 1, 14
 
 
 def check_page(d, page):
@@ -130,7 +130,7 @@ d = waitdump(lambda d: d is not None
              and decode(d, UY, UX + 1, "Settings", WHITE, 2) == "Settings", 25)
 expect(d is not None, "the settings window opened at the usual size")
 
-click(168, 712)
+click(168, 680)
 d = waitdump(lambda d: d is not None
              and decode(d, LY + 12, LX + 4, "Large", WHITE, 3) == "Large", 25)
 expect(d is not None, "a press on the Large row stood the words large")
@@ -146,8 +146,8 @@ expect(d is not None, "Escape closed the settings window")
 # the window's words — left where the Large press put
 # it, it would rest on the page's own letters and spoil
 # their decoding.
-mousemove(-54, -326)
-mousemove(-54, -326)
+mousemove(-54, -310)
+mousemove(-54, -310)
 typewrite("help")
 enter()
 d = waitdump(lambda d: d is not None

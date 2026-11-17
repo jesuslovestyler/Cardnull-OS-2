@@ -223,8 +223,8 @@
 //          window's one place. A dragged place lasts for
 //          the sitting; nothing keeps it past it.
 // Stone 23: the bar's menu — a press of the pointer on
-//          the top bar opens a small menu of plain words
-//          just under the bar, at the desktop's left: the
+//          the bar opens a small menu of plain words just
+//          under the bar, at the desktop's left: the
 //          five windows' names, one to a row — Welcome,
 //          Feather, Files, Settings, Editor, the names
 //          the desktop already gives them. A press on a
@@ -511,8 +511,44 @@
 //          and the modern road is heard when it is quiet.
 //          Neither road disables the other, and neither
 //          disables the PS/2 road.
+// Stone 33: the glass face — the desktop's look is
+//          remade in the style of a glass desktop, drawn
+//          entirely by Cardnull's own code with Cardnull's
+//          own art (pixface.nifla's glass drawing): the
+//          bar stands at the screen's FOOT, two rows tall,
+//          glassy with a sheen across its upper part, and
+//          a round start button at its left carries the
+//          stained-glass cardinal, pixel-drawn in the
+//          drawing library (birdrow there) from the
+//          Cardnull logo's bird — crest, mask, gold wing,
+//          orange beak, long tail — in stained-glass
+//          colors with dark lead between. A press on the
+//          button (the disc itself, tried as a disc) opens
+//          the bar's menu, which rises from the button:
+//          its foot on the bar's top edge, its nine choices
+//          and their order unchanged; a press elsewhere on
+//          the bar opens nothing. The windows wear the
+//          glass too: rounded corners, a sheen across the
+//          title bar with the blue-green tint at its foot,
+//          and a soft shadow along the right edge and
+//          under the foot — the shadow clipped at the
+//          bar's top, and every wash (a window closed, a
+//          drag's vacated ground, the rest panel) wiping
+//          the shadow's reach with the frame's, so the
+//          ground stands whole and the pointer's
+//          save-and-restore discipline is untouched.
+//          Windows stand above the bar now: their first
+//          places and the drag's clamping reckon the
+//          desktop as the grid less the bar's two rows,
+//          and their tops may stand at the screen's very
+//          top. The typing line stands just above the bar.
+//          Everything underneath works as it did. The
+//          text face keeps its own face, as it always has
+//          — the glass lives on the face of light only.
 //
-// The arrangement of the screen:
+// The arrangement of the screen (the text face's rows;
+// on the face of light the same words stand on its grid,
+// and since Stone 33 its bar stands at the foot):
 //   row 0      the bar — "Cardnull" at the left, the date
 //              and the clock at the right, white on blue
 //   rows 3-9   the welcome panel, black on light gray
@@ -677,6 +713,10 @@ make drawclock(offset, utcnow, pix, pixdesk) {
     if pix == 1 {
         let cs = pget(pixdesk, 320)
         let cols = pget(pixdesk, 28)
+        // The bar's row (Stone 33): the bar stands at the
+        // screen's foot, and its words stand on its lower
+        // row — the grid's last row.
+        let brow = pget(pixdesk, 32) - 1
         if cols < 48 {
             // A narrow grid (large print, Stone 28): the
             // bar holds the clock alone — the date and
@@ -684,27 +724,27 @@ make drawclock(offset, utcnow, pix, pixdesk) {
             // this size — and the word 'time' still tells
             // the date in full, as it always has.
             pixink(pixdesk, 1)
-            pixfill(pixdesk, (cols - 10) * cs, 0, 10 * cs, cs)
+            pixfill(pixdesk, (cols - 10) * cs, brow * cs, 10 * cs, cs)
             if utcnow < 0 {
-                pixline(pixdesk, (0) * 256 + (cols - 8), clocktext(ticks() / 100, offset), 31)
+                pixline(pixdesk, (brow) * 256 + (cols - 8), clocktext(ticks() / 100, offset), 31)
             } else {
                 let local2 = utcnow + offset * 3600
                 let days2 = local2 / 86400
                 let daysec2 = local2 - days2 * 86400
-                pixline(pixdesk, (0) * 256 + (cols - 8), clocktext(daysec2, 0), 31)
+                pixline(pixdesk, (brow) * 256 + (cols - 8), clocktext(daysec2, 0), 31)
             }
         } else {
         pixink(pixdesk, 1)
-        pixfill(pixdesk, (cols - 40) * cs, 0, 40 * cs, cs)
+        pixfill(pixdesk, (cols - 40) * cs, brow * cs, 40 * cs, cs)
         if utcnow < 0 {
-            pixline(pixdesk, (0) * 256 + (cols - 8), clocktext(ticks() / 100, offset), 31)
+            pixline(pixdesk, (brow) * 256 + (cols - 8), clocktext(ticks() / 100, offset), 31)
         } else {
             let local = utcnow + offset * 3600
             let days = local / 86400
             let daysec = local - days * 86400
             let dt = datetext(days)
-            pixline(pixdesk, (0) * 256 + (cols - 10 - length(dt)), dt, 31)
-            pixline(pixdesk, (0) * 256 + (cols - 8), clocktext(daysec, 0), 31)
+            pixline(pixdesk, (brow) * 256 + (cols - 10 - length(dt)), dt, 31)
+            pixline(pixdesk, (brow) * 256 + (cols - 8), clocktext(daysec, 0), 31)
         }
         }
     } else {
@@ -736,9 +776,13 @@ make drawface(offset, utcnow, pix, pixdesk) {
         let cs = pget(pixdesk, 320)
         pixink(pixdesk, 0)
         pixfill(pixdesk, 0, 0, pget(pixdesk, 8), pget(pixdesk, 12))
-        pixink(pixdesk, 1)
-        pixfill(pixdesk, 0, 0, pget(pixdesk, 8), cs)
-        pixline(pixdesk, (0) * 256 + (1), "Cardnull", 31)
+        // The glass bar at the screen's foot (Stone 33):
+        // pixface draws it — its sheen, its tint, and the
+        // round start button with the cardinal — and the
+        // name stands on its lower row beside the button,
+        // the clock at its right, as they always have.
+        pixbar(pixdesk)
+        pixline(pixdesk, (pget(pixdesk, 32) - 1) * 256 + (2), "Cardnull", 31)
         drawclock(offset, utcnow, pix, pixdesk)
         pixline(pixdesk, (layrow(pixdesk, 11)) * 256 + (2), "Type a word, then press Enter:", 7)
         if pget(pixdesk, 28) >= 56 {
@@ -860,14 +904,41 @@ make winframe(desk, pos, size, front) {
     let x = pos - y * 256
     let h = size / 256
     let w = size - h * 256
+    // The glass treatment (Stone 33): the window's soft
+    // shadow is laid first, along its right edge and
+    // under its foot; the frame itself stands with
+    // rounded corners — its cross of two fills leaves the
+    // four corner squares to four small discs, so the
+    // corner pixels are the disc's curve, and the ground
+    // beyond the curve is never the frame's to paint.
+    pixshadow(desk, x * cs, y * cs, w * cs, h * cs)
     pixink(desk, 8)
-    pixfill(desk, x * cs, y * cs, w * cs, h * cs)
+    pixfill(desk, x * cs + 4, y * cs, w * cs - 8, h * cs)
+    pixfill(desk, x * cs, y * cs + 4, w * cs, h * cs - 8)
+    pixdisc(desk, x * cs + 4, y * cs + 4, 4)
+    pixdisc(desk, x * cs + w * cs - 5, y * cs + 4, 4)
+    pixdisc(desk, x * cs + 4, y * cs + h * cs - 5, 4)
+    pixdisc(desk, x * cs + w * cs - 5, y * cs + h * cs - 5, 4)
     if front == 1 {
         pixink(desk, 1)
     } else {
         pixink(desk, 8)
     }
-    pixfill(desk, x * cs + 2, y * cs + 2, w * cs - 4, cs)
+    pixfill(desk, x * cs + 5, y * cs + 2, w * cs - 10, cs)
+    pixfill(desk, x * cs + 2, y * cs + 5, w * cs - 4, cs - 3)
+    pixdisc(desk, x * cs + 5, y * cs + 5, 3)
+    pixdisc(desk, x * cs + w * cs - 6, y * cs + 5, 3)
+    // The title bar's sheen: a pale band across its upper
+    // part, and the calm blue-green tint where the sheen
+    // meets the bar's own color at its foot.
+    if front == 1 {
+        pixinkrgb(desk, glasssheen())
+    } else {
+        pixinkrgb(desk, glasspale())
+    }
+    pixfill(desk, x * cs + 4, y * cs + 3, w * cs - 8, cs / 2 - 3)
+    pixinkrgb(desk, glasstint())
+    pixfill(desk, x * cs + 3, y * cs + cs, w * cs - 6, 2)
     if front == 1 {
         pixpaper(desk, 1)
     } else {
@@ -888,8 +959,7 @@ make onewelcome(desk) {
     let pw = pget(desk, 148)
     let ph = pget(desk, 152)
     if pget(desk, 172) == 0 {
-        pixink(desk, 0)
-        pixfill(desk, pl * cs, pt * cs, pw * cs, ph * cs)
+        pixwashwin(desk, pl, pt, pw, ph)
     } else {
         let front = 0
         if pget(desk, 180) == 1 {
@@ -994,8 +1064,7 @@ make onefeather(desk, block) {
     let gw = fwwide(desk)
     let gh = fwhigh(desk)
     if pget(desk, 176) == 0 {
-        pixink(desk, 0)
-        pixfill(desk, gx * cs, gy * cs, gw * cs, gh * cs)
+        pixwashwin(desk, gx, gy, gw, gh)
     } else {
         let front = 0
         if pget(desk, 180) == 2 {
@@ -1155,8 +1224,7 @@ make onefiles(desk, notes) {
     let gw = fiwide(desk)
     let gh = fihigh(desk)
     if pget(desk, 188) == 0 {
-        pixink(desk, 0)
-        pixfill(desk, gx * cs, gy * cs, gw * cs, gh * cs)
+        pixwashwin(desk, gx, gy, gw, gh)
     } else {
         let front = 0
         if pget(desk, 180) == 3 {
@@ -1376,8 +1444,7 @@ make onesettings(desk) {
     let gw = sewide(desk)
     let gh = sehigh(desk)
     if pget(desk, 208) == 0 {
-        pixink(desk, 0)
-        pixfill(desk, gx * cs, gy * cs, gw * cs, gh * cs)
+        pixwashwin(desk, gx, gy, gw, gh)
     } else {
         let front = 0
         if pget(desk, 180) == 4 {
@@ -1482,8 +1549,7 @@ make oneeditor(desk, notes) {
     let gw = edwide(desk)
     let gh = edhigh(desk)
     if pget(desk, 220) == 0 {
-        pixink(desk, 0)
-        pixfill(desk, gx * cs, gy * cs, gw * cs, gh * cs)
+        pixwashwin(desk, gx, gy, gw, gh)
     } else {
         let front = 0
         if pget(desk, 180) == 5 {
@@ -1677,8 +1743,7 @@ make onepaint(desk) {
     let gw = pawide(desk)
     let gh = pahigh(desk)
     if pget(desk, 272) == 0 {
-        pixink(desk, 0)
-        pixfill(desk, gx * cs, gy * cs, gw * cs, gh * cs)
+        pixwashwin(desk, gx, gy, gw, gh)
     } else {
         let front = 0
         if pget(desk, 180) == 6 {
@@ -1772,8 +1837,7 @@ make oneverse(desk) {
     let gw = vwide(desk)
     let gh = vhigh(desk)
     if pget(desk, 324) == 0 {
-        pixink(desk, 0)
-        pixfill(desk, gx * cs, gy * cs, gw * cs, gh * cs)
+        pixwashwin(desk, gx, gy, gw, gh)
     } else {
         let front = 0
         if pget(desk, 180) == 7 {
@@ -1918,8 +1982,7 @@ make onecalc(desk) {
     let gw = cawide(desk)
     let gh = cahigh(desk)
     if pget(desk, 340) == 0 {
-        pixink(desk, 0)
-        pixfill(desk, gx * cs, gy * cs, gw * cs, gh * cs)
+        pixwashwin(desk, gx, gy, gw, gh)
     } else {
         let front = 0
         if pget(desk, 180) == 8 {
@@ -2018,8 +2081,7 @@ make onehelp(desk) {
     let gw = hwide(desk)
     let gh = hhigh(desk)
     if pget(desk, 360) == 0 {
-        pixink(desk, 0)
-        pixfill(desk, gx * cs, gy * cs, gw * cs, gh * cs)
+        pixwashwin(desk, gx, gy, gw, gh)
     } else {
         let front = 0
         if pget(desk, 180) == 9 {
@@ -2081,8 +2143,9 @@ make onehelp(desk) {
 // pointer can never disagree about where the menu
 // stands. Its standing lives in the pixel face's desk
 // at 268 (pixface.nifla's ledger): 1 while it stands
-// open. The menu stands under the bar at the left: its
-// top is the bar's underside (row 1), it is twelve
+// open. The menu stands above the bar at the left: its
+// foot is the bar's top edge (Stone 33 — it rises from
+// the start button), it is twelve
 // cells wide — room for the longest name, Settings,
 // with the frame's breathing room the windows keep —
 // and nine cells high, one row to a choice (eight
@@ -2097,7 +2160,11 @@ make menuleft(desk) {
 }
 
 make menutop(desk) {
-    give 1
+    // Stone 33: the menu rises from the start button at
+    // the screen's foot — its foot stands on the bar's
+    // top edge, so its top is the bar's two rows and its
+    // own nine rows up from the grid's foot.
+    give pget(desk, 32) - 11
 }
 
 make menuwide(desk) {
@@ -2196,9 +2263,9 @@ make resthigh(desk) {
 // paints the windows again over it, so whatever stood
 // under the panel stands whole once more.
 make restwash(desk) {
-    let cs = pget(desk, 320)
-    pixink(desk, 0)
-    pixfill(desk, restleft(desk) * cs, resttop(desk) * cs, restwide(desk) * cs, resthigh(desk) * cs)
+    // The panel's place and its shadow's, wiped whole —
+    // the windows' own wash (Stone 33).
+    pixwashwin(desk, restleft(desk), resttop(desk), restwide(desk), resthigh(desk))
 }
 
 // Paints the rest panel from the desk's standing: open,
@@ -2212,6 +2279,7 @@ make onerest(desk) {
         let rw = restwide(desk)
         let rh = resthigh(desk)
         let cs = pget(desk, 320)
+        pixshadow(desk, rl * cs, rt * cs, rw * cs, rh * cs)
         pixink(desk, 8)
         pixfill(desk, rl * cs, rt * cs, rw * cs, rh * cs)
         pixink(desk, 0)
@@ -2375,11 +2443,13 @@ make paintwindows(desk, block, notes) {
 // whole on the desktop: its left stands between the
 // desktop's left edge and the place where its right
 // edge meets the desktop's right edge, and its top
-// between the bar's underside (row 1) and the place
-// where its bottom meets the desktop's foot — simply
-// clamped at the edges, in letter cells, the measure
-// every window's place is reckoned in. The new place
-// lasts for the sitting; nothing writes it anywhere.
+// between the desktop's top edge and the place where
+// its bottom meets the bar's top edge (Stone 33: the
+// bar stands at the foot, so the desktop a window may
+// stand on is the grid less the bar's two rows) —
+// simply clamped at the edges, in letter cells, the
+// measure every window's place is reckoned in. The new
+// place lasts for the sitting; nothing writes it anywhere.
 //
 // The reckoning stays single-sourced, the discipline
 // every window has kept: a window's place is read
@@ -2531,74 +2601,74 @@ make winmove(desk, win, newleft, newtop) {
 make layplaces(desk) {
     pset(desk, 236, (pget(desk, 28) - fwwide(desk)) / 2)
     let ft = layrow(desk, 14)
-    if ft + fwhigh(desk) > pget(desk, 32) {
-        ft = pget(desk, 32) - fwhigh(desk)
+    if ft + fwhigh(desk) > pget(desk, 32) - 2 {
+        ft = pget(desk, 32) - 2 - fwhigh(desk)
     }
-    if ft < 1 {
-        ft = 1
+    if ft < 0 {
+        ft = 0
     }
     pset(desk, 240, ft)
     pset(desk, 244, (pget(desk, 28) - fiwide(desk)) / 2)
     let it = layrow(desk, 17)
-    if it + fihigh(desk) > pget(desk, 32) {
-        it = pget(desk, 32) - fihigh(desk)
+    if it + fihigh(desk) > pget(desk, 32) - 2 {
+        it = pget(desk, 32) - 2 - fihigh(desk)
     }
-    if it < 1 {
-        it = 1
+    if it < 0 {
+        it = 0
     }
     pset(desk, 248, it)
     pset(desk, 252, (pget(desk, 28) - sewide(desk)) / 2)
     let st = layrow(desk, 17)
-    if st + sehigh(desk) > pget(desk, 32) {
-        st = pget(desk, 32) - sehigh(desk)
+    if st + sehigh(desk) > pget(desk, 32) - 2 {
+        st = pget(desk, 32) - 2 - sehigh(desk)
     }
-    if st < 1 {
-        st = 1
+    if st < 0 {
+        st = 0
     }
     pset(desk, 256, st)
     pset(desk, 260, (pget(desk, 28) - edwide(desk)) / 2)
     let et = layrow(desk, 17)
-    if et + edhigh(desk) > pget(desk, 32) {
-        et = pget(desk, 32) - edhigh(desk)
+    if et + edhigh(desk) > pget(desk, 32) - 2 {
+        et = pget(desk, 32) - 2 - edhigh(desk)
     }
-    if et < 1 {
-        et = 1
+    if et < 0 {
+        et = 0
     }
     pset(desk, 264, et)
     pset(desk, 280, (pget(desk, 28) - pawide(desk)) / 2)
     let pt2 = layrow(desk, 17)
-    if pt2 + pahigh(desk) > pget(desk, 32) {
-        pt2 = pget(desk, 32) - pahigh(desk)
+    if pt2 + pahigh(desk) > pget(desk, 32) - 2 {
+        pt2 = pget(desk, 32) - 2 - pahigh(desk)
     }
-    if pt2 < 1 {
-        pt2 = 1
+    if pt2 < 0 {
+        pt2 = 0
     }
     pset(desk, 284, pt2)
     pset(desk, 328, (pget(desk, 28) - vwide(desk)) / 2)
     let vt = layrow(desk, 17)
-    if vt + vhigh(desk) > pget(desk, 32) {
-        vt = pget(desk, 32) - vhigh(desk)
+    if vt + vhigh(desk) > pget(desk, 32) - 2 {
+        vt = pget(desk, 32) - 2 - vhigh(desk)
     }
-    if vt < 1 {
-        vt = 1
+    if vt < 0 {
+        vt = 0
     }
     pset(desk, 332, vt)
     pset(desk, 348, (pget(desk, 28) - cawide(desk)) / 2)
     let ct = layrow(desk, 17)
-    if ct + cahigh(desk) > pget(desk, 32) {
-        ct = pget(desk, 32) - cahigh(desk)
+    if ct + cahigh(desk) > pget(desk, 32) - 2 {
+        ct = pget(desk, 32) - 2 - cahigh(desk)
     }
-    if ct < 1 {
-        ct = 1
+    if ct < 0 {
+        ct = 0
     }
     pset(desk, 352, ct)
     pset(desk, 368, (pget(desk, 28) - hwide(desk)) / 2)
     let ht = layrow(desk, 17)
-    if ht + hhigh(desk) > pget(desk, 32) {
-        ht = pget(desk, 32) - hhigh(desk)
+    if ht + hhigh(desk) > pget(desk, 32) - 2 {
+        ht = pget(desk, 32) - 2 - hhigh(desk)
     }
-    if ht < 1 {
-        ht = 1
+    if ht < 0 {
+        ht = 0
     }
     pset(desk, 372, ht)
 }
@@ -4784,11 +4854,15 @@ while true {
                             if nl < 0 {
                                 nl = 0
                             }
-                            if nt < 1 {
-                                nt = 1
+                            if nt < 0 {
+                                nt = 0
                             }
                             let maxl = pget(pixdesk, 28) - dw
-                            let maxt = pget(pixdesk, 32) - dh
+                            // The desktop above the bar
+                            // (Stone 33): a window's foot
+                            // stands at the bar's top edge
+                            // at the lowest.
+                            let maxt = pget(pixdesk, 32) - 2 - dh
                             if nl > maxl {
                                 nl = maxl
                             }
@@ -4806,8 +4880,10 @@ while true {
                             }
                             if moved == 1 {
                                 winmove(pixdesk, dragwin, nl, nt)
-                                pixink(pixdesk, 0)
-                                pixfill(pixdesk, ol * cellpx, ot * cellpx, dw * cellpx, dh * cellpx)
+                                // The vacated ground, the
+                                // window's shadow's reach
+                                // with it (Stone 33).
+                                pixwashwin(pixdesk, ol, ot, dw, dh)
                                 paintwindows(pixdesk, cellblock, notesblock)
                             }
                         }
@@ -5025,16 +5101,16 @@ while true {
                                     // a menu press is never
                                     // a title-bar drag. While
                                     // the menu stands closed,
-                                    // a press on the top bar
-                                    // opens it: the bar
-                                    // answers no other press,
-                                    // and no window's title
-                                    // bar can stand in its
-                                    // row (a drag keeps every
-                                    // window's top at row 1
-                                    // or below), so the bar's
-                                    // press is the menu's
-                                    // alone too. The menu's
+                                    // a press on the start
+                                    // button opens it (Stone
+                                    // 33: the button, not the
+                                    // bar — a press elsewhere
+                                    // on the bar is a press
+                                    // on the desktop, and no
+                                    // window can stand on the
+                                    // bar's rows, so the
+                                    // button's press is the
+                                    // menu's alone too). The menu's
                                     // place is read through
                                     // its own reckonings
                                     // (menuleft and its kin),
@@ -5142,7 +5218,36 @@ while true {
                                         paintwindows(pixdesk, cellblock, notesblock)
                                         acted = 1
                                     } else {
-                                        if cyp < cellpx {
+                                        // The start button
+                                        // (Stone 33): the menu
+                                        // stands closed, and a
+                                        // press on the round
+                                        // start button at the
+                                        // bar's left opens it.
+                                        // The button's measure
+                                        // is its painter's
+                                        // (pixstartbutton in
+                                        // pixface.nifla): its
+                                        // center one cell in
+                                        // and at the bar's
+                                        // middle, its radius a
+                                        // cell less two — and
+                                        // the press is tried
+                                        // against the disc
+                                        // itself, so a press
+                                        // on the bar elsewhere,
+                                        // or on the disc's
+                                        // square corners where
+                                        // no button stands, is
+                                        // a press on the
+                                        // desktop, not on the
+                                        // button.
+                                        let bcx = cellpx
+                                        let bcy = (pget(pixdesk, 32) - 2) * cellpx + cellpx
+                                        let brad = cellpx - 2
+                                        let bdx = cxp - bcx
+                                        let bdy = cyp - bcy
+                                        if bdx * bdx + bdy * bdy <= brad * brad {
                                             pset(pixdesk, 268, 1)
                                             onemenu(pixdesk)
                                             acted = 1

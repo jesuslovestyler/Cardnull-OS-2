@@ -52,16 +52,16 @@ def decode(d, prow, pcol, text, ink, sc):
     return "".join(out)
 
 
-UX, UY = 5, 32
+UX, UY = 5, 30
 
 d = waitdump(lambda d: d is not None and d[0] == 1024
              and count(d, BLUE) > 5000, 40)
 expect(d is not None, "the desktop is drawn")
 if d:
-    said = decode(d, 0, 56, "19:", WHITE, 2)
+    said = decode(d, 47, 56, "19:", WHITE, 2)
     expect(said == "19:", f"an old-shape card rises at the usual size, on Eastern time (read: {said!r})")
-    expect(pixel(d, 300, 15) == BLUE and pixel(d, 300, 16) == BLACK,
-           "the bar stands sixteen pixels tall: the usual size, as before this stone")
+    expect(pixel(d, 300, 767) == BLUE and pixel(d, 300, 735) == BLACK,
+           "the bar stands at the screen's foot, two rows tall: the usual size, as before this stone")
 
 typewrite("settings")
 enter()

@@ -8,9 +8,10 @@
 # through wide moves and a small-step drag and home
 # again (proofs/pointertrail-boot1.py, through
 # tools/pixels.py), and the final picture must agree
-# with the reference at every pixel below the top bar —
-# the bar's clock being the one honest difference time
-# makes.
+# with the reference at every pixel but the bottom
+# bar's clock ground (the bar stands at the foot since
+# Stone 33) — the bar's clock being the one honest
+# difference time makes.
 #
 # This proof stands because the earlier pointer proof
 # could not see the fault it watches for: the arrow's

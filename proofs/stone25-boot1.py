@@ -87,14 +87,15 @@ def find_answer(d, text):
 
 # Places on this face (1024x768, sixty-four cells
 # across, forty-eight down): the files window at left
-# cell 5, top row 32 (Stone 19); the menu at left 0,
-# top 1, its choices one to a row (Stone 23, grown at
-# Stone 25, again at Stone 29, and again at Stone 30);
-# the rest panel centered — sixteen wide,
-# four high, so left cell 24, top row 22, its words at
-# its left + 1.
-FX, FY = 5, 32
-ML, MT = 0, 1
+# cell 5, top row 31 (Stone 19; row 32 until Stone 33);
+# the menu at left 0, top row 37 — it rose from the
+# start button at the bar's foot since Stone 33 — its
+# choices one to a row (Stone 23, grown at Stone 25,
+# again at Stone 29, and again at Stone 30); the rest
+# panel centered — sixteen wide, four high, so left
+# cell 24, top row 22, its words at its left + 1.
+FX, FY = 5, 31
+ML, MT = 0, 37
 RL, RT = 24, 22
 NOTE = "a note before rest"
 
@@ -115,18 +116,19 @@ d = waitdump(lambda d: d is not None
              and pixel(d, 200, FY * 16 + 8) == BLACK, 15)
 expect(d is not None, "Escape closed the files window")
 
-# The bar's menu opens; its nine choices stand
-# decoded, Rest the ninth, under the eight windows
-# (Stone 29's Verse choice stands sixth, Stone 30's
-# Calculator choice seventh, Stone 31's Help choice
-# eighth, and Rest's row moved
-# down one again — this reckoning moved with it).
-mousemove(-306, -370)
+# The start button opens the menu, risen from the
+# bar at the screen's foot; its nine choices stand
+# decoded, Rest the ninth (Stone 29's Verse choice
+# stands sixth, Stone 30's Calculator choice seventh,
+# Stone 31's Help choice eighth). The pointer's point
+# starts at (506, 378); a move of (-490, +374) lays it
+# at (16, 752), the button's own center.
+mousemove(-490, 374)
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None
              and decode(d, MT + 8, ML + 1, "Rest", WHITE) == "Rest", 25)
-expect(d is not None, "a press on the bar opened the menu, with Rest standing in it")
+expect(d is not None, "a press on the start button opened the menu, with Rest standing in it")
 if d:
     for i, word in enumerate(("Welcome", "Feather", "Files",
                               "Settings", "Editor", "Verse",
@@ -136,8 +138,11 @@ if d:
                f"the menu's choice {i + 1} reads {word!r} (read: {said!r})")
 
 # A press on the Rest choice opens the rest panel; its
-# plain words decode at its reckoned place.
-mousemove(-160, 144)
+# plain words decode at its reckoned place. The point
+# stands at (16, 752); a move of (+24, -24) lays it at
+# (40, 728), on the menu's ninth row — the typing
+# line's own row, where Rest's words stand.
+mousemove(24, -24)
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None
@@ -150,10 +155,8 @@ if d:
                f"the rest panel's row {i + 1} reads {word!r} (read: {said!r})")
 
 # A press on Shut down's row: the point stands at
-# (40, 152) (the Rest choice's row, one lower since
-# Stone 29, one lower again since Stone 30, and one
-# lower again since Stone 31); a
-# move of (+410, +224) lays it at
+# (40, 728) (the Rest choice's row, the menu's ninth);
+# a move of (+410, -352) lays it at
 # (450, 376), on the panel's second row. The release
 # is wrapped: on a bench whose power door answers, the
 # machine can be gone before the release is even sent
@@ -161,7 +164,7 @@ if d:
 # (measured on this bench: exactly that happened, the
 # broken pipe itself the poweroff's first evidence) —
 # and the poll below is the judge either way.
-mousemove(410, 224)
+mousemove(410, -352)
 mousebutton(1)
 try:
     mousebutton(0)

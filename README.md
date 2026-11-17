@@ -147,6 +147,23 @@ To build the bootable witness disc (see "The witness disc" below):
                       # then the controller with no
                       # keyboard, and no controller at
                       # all, unbothered (Stone 32)
+./prove-stone33.sh    # boots the glass face: the bar
+                      # at the screen's foot with its
+                      # sheen bands, the round start
+                      # button's pixel-drawn cardinal
+                      # proven in its own colors and
+                      # shape, the menu risen from the
+                      # button with its nine choices
+                      # decoded letter by letter, a
+                      # glass window dragged by its
+                      # title bar with its vacated
+                      # ground whole, the pointer
+                      # leaving the glass desktop
+                      # pixel-for-pixel as it found it,
+                      # and Rest opened from the menu —
+                      # at the usual size, and again at
+                      # large print from a card that
+                      # carries it (Stone 33)
 ./build-stick.sh      # makes dist/cardnull-stick.img (Stone 17)
 ```
 
@@ -2748,6 +2765,181 @@ the pointer remains the PS/2 mouse of Stone 13. And
 the road polls its event ring once a pass of the
 loop, as the UHCI road polls its door — a key is
 heard at the loop's own pace, not an interrupt's.
+
+### Stone 33 — The glass face
+
+The desktop's face, remade as glass. The look Tyler
+named is the glass desktop of the Windows 7 years —
+but nothing here is Microsoft's: no artwork, no
+assets, no borrowed pixels. Every part of the glass
+is drawn by Cardnull's own code in Cardnull's own
+hand, the style evoked and the making wholly ours,
+in the drawing library (`src/pixface.nifla`) and the
+main body (`src/cardnull.nifla`).
+
+**The bar stands at the foot now.** It left the top
+of the screen and stands two letter rows tall at the
+bottom, glassy: a pale sheen band across its upper
+part, a mid-glass band under it, a calm blue-green
+tint at the seam, and the bar's own blue carrying
+its name and its clock on the lower row, where they
+have always stood in their colors. The name stands
+at the lower row's left, just right of the button;
+the clock stands at the right as it always has, with
+the date beside it as the size allows — Stone 28's
+large-print rule for the bar stands unchanged.
+
+**A round start button stands at the bar's left,
+carrying the Cardnull cardinal.** The bird is a
+small bitmap in the drawing library, hand-drawn in
+the pattern of the font's own letter shapes: a
+twenty-four by twenty-four reckoning of the
+stained-glass cardinal from Cardnull's own logo —
+the crest, the black mask with its white eye, the
+orange beak, the gold wing, the long tail — in deep
+red and bright red, gold, beak orange, and the dark
+lead color standing for the leaded divisions
+between the glass. It is drawn at the same honest
+size at both print sizes, on a glass disc of its
+own: a soft shadow, a lead rim, deep blue-green
+glass, and a sheen gathered at its upper left.
+**The button, and only the button, opens the
+menu** — the Stone 23 rule "a press on the bar
+opens the menu" narrowed to the button itself, as
+the stone ordered: a press elsewhere on the bar is
+a press on the desktop and opens nothing. The menu
+rises UP from the button, its foot standing on the
+bar's top edge; its nine choices, their order (Rest
+last), and their behavior are unchanged, and Escape
+still dismisses it and closes nothing.
+
+**The windows wear glass too.** Every window's
+frame is drawn with rounded corners — the corner
+pixels are left to the ground beneath, said
+plainly: a press on a rounded corner's missing
+pixel is a press on the desktop beneath it, not on
+the window. A gentle sheen band runs across the
+title bar's upper part, a blue-green tint strip
+stands at the title's foot, and a soft dark shadow
+falls five pixels along each window's right and
+bottom edges, clipped so it never paints across
+the bar. The washes that clear a window's ground
+reckon the shadow's reach with the window's own, so
+the ground a window vacates stands whole again,
+shadow and all — and the pointer's save and restore
+of its whole footprint is untouched, so the arrow
+still leaves the glass desktop pixel-for-pixel as
+it found it.
+
+**Everything underneath works as it did.** Windows
+now stand ABOVE the bar: their first places are
+reckoned through the same shared measures as
+always, and the taller windows' first places rose
+to clear the bar's two rows — at the usual size the
+files window stands at row 31, settings and help at
+row 30; at large print, files at 15, settings and
+help at 14, the editor, paint, and calculator at
+16, the verse at 18. Dragging by the title bar
+clamps a window whole on the desktop above the bar.
+The typing line stands one row above the bar. One
+help line changed its words with the face: the help
+window now says "The round button opens the menu."
+where it said "Press the top bar for the menu."
+
+**One honest limit:** the glass lives on the face
+of light only. The text face — the fallback the
+doorman falls back to when no picture screen is
+granted — keeps its own face, as it was; it did not
+grow glass.
+
+One building measure, in the open: the glass
+drawing carried the kernel's staged segment end
+from 285,795 to **294,371 bytes**, still under the
+doorman's 320 KiB claim — the headroom under the
+claim is **33,309 bytes**, and no stage moved.
+
+Proven by `prove-stone33.sh`, two boots, all PASS
+(72 checks): with no disk, at the usual size, the
+bar's bands stand sampled at the screen's foot; the
+button's cardinal stands proven in its own colors
+and shape — lead at the crest, the white eye, the
+orange beak, the gold wing; the welcome window's
+rounded corner leaves its corner pixel to the
+desktop while its frame stands beside it, and its
+shadow stands along its right and foot; a press on
+the button opens the risen menu and all nine
+choices decode letter by letter; the menu's Files
+choice opens the files window at its new place,
+glass title and shadow standing; the window is
+dragged by its title bar and decoded at its new
+place, its foot's shadow with it, and the ground it
+vacated stands plain; its close mark closes it; the
+pointer is carried across the bar, the button, and
+a window's shadow and home again, and the whole
+desktop — the clock's own ground left out, as time
+honestly passes there — stands pixel-for-pixel as
+it was found; Rest opens from the menu and Stay
+puts the panel away; Escape dismisses the menu and
+closes nothing. At large print, from a disk whose
+card carries it: the bar stands at the foot in its
+large bands, the cardinal stands on the large
+button, the menu rises at its large place with all
+nine choices decoded, and the files window opens at
+its large first place.
+
+The bar's move and the windows' new first places
+moved pixels that older proofs read, and those
+proofs were updated to the new geometry with the
+same letter-by-letter discipline — no check weakened
+and none deleted: `prove-nowitness.sh` and
+`prove-stone9.sh` (the bar's samples, the title's
+band, the typing echo's band, and the clock-diff
+region moved to the foot; Stones 16 and 17 ride the
+same scenario and pass with it), `prove-pointertrail.sh`
+(its whole-desktop difference now leaves out the
+bottom bar's clock ground instead of the top bar's),
+`prove-stone19.sh` and `prove-stone26.sh` and
+`prove-stone27.sh` (the files window's first place,
+row 31; Stone 27's editor readings split onto the
+editor's own row, 32, which did not move),
+`prove-stone20.sh` (the settings window's first
+place, row 30, and the bar clock read at the foot),
+`prove-stone21.sh` (the files window's rows read one
+above the editor's), `prove-stone22.sh` (the files
+window's place and the drag's target row, 21; its
+vacated-ground reckoning now leaves out the windows'
+own shadows, which are the face's paint, not
+remnants — the same reckoning Stone 33's own proof
+makes), `prove-stone23.sh` (the menu risen at row
+37, opened from the button; its nine choices now
+decoded, where the proof once decoded five),
+`prove-stone25.sh` (the menu at row 37 opened from
+the button, Rest's row the typing line's own row,
+and the second boot's bar sample at the foot),
+`prove-stone28.sh` (the bar's title and clock read
+at the foot at both sizes, the settings window's
+places at rows 30 and 14, the Large press and the
+chime press at their new rows, the typing echo at
+row 29 at large print, and the settings frame's span
+check now reading the window's shadow past its right
+edge), `prove-stone29.sh` (the menu opened from the
+button, its choices at rows 37 onward; the verse
+window's large place at row 18 and the settings
+places), `prove-stone30.sh` (the menu opened from
+the button, the Calculator choice at its risen row),
+and `prove-stone31.sh` (the help window's places at
+rows 30 and 14, the menu opened from the button, and
+the help page's own line read in its new words, "The
+round button opens the menu."). The full suite passes on the glass build — every
+proof green but Stones 1 and 2, spoken of next.
+Stones 1 and 2 fail on this bench on the unmodified
+Stone 32 build too — checked against the stashed
+baseline before any blame was laid — so they stand
+as they stood: pre-existing bench failures in the
+text-screen proofs, untouched by this stone and
+reported in the open rather than repaired under its
+name.
+
 
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 

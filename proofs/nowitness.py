@@ -39,9 +39,9 @@ d = waitdump(lambda d: d is not None and d[0] == 1024 and count(d, BLUE) > 5000,
 expect(d is not None, "with no input at all, a picture screen was granted and the desktop is drawn")
 if d:
     expect(d[1] == 768, f"the granted screen is 1024x768 (height {d[1]})")
-    expect(pixel(d, 8, 8) == BLUE and pixel(d, 1000, 8) == BLUE,
+    expect(pixel(d, 300, 760) == BLUE and pixel(d, 1000, 760) == BLUE,
            "the bar is blue from end to end")
-    expect(band(d, 0, 16, WHITE, 16, 130) > 100,
+    expect(band(d, 752, 768, WHITE, 32, 160) > 100,
            "the title 'Cardnull' stands in white on the bar")
     expect(pixel(d, 200, 120) == GRAY, "the welcome panel is light gray")
     expect(band(d, 112, 128, BLACK, 128, 1000) > 500,

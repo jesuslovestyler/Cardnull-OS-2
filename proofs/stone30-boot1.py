@@ -265,27 +265,28 @@ d = waitdump(lambda d: d is not None
              and pixel(d, 200, 32 * 16 + 8) == BLACK, 15)
 expect(d is not None, "Escape closed the calculator window")
 
-# The bar's menu: a press on the bar opens it, its
-# nine choices decoded — the eight windows' names and
-# Rest last. The point stands parked at (60, 60).
-move_to(200, 8)
+# The menu: a press on the start button opens it,
+# risen from the bar at the screen's foot, its nine
+# choices decoded — the eight windows' names and Rest
+# last. The point stands parked at (60, 60).
+move_to(16, 752)
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None
-             and decode(d, 7, 1, "Calculator", WHITE) == "Calculator", 25)
-expect(d is not None, "a press on the bar opened the menu, with Calculator standing in it")
+             and decode(d, 43, 1, "Calculator", WHITE) == "Calculator", 25)
+expect(d is not None, "a press on the start button opened the menu, with Calculator standing in it")
 if d:
     for i, word in enumerate(("Welcome", "Feather", "Files", "Settings",
                               "Editor", "Verse", "Calculator", "Help", "Rest")):
-        said = decode(d, 1 + i, 1, word, WHITE)
+        said = decode(d, 37 + i, 1, word, WHITE)
         expect(said == word,
                f"the menu's choice {i + 1} reads {word!r} (read: {said!r})")
 
 # A press on the Calculator choice opens the window
 # again, exactly as the typed word does. The point
-# stands at (200, 8); the choice's row is the seventh
-# — its cell center (40, 120).
-click(40, 120)
+# stands at (16, 752); the choice's row is the seventh
+# — its cell center (40, 696).
+click(40, 696)
 park()
 d = waitdump(lambda d: d is not None
              and cell_pixel(d, 13, 35) == PURPLE, 25)

@@ -51,7 +51,7 @@ def decode(d, prow, pcol, text, ink):
     return "".join(out)
 
 
-GX, GY = 5, 32
+GX, GY = 5, 31
 FIRST = "first words"
 SECOND = "second words"
 ASK = "Let this note go for good?"
@@ -97,13 +97,17 @@ if d:
     expect(said == " " * len(SECOND),
            "the files list holds the first sitting note only")
 
+# The editor's first place stands at row 32 still
+# (Stone 33 rose only the taller windows), so its rows
+# are read at EY, one more than the files window's GY.
+EY = GY + 1
 typewrite("editor")
 enter()
 d = waitdump(lambda d: d is not None
-             and decode(d, GY + 4, GX + 4, FIRST, GRAY) == FIRST, 15)
+             and decode(d, EY + 4, GX + 4, FIRST, GRAY) == FIRST, 15)
 expect(d is not None, "the editor's list holds the first sitting note, from the same page")
 if d:
-    said = decode(d, GY + 5, GX + 4, SECOND, GRAY)
+    said = decode(d, EY + 5, GX + 4, SECOND, GRAY)
     expect(said == " " * len(SECOND),
            "the note let go in the files window is gone from the editor too")
 

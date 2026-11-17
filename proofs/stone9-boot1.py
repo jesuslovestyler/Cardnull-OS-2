@@ -1,12 +1,14 @@
 # Stone 9 proof, boot 1: the shipped disc itself, booted
 # from the ISO file — the face of light. The loader is
 # asked for 1024x768 and must grant a picture screen; the
-# desktop must be DRAWN: the blue bar with its title and
-# clock, the light-gray welcome panel with its words, the
-# invitation, the typing line's echo, an answer in light,
-# the clock's hand moving, and the feather's visit shown as
-# light in the feather's own colors. Read back by sampling
-# the monitor's screendump (tools/pixels.py).
+# desktop must be DRAWN: the blue bar at the screen's
+# foot (Stone 33: it stood at the top when this proof was
+# written, and its checks moved with it) with its title
+# and clock, the light-gray welcome panel with its words,
+# the invitation, the typing line's echo, an answer in
+# light, the clock's hand moving, and the feather's visit
+# shown as light in the feather's own colors. Read back
+# by sampling the monitor's screendump (tools/pixels.py).
 
 BLUE = (0, 0, 170)
 GRAY = (170, 170, 170)
@@ -30,9 +32,9 @@ d = waitdump(lambda d: d is not None and d[0] == 1024 and count(d, BLUE) > 5000,
 expect(d is not None, "a picture screen was granted and the desktop is drawn")
 if d:
     expect(d[1] == 768, f"the granted screen is 1024x768 (height {d[1]})")
-    expect(pixel(d, 8, 8) == BLUE and pixel(d, 1000, 8) == BLUE,
+    expect(pixel(d, 300, 760) == BLUE and pixel(d, 1000, 760) == BLUE,
            "the bar is blue from end to end")
-    expect(band(d, 0, 16, WHITE, 16, 130) > 100,
+    expect(band(d, 752, 768, WHITE, 32, 160) > 100,
            "the title 'Cardnull' stands in white on the bar")
     expect(pixel(d, 200, 120) == GRAY, "the welcome panel is light gray")
     expect(band(d, 112, 128, BLACK, 128, 1000) > 500,
@@ -42,7 +44,7 @@ if d:
     expect(band(d, 336, 352, GRAY) > 30, "the invitation is drawn")
 
 typewrite("time")
-d = waitdump(lambda d: d is not None and band(d, 736, 752, GRAY) > 30, 15)
+d = waitdump(lambda d: d is not None and band(d, 720, 736, GRAY) > 30, 15)
 expect(d is not None, "the typing line echoes in light")
 enter()
 d = waitdump(lambda d: d is not None and band(d, 384, 400, GRAY) > 50, 20)
@@ -51,7 +53,7 @@ expect(d is not None, "the word 'time' is answered in light")
 d1 = dump()
 time.sleep(2.6)
 d2 = dump()
-diff = sum(1 for x in range(880, 1024) for y in range(0, 16)
+diff = sum(1 for x in range(880, 1024) for y in range(752, 768)
            if pixel(d1, x, y) != pixel(d2, x, y))
 expect(diff > 20, f"the drawn clock's hand moves ({diff} pixels changed)")
 

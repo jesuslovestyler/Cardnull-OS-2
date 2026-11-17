@@ -155,28 +155,30 @@ d = waitdump(lambda d: d is not None
              and pixel(d, 200, VY * 16 + 8) == BLACK, 15)
 expect(d is not None, "Escape closed the verse window")
 
-# The bar's menu: a press on the bar opens it, its
-# nine choices decoded — the eight windows' names and
-# Rest last. The pointer's point starts at (506, 378);
-# a move of (-306, -370) lays it at (200, 8), on the bar.
-mousemove(-306, -370)
+# The menu: a press on the start button opens it,
+# risen from the bar at the screen's foot, its nine
+# choices decoded — the eight windows' names and Rest
+# last. The pointer's point starts at (506, 378); a
+# move of (-490, +374) lays it at (16, 752), the
+# button's own center.
+mousemove(-490, 374)
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None
-             and decode(d, 6, 1, "Verse", WHITE) == "Verse", 25)
-expect(d is not None, "a press on the bar opened the menu, with Verse standing in it")
+             and decode(d, 42, 1, "Verse", WHITE) == "Verse", 25)
+expect(d is not None, "a press on the start button opened the menu, with Verse standing in it")
 if d:
     for i, word in enumerate(("Welcome", "Feather", "Files", "Settings",
                               "Editor", "Verse", "Calculator", "Help", "Rest")):
-        said = decode(d, 1 + i, 1, word, WHITE)
+        said = decode(d, 37 + i, 1, word, WHITE)
         expect(said == word,
                f"the menu's choice {i + 1} reads {word!r} (read: {said!r})")
 
 # A press on the Verse choice opens the window again,
 # exactly as the typed word does. The point stands at
-# (200, 8); a move of (-160, +96) lays it at (40, 104),
+# (16, 752); a move of (+24, -72) lays it at (40, 680),
 # on the menu's sixth row.
-mousemove(-160, 96)
+mousemove(24, -72)
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None
@@ -185,13 +187,13 @@ d = waitdump(lambda d: d is not None
 expect(d is not None, "a press on the menu's Verse choice opened the verse window")
 
 # A press on its close mark closes it. The point
-# stands at (40, 104); two moves of (+440, +208) lay
+# stands at (40, 680); two moves of (+440, -80) lay
 # it at (920, 520), on the close mark's cell (one
-# great move of (+880, +416) saturates the pointer's
+# great move of (+880, -160) saturates the pointer's
 # reckoning on the bench and falls short — measured
 # on the bench while this proof was made).
-mousemove(440, 208)
-mousemove(440, 208)
+mousemove(440, -80)
+mousemove(440, -80)
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None

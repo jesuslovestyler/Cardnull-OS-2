@@ -96,7 +96,7 @@ def park():
 # the new-note entry at GY+3, the notes at GY+4 onward,
 # the keeping word at GY+12 with "Let this note go" at
 # GX+36 on that row.
-GX, GY = 5, 32
+GX, GY = 5, 31
 A = "remember the garden"
 B = "call billy about the roof"
 C = "pray for quinton"
@@ -190,53 +190,57 @@ if d:
     expect(said == B, f"the foot shows the newly picked note (read: {said!r})")
 
 # --- the editor window: the same letting go ---
+# (The editor's first place stands at row 32 still —
+# Stone 33 rose only the taller windows — so its rows
+# are read at EY, one more than the files window's GY.)
+EY = GY + 1
 typewrite("editor")
 enter()
 d = waitdump(lambda d: d is not None
-             and decode(d, GY + 2, GX + 2,
+             and decode(d, EY + 2, GX + 2,
                         "Pick a note, then press Enter to write it:", GRAY)
              == "Pick a note, then press Enter to write it:", 25)
 expect(d is not None, "the word 'editor' opened the editor window on the same store")
 if d:
-    said = decode(d, GY + 4, GX + 4, B, GRAY)
+    said = decode(d, EY + 4, GX + 4, B, GRAY)
     expect(said == B, f"the editor lists the note the files window kept (read: {said!r})")
-    said = decode(d, GY + 5, GX + 4, C, GRAY)
+    said = decode(d, EY + 5, GX + 4, C, GRAY)
     expect(said == C, f"the editor lists the third note (read: {said!r})")
-    said = decode(d, GY + 12, GX + 36, GO, WHITE)
+    said = decode(d, EY + 12, GX + 36, GO, WHITE)
     expect(said == " " * len(GO),
            "no letting go is offered while the new-note entry stands picked")
 
-click(200, (GY + 5) * 16 + 8)
+click(200, (EY + 5) * 16 + 8)
 park()
 d = waitdump(lambda d: d is not None
-             and decode(d, GY + 5, GX + 4, C, WHITE) == C, 15)
+             and decode(d, EY + 5, GX + 4, C, WHITE) == C, 15)
 expect(d is not None, "a press on the third note's row picked it in the editor")
 if d:
-    said = decode(d, GY + 12, GX + 36, GO, WHITE)
+    said = decode(d, EY + 12, GX + 36, GO, WHITE)
     expect(said == GO,
            f"'Let this note go' stands at the editor's foot (read: {said!r})")
 
-click((GX + 36) * 16 + 8, (GY + 12) * 16 + 8)
+click((GX + 36) * 16 + 8, (EY + 12) * 16 + 8)
 park()
 d = waitdump(lambda d: d is not None
-             and decode(d, GY + 2, GX + 2, ASK, GRAY) == ASK, 15)
+             and decode(d, EY + 2, GX + 2, ASK, GRAY) == ASK, 15)
 expect(d is not None, "a press on the editor's words asked first, the same asking")
 if d:
-    said = decode(d, GY + 3, GX + 2, C, WHITE)
+    said = decode(d, EY + 3, GX + 2, C, WHITE)
     expect(said == C, f"the editor's asking shows the note's words (read: {said!r})")
-    said = decode(d, GY + 6, GX + 4, KEEP, WHITE)
+    said = decode(d, EY + 6, GX + 4, KEEP, WHITE)
     expect(said == KEEP, f"'Keep it' stands picked in the editor too (read: {said!r})")
 
-click(200, (GY + 5) * 16 + 8)
+click(200, (EY + 5) * 16 + 8)
 park()
 d = waitdump(lambda d: d is not None
-             and decode(d, GY + 4, GX + 4, B, WHITE) == B, 15)
+             and decode(d, EY + 4, GX + 4, B, WHITE) == B, 15)
 expect(d is not None, "a press on 'Yes, let it go' let the third note go")
 if d:
-    said = decode(d, GY + 5, GX + 4, C, GRAY)
+    said = decode(d, EY + 5, GX + 4, C, GRAY)
     expect(said == " " * len(C),
            "the editor's list holds the one remaining note only")
-    said = decode(d, GY + 3, GX + 4, "Write a new note", GRAY)
+    said = decode(d, EY + 3, GX + 4, "Write a new note", GRAY)
     expect(said == "Write a new note",
            f"the new-note entry stands above it, unpicked (read: {said!r})")
 

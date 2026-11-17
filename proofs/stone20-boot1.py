@@ -66,21 +66,23 @@ def decode(d, prow, pcol, text, ink):
 
 # The settings window's place on this face (1024x768,
 # sixty-four cells across): fifty-four wide, centered —
-# left at cell 5, top at cell row 32. Title at row 32,
-# "Time zone:" at 34, the Eastern choice at 35 and the
-# world's standard at 36 (their words at column 9),
-# "Welcome chime:" at 38, the chime choices at 39 and
-# 40, and the keeping word at 46 (column 7) — it stood at 42
+# left at cell 5, top at cell row 30 (cell row 32 until
+# Stone 33, whose bar at the screen's foot rose the
+# taller windows' first places). Title at row 30,
+# "Time zone:" at 32, the Eastern choice at 33 and the
+# world's standard at 34 (their words at column 9),
+# "Welcome chime:" at 36, the chime choices at 37 and
+# 38, and the keeping word at 44 (column 7) — it stood at 42
 # until Stone 28 grew the window by the words' size
 # choice, and the word moved down with the window. The bar
-# clock stands at row 0, column 56.
-GX, GY = 5, 32
+# clock stands at row 47, column 56.
+GX, GY = 5, 30
 
 d = waitdump(lambda d: d is not None and d[0] == 1024
              and count(d, BLUE) > 5000, 40)
 expect(d is not None, "the desktop is drawn")
 if d:
-    said = decode(d, 0, 56, "19:", WHITE)
+    said = decode(d, 47, 56, "19:", WHITE)
     expect(said == "19:", f"the bar clock starts on Eastern time (read: {said!r})")
 
 typewrite("settings")
@@ -118,13 +120,13 @@ d = waitdump(lambda d: d is not None
 expect(d is not None, "the typed word 'eastern' is answered in plain words, as before")
 
 # A press of the pointer on the world's-standard row
-# (its point at (200, 584), cell row 36): the arrow
+# (its point at (200, 552), cell row 34): the arrow
 # starts with its point at (506, 378).
-mousemove(-306, 206)
+mousemove(-306, 174)
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None
-             and decode(d, 0, 56, "00:", WHITE) == "00:", 15)
+             and decode(d, 47, 56, "00:", WHITE) == "00:", 15)
 expect(d is not None, "clicking the world's standard choice moved the bar clock to 00")
 # Park the arrow off the window's words, then read the
 # window's own standing back.
@@ -138,8 +140,8 @@ if d:
     expect(said == "Eastern time",
            f"Eastern stands unpicked now (read: {said!r})")
 
-# A press on the chime-off row (its point at (200, 648),
-# cell row 40): the arrow's point stands at (700, 84)
+# A press on the chime-off row (its point at (200, 616),
+# cell row 38): the arrow's point stands at (700, 52)
 # after the parking above.
 mousemove(-500, 564)
 mousebutton(1)

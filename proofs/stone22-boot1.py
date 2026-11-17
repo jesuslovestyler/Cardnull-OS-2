@@ -78,16 +78,19 @@ def old_place_remnants(d):
     open behind, at left cell 5, top row 26, fifty-four
     by nine — its foot overlaps the files window's first
     place, and that ground must show the feather window
-    repainted, not black). The arrow stands at the new
-    place, inside the new rect, so it never falls in the
-    part compared here."""
+    repainted, not black) — and, since Stone 33, the
+    feather window's shadow's reach past its foot and
+    right edge (five pixels, at y 560 to 564 here),
+    which is the feather's own ground too. The arrow
+    stands at the new place, inside the new rect, so it
+    never falls in the part compared here."""
     w, h, px = d
     bad = []
     for y in range(GY * 16, (GY + 15) * 16):
         for x in range(GX * 16, (GX + 54) * 16):
-            if NX * 16 <= x < (NX + 54) * 16 and NY * 16 <= y < (NY + 15) * 16:
+            if NX * 16 <= x < (NX + 54) * 16 + 5 and NY * 16 <= y < (NY + 15) * 16 + 5:
                 continue
-            if GX * 16 <= x < (GX + 54) * 16 and 26 * 16 <= y < 35 * 16:
+            if GX * 16 <= x < (GX + 54) * 16 + 5 and 26 * 16 <= y < 35 * 16 + 5:
                 continue
             o = (y * w + x) * 3
             if px[o] != 0 or px[o + 1] != 0 or px[o + 2] != 0:
@@ -101,14 +104,16 @@ def old_place_remnants(d):
 # sixty-four cells across): fifty-four wide, fifteen
 # high (fourteen until Stone 26 grew it by the kept
 # picture's row). It opens centered at the desktop's foot — left
-# cell 5, top row 32 — and the drag carries it to left
+# cell 5, top row 31 (top row 32 until Stone 33, whose
+# bar at the screen's foot rose the taller windows'
+# first places) — and the drag carries it to left
 # cell 10 (the rightmost place it wholly fits: 10 + 54
-# is the face's 64) and top row 22. Its list stands at
+# is the face's 64) and top row 21. Its list stands at
 # its top + 3 (the first note) and + 4 (the second),
 # their words at its left + 4; the picked note's words
 # stand again at its top + 12, at its left + 2.
-GX, GY = 5, 32
-NX, NY = 10, 22
+GX, GY = 5, 31
+NX, NY = 10, 21
 FIRST = "remember the garden"
 SECOND = "pray for mother"
 
@@ -130,11 +135,11 @@ if d:
            f"the second note stands listed at the first place (read: {said!r})")
 
 # The pointer's point starts at (506, 378). A move of
-# (-106, +142) lays its point at (400, 520): on the
-# window's title bar (row 32, spanning the window's
+# (-106, +126) lays its point at (400, 504): on the
+# window's title bar (row 31, spanning the window's
 # width), well away from the close mark at its right
 # end. The button goes down there — the drag begins.
-mousemove(-106, 142)
+mousemove(-106, 126)
 mousebutton(1)
 # The drag itself: four small steps, the button held
 # throughout, carrying the point by (+80, -160) in all
@@ -162,9 +167,9 @@ if d:
            f"no remnants ({len(bad)} non-black pixels, first of them {bad[:8]})")
 
 # A press on the second note's row in the DRAGGED
-# window: the pointer's point stands at (480, 360); a
-# move of (-180, +64) lays it at (300, 424), on the
-# second note's row at the new place (row 26).
+# window: the pointer's point stands at (480, 344); a
+# move of (-180, +64) lays it at (300, 408), on the
+# second note's row at the new place (row 25).
 mousemove(-180, 64)
 mousebutton(1)
 mousebutton(0)
@@ -181,7 +186,7 @@ if d:
 
 # The close mark at the DRAGGED place closes the
 # window: its cell is the window's left + 52 at its top
-# row — the point (1000, 360), a move of (+700, -64)
+# row — the point (1000, 344), a move of (+700, -64)
 # from where the pointer stands.
 mousemove(700, -64)
 mousebutton(1)

@@ -49,7 +49,7 @@ def decode(d, prow, pcol, text, ink):
     return "".join(out)
 
 
-GX, GY = 5, 32
+GX, GY = 5, 30
 
 d = waitdump(lambda d: d is not None and d[0] == 1024
              and count(d, BLUE) > 5000, 40)
@@ -70,13 +70,13 @@ if d:
            f"the disc's own Eastern choice stands picked (read: {said!r})")
 
 # The choice still works for the sitting: a press on
-# the world's-standard row (point (200, 584)) moves the
+# the world's-standard row (point (200, 552)) moves the
 # bar clock, and the window shows the new standing.
-mousemove(-306, 206)
+mousemove(-306, 174)
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None
-             and decode(d, 0, 56, "00:", WHITE) == "00:", 15)
+             and decode(d, 47, 56, "00:", WHITE) == "00:", 15)
 expect(d is not None, "clicking still moved the clock for this sitting, with no disk at all")
 mousemove(500, -500)
 d = waitdump(lambda d: d is not None

@@ -122,7 +122,7 @@ PAGES = (
     ("Moving and resting",
      "usb tells if a USB keyboard",
      "is plugged in and ready.",
-     "Press the top bar for the menu.",
+     "The round button opens the menu.",
      "Tab brings the next window up.",
      "Escape closes the front window.",
      "The small x closes its window.",
@@ -132,7 +132,7 @@ PAGES = (
      "name those two choices at once."),
 )
 
-HX, HY = 5, 32
+HX, HY = 5, 30
 
 # The pointer's point, tracked as the bench moves it:
 # it starts at the screen's middle (506, 378).
@@ -192,12 +192,12 @@ if d:
 # A press on the foot's More word turns to the third
 # page. The point stands at (506, 378); the More word's
 # cells stand at the foot's right — its center (856,
-# 744) — walked in two moves, as the close-mark walks
+# 712) — walked in two moves, as the close-mark walks
 # in the other proofs walk (one great move saturates
 # the pointer's reckoning on the bench).
-mousemove(175, 183)
-mousemove(175, 183)
-CUR[0], CUR[1] = 856, 744
+mousemove(175, 167)
+mousemove(175, 167)
+CUR[0], CUR[1] = 856, 712
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None
@@ -229,8 +229,8 @@ if d:
     # word's letters — so it is parked at the desktop's
     # corner before the word is read, as the other
     # proofs park it before a reading.
-    mousemove(-398, -342)
-    mousemove(-398, -342)
+    mousemove(-398, -326)
+    mousemove(-398, -326)
     CUR[0], CUR[1] = 60, 60
     d = dump()
     said = decode(d, HY + 14, HX + 42, "First page", WHITE)
@@ -239,10 +239,10 @@ if d:
 
 # A press on First page returns to the first page: the
 # point walks from its park to that word's center
-# (760, 744), in two moves as before.
-mousemove(350, 342)
-mousemove(350, 342)
-CUR[0], CUR[1] = 760, 744
+# (760, 712), in two moves as before.
+mousemove(350, 326)
+mousemove(350, 326)
+CUR[0], CUR[1] = 760, 712
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None
@@ -286,31 +286,32 @@ d = waitdump(lambda d: d is not None
              and pixel(d, 200, HY * 16 + 8) == BLACK, 15)
 expect(d is not None, "Escape closed the help window")
 
-# The bar's menu: a press on the bar opens it, its nine
+# The menu: a press on the start button opens it,
+# risen from the bar at the screen's foot, its nine
 # choices decoded — the eight windows' names, Help the
-# eighth, and Rest last. The point stands at (760, 744);
-# two moves lay it at (200, 8), on the bar.
-mousemove(-280, -368)
-mousemove(-280, -368)
-CUR[0], CUR[1] = 200, 8
+# eighth, and Rest last. The point stands at (760, 712);
+# two moves lay it at (16, 752), the button's center.
+mousemove(-372, 20)
+mousemove(-372, 20)
+CUR[0], CUR[1] = 16, 752
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None
-             and decode(d, 8, 1, "Help", WHITE) == "Help", 25)
-expect(d is not None, "a press on the bar opened the menu, with Help standing in it")
+             and decode(d, 44, 1, "Help", WHITE) == "Help", 25)
+expect(d is not None, "a press on the start button opened the menu, with Help standing in it")
 if d:
     for i, word in enumerate(("Welcome", "Feather", "Files", "Settings",
                               "Editor", "Verse", "Calculator", "Help", "Rest")):
-        said = decode(d, 1 + i, 1, word, WHITE)
+        said = decode(d, 37 + i, 1, word, WHITE)
         expect(said == word,
                f"the menu's choice {i + 1} reads {word!r} (read: {said!r})")
 
 # A press on the Help choice opens the window again,
 # exactly as the typed word does. The point stands at
-# (200, 8); a move of (-160, +128) lays it at (40, 136),
+# (16, 752); a move of (+24, -40) lays it at (40, 712),
 # on the menu's eighth row.
-mousemove(-160, 128)
-CUR[0], CUR[1] = 40, 136
+mousemove(24, -40)
+CUR[0], CUR[1] = 40, 712
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None
@@ -319,10 +320,10 @@ d = waitdump(lambda d: d is not None
 expect(d is not None, "a press on the menu's Help choice opened the help window")
 
 # A press on its close mark closes it. The point stands
-# at (40, 136); two moves lay it at (920, 520), on the
+# at (40, 712); two moves lay it at (920, 488), on the
 # close mark's cell.
-mousemove(440, 192)
-mousemove(440, 192)
+mousemove(440, -112)
+mousemove(440, -112)
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None

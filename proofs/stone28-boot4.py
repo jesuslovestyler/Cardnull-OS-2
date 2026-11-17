@@ -66,8 +66,8 @@ def click(x, y):
     mousebutton(0)
 
 
-UX, UY = 5, 32
-LX, LY = 1, 16
+UX, UY = 5, 30
+LX, LY = 1, 14
 
 d = waitdump(lambda d: d is not None and d[0] == 1024
              and count(d, BLUE) > 5000, 40)
@@ -87,7 +87,7 @@ if d:
 # A press on the Large row (its point at (168, 712),
 # as in boot 1): the choice works for the sitting, and
 # the sitting-only words stand at the large size.
-click(168, 712)
+click(168, 680)
 d = waitdump(lambda d: d is not None
              and decode(d, LY + 12, LX + 4, "Large", WHITE, 3)
              == "Large", 25)

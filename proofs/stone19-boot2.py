@@ -48,7 +48,7 @@ def decode(d, prow, pcol, text, ink):
     return "".join(out)
 
 
-GX, GY = 5, 32
+GX, GY = 5, 31
 
 d = waitdump(lambda d: d is not None and d[0] == 1024
              and count(d, BLUE) > 5000, 40)
