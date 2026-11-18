@@ -580,6 +580,28 @@
 //          drag cost 3,685 of the runtime's loop
 //          passes, against 11,765 measured for the old
 //          road's drag.
+// Stone 35: the region road carried to the feather
+//          visits — the second glitch: "when i paint
+//          with multiple windows, all the windows
+//          flicker." A feather visit was bracketed by
+//          two whole-desktop repaints, one as the
+//          press landed and one as the visit was
+//          received, so every bystander window was
+//          washed and redrawn twice per press. The
+//          press's repaint and the receiving's now
+//          lay Stone 34's road over the visited
+//          window alone — widened to the window it
+//          took the forward place from, whose title
+//          bar the coming-forward changes, and to the
+//          files window when a disk is keeping the
+//          picture, whose list the keeping can
+//          change. On a full desktop the bench
+//          reckons a calculator press at 5,201-5,413
+//          loop passes against the old road's
+//          5,961-6,966, and a canvas press at
+//          12,809-12,873 against 13,707-14,706 — the
+//          saving is the bystander repaints that no
+//          longer happen; the visit itself remains.
 //
 // The arrangement of the screen (the text face's rows;
 // on the face of light the same words stand on its grid,
@@ -2601,6 +2623,47 @@ make layroad(desk, rx, ry, rw, rh) {
     pset(desk, 388, ry)
     pset(desk, 392, rw)
     pset(desk, 396, rh)
+}
+
+// layroadwins lays the region repaint's road over a
+// window's own place — and, when a second window is
+// named and stands open, over the stretch of cells
+// holding both windows' places together (Stone 35).
+// A feather visit changes only its own window's
+// cells, but the visit's coming forward changes the
+// window it took the forward place from as well: that
+// window's title bar must be repainted in its behind
+// colors, and it stands inside the road when the two
+// places are taken together. A second window of 0
+// names none.
+make layroadwins(desk, wina, winb) {
+    let lx = winleft(desk, wina)
+    let ty = wintop(desk, wina)
+    let rx = lx + winwide(desk, wina)
+    let by = ty + winhigh(desk, wina)
+    if winb >= 1 {
+        if winb != wina {
+            if winopen(desk, winb) == 1 {
+                let bx = winleft(desk, winb)
+                let byy = wintop(desk, winb)
+                if bx < lx {
+                    lx = bx
+                }
+                if byy < ty {
+                    ty = byy
+                }
+                let brx = bx + winwide(desk, winb)
+                let bby = byy + winhigh(desk, winb)
+                if brx > rx {
+                    rx = brx
+                }
+                if bby > by {
+                    by = bby
+                }
+            }
+        }
+    }
+    layroad(desk, lx, ty, rx - lx, by - ty)
 }
 
 // paintregion repaints the stretch of the desktop the
@@ -6498,8 +6561,30 @@ while true {
                                                 if prow <= 20 {
                                                     if pcol >= 14 {
                                                         if pcol <= 65 {
+                                                            // Stone 35: the
+                                                            // press's own
+                                                            // repaint is the
+                                                            // region road
+                                                            // over the paint
+                                                            // window and the
+                                                            // window it takes
+                                                            // the forward
+                                                            // place from —
+                                                            // the visit's
+                                                            // receiving below
+                                                            // repaints the
+                                                            // window again
+                                                            // the same way,
+                                                            // and no other
+                                                            // window is
+                                                            // washed or
+                                                            // redrawn by a
+                                                            // paint press
+                                                            // any more.
+                                                            let oldfwd = pget(pixdesk, 180)
                                                             pset(pixdesk, 180, 6)
-                                                            paintwindows(pixdesk, cellblock, notesblock)
+                                                            layroadwins(pixdesk, 6, oldfwd)
+                                                            paintregion(pixdesk, cellblock, notesblock)
                                                             acted = 1
                                                         }
                                                     }
@@ -6529,8 +6614,14 @@ while true {
                                                 if krow2 <= 20 {
                                                     if kcol2 >= 14 {
                                                         if kcol2 <= 65 {
+                                                            // Stone 35: the
+                                                            // region road, as
+                                                            // at the paint
+                                                            // window's press.
+                                                            let oldfwd = pget(pixdesk, 180)
                                                             pset(pixdesk, 180, 8)
-                                                            paintwindows(pixdesk, cellblock, notesblock)
+                                                            layroadwins(pixdesk, 8, oldfwd)
+                                                            paintregion(pixdesk, cellblock, notesblock)
                                                             acted = 1
                                                         }
                                                     }
@@ -6791,7 +6882,9 @@ while true {
     // whether the visit then stands or is refused.
     if featherask == 1 {
         featherask = 0
+        let oldfwd = 0
         if pix == 1 {
+            oldfwd = pget(pixdesk, 180)
             pset(pixdesk, 176, 1)
             pset(pixdesk, 180, 2)
         }
@@ -6815,7 +6908,13 @@ while true {
             }
         }
         if pix == 1 {
-            paintwindows(pixdesk, cellblock, notesblock)
+            // Stone 35: the visit changed only the
+            // feather window's cells, and its coming
+            // forward changed the window it took the
+            // forward place from — the region road over
+            // the two of them repaints exactly that.
+            layroadwins(pixdesk, 2, oldfwd)
+            paintregion(pixdesk, cellblock, notesblock)
         }
         if how == 1 {
             // A refusal, sounded as well as written
@@ -6957,7 +7056,20 @@ while true {
                         }
                     }
                 }
-                paintwindows(pixdesk, cellblock, notesblock)
+                // Stone 35: the visit changed only the
+                // paint window's cells — and, when a disk
+                // is keeping the picture, the files
+                // window's list may have gained or lost
+                // the picture's row through the keeping
+                // above — so the region road runs over
+                // the paint window, and over the files
+                // window with it when a disk stands.
+                if diskset == 1 {
+                    layroadwins(pixdesk, 6, 3)
+                } else {
+                    layroadwins(pixdesk, 6, 0)
+                }
+                paintregion(pixdesk, cellblock, notesblock)
             }
             if phow == 1 {
                 refusenote()
@@ -7002,7 +7114,11 @@ while true {
             let chow = runfeather(calcimg, calcgot, blockaddr(calcblock), cgift)
             if chow == 3 {
                 pset(pixdesk, 344, 1)
-                paintwindows(pixdesk, cellblock, notesblock)
+                // Stone 35: the visit changed only the
+                // calculator window's cells — the region
+                // road over that window repaints it.
+                layroadwins(pixdesk, 8, 0)
+                paintregion(pixdesk, cellblock, notesblock)
             }
             if chow == 1 {
                 refusenote()

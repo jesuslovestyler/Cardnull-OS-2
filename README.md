@@ -3009,6 +3009,69 @@ fix here, this is bench-proved; the witness that
 counts is Tyler's own in UTM, still to come.
 
 
+### Stone 35 — The press that no longer flickers the desktop
+
+The second of the four glitches Tyler witnessed in
+UTM on November 16, 2026, answered at its root:
+"when i paint with multiple windows, all the windows
+flicker."
+
+**The mechanism.** Every visit to a feather — the
+paint feather above all, which is visited once per
+pointer press on its canvas — was bracketed by two
+whole-desktop repaints: one as the press landed, in
+the pointer's reckoning, and one as the visit was
+received. Windows that had nothing to do with the
+press were washed and redrawn twice per press,
+exactly the wash-and-redraw shimmer of Stone 34,
+now keeping time with the painting hand.
+
+**The fix is the same scope, carried to the
+visits.** Stone 34's region road now serves the
+feather visits too. The press's own repaint and the
+receiving's repaint each lay the road over the
+visited window alone — widened, when the press
+brought a different window forward, to the window
+it took the forward place from, whose title bar the
+coming-forward repaints in behind colors; and
+widened once more, when a disk is keeping the
+picture, to the files window, whose list the
+keeping can change. Within the road the repaint
+keeps Stone 34's standing order, so the road's
+final pixels are exactly what the old repaint would
+have laid there. A window outside the road is never
+washed and never redrawn, so it cannot flicker.
+Openings still repaint as openings always have —
+the receivings owe only their own window's ground.
+
+The bench reckons the change in the runtime's own
+loop passes, on a full desktop with every window
+standing open. A press on the calculator's key:
+5,201–5,413 passes on the new road, against
+5,961–6,966 measured for the old. A press on the
+paint canvas: 12,809–12,873, against 13,707–14,706.
+The saving is the two bystander repaints that no
+longer happen; the visit itself — the feather's own
+work, and its window's own redraw — is most of what
+remains, and is honestly still there.
+
+Proven by `prove-stone35.sh`, in two boots (on this
+bench a second pointer press after a feather-visit
+press is not reliable — the emulated pointer's
+button keeping desyncs across a long visit — so
+each boot makes one press, the way a person makes
+one at a time): a calculator press on a full
+desktop reckons its 7, a canvas press paints its
+cell Red, the welcome window's every pixel stands
+hashed and exactly as it stood after each press,
+and the presses' loop passes are read out of the
+guest and reckoned against the old road's measures.
+The calculator, paint-keeping, glass-face, dragging,
+pointer-trail, and no-witness proofs pass as they
+did. Bench-proved, as every fix here; the witness
+that counts is Tyler's own in UTM, still to come.
+
+
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 
 This is not one of this system's own stones; it is the
