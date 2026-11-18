@@ -181,8 +181,17 @@
 //       pair, laid at the face's rising and written by
 //       dragging, like the pairs at 236 to 352.
 //       (180's forward reckoning grows again: 9 is the
-//       help window.) The desk stands 384 bytes now;
-//       376 to 383 stand unused.
+//       help window.) 376 to 383 stand unused.
+//  384  the region repaint's road (Stone 34): the
+//       stretch of the desktop, in letter cells, that
+//       the next region repaint serves — its left
+//       column (384), its top row (388), its width
+//       (392), and its height (396) — laid by layroad
+//       before paintregion is called, the machine's
+//       registers being already full with the call's
+//       three blocks; and the window callpainter is to
+//       paint (400), laid the same way. The desk stands
+//       404 bytes now.
 //  320  the letter cell's size in pixels (Stone 28):
 //       sixteen at the words' usual size — the font's
 //       eight by eight drawn at twice size — and

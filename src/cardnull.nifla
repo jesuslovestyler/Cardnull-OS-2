@@ -545,6 +545,41 @@
 //          Everything underneath works as it did. The
 //          text face keeps its own face, as it always has
 //          — the glass lives on the face of light only.
+// Stone 34: the region repaint — the first of the
+//          four glitches Tyler witnessed in UTM (Nov
+//          16, 2026) answered at its root: "when i move
+//          windows it flickers the windows." The old
+//          road repainted the WHOLE desktop on every
+//          step of a drag — every closed window washed,
+//          every open window redrawn whole, straight
+//          into the picture screen — so the eye saw
+//          windows that had nothing to do with the move
+//          wash and redraw many times a second; that
+//          shimmer was the flicker. A drag now repaints
+//          only the road the window travelled — the
+//          ground it left and the ground it took, as one
+//          stretch of cells — and, within the road, only
+//          the windows whose places touch it, painted
+//          in the standing order (closed fellows washed
+//          in window order, open fellows drawn in window
+//          order, the forward window last), so the
+//          road's final pixels are exactly what the
+//          whole-desktop repaint would have laid there,
+//          and a window outside the road is never washed
+//          or redrawn at all. The reckoning stands in
+//          paintregion, beside paintwindows; the road
+//          and the window to paint travel through the
+//          desk at 384 to 403 (the desk stands 404
+//          bytes now), the machine's registers being
+//          already full with a call's three blocks.
+//          While the start menu or the rest panel
+//          stands open — both paint over everything in
+//          their own words — the whole-desktop repaint
+//          keeps its say. The bench reckons the change
+//          as well as sees it: a lone window's six-step
+//          drag cost 3,685 of the runtime's loop
+//          passes, against 11,765 measured for the old
+//          road's drag.
 //
 // The arrangement of the screen (the text face's rows;
 // on the face of light the same words stand on its grid,
@@ -2433,6 +2468,250 @@ make paintwindows(desk, block, notes) {
     }
 }
 
+// ---- the region repaint (Stone 34) ----
+//
+// The first fix of the four glitches Tyler witnessed in
+// UTM (Nov 16, 2026): "when i move windows it flickers
+// the windows." The mechanism stood plain in the old
+// road: dragging a window one cell called the
+// whole-desktop repaint — every closed window washed,
+// every open window redrawn whole, straight into the
+// picture screen with no back buffer — once per pointer
+// packet, many times a second. The eye saw the wash and
+// the redraw of windows that had nothing to do with the
+// move; that wash-redraw shimmer is the flicker. (The
+// bench reckoned it too: one six-step drag of a window
+// burned 11,765 of the runtime's million loop passes,
+// nearly all of it repainting untouched windows.)
+//
+// The fix is scope, not speed: a move repaints only the
+// road the window travelled — the ground it left and
+// the ground it took, taken as one stretch of cells —
+// and, within that road, only the windows whose places
+// touch it, painted in the standing order (closed
+// fellows washed in window order, open fellows drawn in
+// window order, the forward window last), so the road's
+// final pixels are exactly what the whole-desktop
+// repaint would have laid there. A window outside the
+// road is never washed and never redrawn, so it cannot
+// flicker. Two honest edges: an open window standing
+// where a closed fellow's wash will fall joins the set
+// (the wash would rub a hole in it that nothing
+// repaints), and while the start menu or the rest panel
+// stands open — both paint over everything in their own
+// words — the whole-desktop repaint keeps its say.
+//
+// The window callpainter is to paint stands in the
+// desk at 400, laid by paintregion before each call —
+// the machine's registers carry six words at most, and
+// callpainter's three blocks already fill them.
+
+// callpainter paints the window the desk's 400 names,
+// its standing way: the wash for a closed one, the
+// whole face for an open one.
+make callpainter(desk, block, notes) {
+    let win = pget(desk, 400)
+    if win == 1 {
+        onewelcome(desk)
+    }
+    if win == 2 {
+        onefeather(desk, block)
+    }
+    if win == 3 {
+        onefiles(desk, notes)
+    }
+    if win == 4 {
+        onesettings(desk)
+    }
+    if win == 5 {
+        oneeditor(desk, notes)
+    }
+    if win == 6 {
+        onepaint(desk)
+    }
+    if win == 7 {
+        oneverse(desk)
+    }
+    if win == 8 {
+        onecalc(desk)
+    }
+    if win == 9 {
+        onehelp(desk)
+    }
+}
+
+// rectstouchx and rectstouchy answer whether two
+// stretches of cells reach across each other, one
+// measure at a time — the machine's registers carry
+// six words at most, so the two measures are asked
+// apart and the caller believes both.
+make rectstouchx(al, aw, bl, bw) {
+    let hit = 0
+    if al + aw > bl {
+        if al < bl + bw {
+            hit = 1
+        }
+    }
+    give hit
+}
+
+make rectstouchy(at, ah, bt, bh) {
+    let hit = 0
+    if at + ah > bt {
+        if at < bt + bh {
+            hit = 1
+        }
+    }
+    give hit
+}
+
+// winbit answers window win's bit in a set reckoned as
+// one number: window 1 is 1, window 2 is 2, and so on,
+// doubling — nine windows, nine bits, no block needed.
+make winbit(win) {
+    let bit = 1
+    let step = 1
+    while step < win {
+        bit = bit * 2
+        step = step + 1
+    }
+    give bit
+}
+
+// inset answers whether window win's bit stands in the
+// set number: its share of the set, halved away, leaves
+// 1 standing exactly when the bit is set.
+make inset(set, win) {
+    let share = set / winbit(win)
+    let half = share / 2
+    give share - half * 2
+}
+
+// The road the region repaint serves stands in the
+// desk at 384 to 396, laid by layroad before the call
+// — the machine's registers carry six words at most,
+// and paintregion's three blocks already fill them, so
+// the road travels the way the paint cells' block
+// does at 288: through the desk.
+
+// layroad lays the road (in cells) the next region
+// repaint will serve, into the desk at 384 to 396.
+make layroad(desk, rx, ry, rw, rh) {
+    pset(desk, 384, rx)
+    pset(desk, 388, ry)
+    pset(desk, 392, rw)
+    pset(desk, 396, rh)
+}
+
+// paintregion repaints the stretch of the desktop the
+// laid road names: the road is washed bare, then every
+// window whose place — with one cell of grace at its
+// right and bottom, for its shadow's reach — touches
+// the road is painted its standing way, in the standing
+// order. Windows outside the road are not touched at
+// all.
+make paintregion(desk, block, notes) {
+    let rx = pget(desk, 384)
+    let ry = pget(desk, 388)
+    let rw = pget(desk, 392)
+    let rh = pget(desk, 396)
+    let full = 0
+    if pget(desk, 268) == 1 {
+        full = 1
+    }
+    if pget(desk, 292) == 1 {
+        full = 1
+    }
+    if full == 1 {
+        paintwindows(desk, block, notes)
+    } else {
+        let set = 0
+        let win = 1
+        while win <= 9 {
+            let wl = winleft(desk, win)
+            let wt = wintop(desk, win)
+            let ww = winwide(desk, win)
+            let wh = winhigh(desk, win)
+            if rectstouchx(wl, ww + 1, rx, rw) == 1 {
+                if rectstouchy(wt, wh + 1, ry, rh) == 1 {
+                    if inset(set, win) == 0 {
+                        set = set + winbit(win)
+                    }
+                }
+            }
+            win = win + 1
+        }
+        // An open window standing where a closed
+        // fellow's wash will fall joins the set, or the
+        // wash would rub a hole in it.
+        win = 1
+        while win <= 9 {
+            if inset(set, win) == 1 {
+                if winopen(desk, win) == 0 {
+                    let cl = winleft(desk, win)
+                    let ct = wintop(desk, win)
+                    let cw = winwide(desk, win)
+                    let ch = winhigh(desk, win)
+                    let other = 1
+                    while other <= 9 {
+                        if winopen(desk, other) == 1 {
+                            if inset(set, other) == 0 {
+                                let ql = winleft(desk, other)
+                                let qt = wintop(desk, other)
+                                let qw = winwide(desk, other)
+                                let qh = winhigh(desk, other)
+                                if rectstouchx(ql, qw, cl, cw + 1) == 1 {
+                                    if rectstouchy(qt, qh, ct, ch + 1) == 1 {
+                                        set = set + winbit(other)
+                                    }
+                                }
+                            }
+                        }
+                        other = other + 1
+                    }
+                }
+            }
+            win = win + 1
+        }
+        // The road itself washed bare, the way a closed
+        // window's wash leaves its own place.
+        pixwashwin(desk, rx, ry, rw, rh)
+        win = 1
+        while win <= 9 {
+            if inset(set, win) == 1 {
+                if winopen(desk, win) == 0 {
+                    pset(desk, 400, win)
+                    callpainter(desk, block, notes)
+                }
+            }
+            win = win + 1
+        }
+        win = 1
+        while win <= 9 {
+            if inset(set, win) == 1 {
+                if winopen(desk, win) == 1 {
+                    if win != pget(desk, 180) {
+                        pset(desk, 400, win)
+                        callpainter(desk, block, notes)
+                    }
+                }
+            }
+            win = win + 1
+        }
+        let fwd = pget(desk, 180)
+        if fwd >= 1 {
+            if fwd <= 9 {
+                if inset(set, fwd) == 1 {
+                    if winopen(desk, fwd) == 1 {
+                        pset(desk, 400, fwd)
+                        callpainter(desk, block, notes)
+                    }
+                }
+            }
+        }
+    }
+}
+
 // ---- window dragging (Stone 22) ----
 //
 // A window is moved by dragging its title bar with the
@@ -2942,7 +3221,9 @@ if fbflags - (fbflags / 8192) * 8192 >= 4096 {
     }
 }
 if pix == 1 {
-    pixdesk = makebytes(384)
+    // The desk stands 404 bytes since Stone 34 (the
+    // region repaint's road and window at 384 to 403).
+    pixdesk = makebytes(404)
     let fontblock = makebytes(1024)
     fontload(fontblock)
     // The pointer's shapes and its save block (Stone 13):
@@ -4831,11 +5112,14 @@ while true {
                     // the window is set where the pointer's
                     // hold on it now stands — its new place
                     // clamped whole onto the desktop, at the
-                    // edges simply — the place it stood is
-                    // filled back to the plain desktop, and
-                    // the windows are painted again, so the
-                    // vacated ground and any window that
-                    // stood under it stand whole. Letting
+                    // edges simply — and only the road it
+                    // travelled is repainted (Stone 34: the
+                    // ground it left and the ground it took,
+                    // and the windows standing in that road),
+                    // so the vacated ground and any window
+                    // that stood under it stand whole, and
+                    // the rest of the desktop never flickers.
+                    // Letting
                     // the button go sets the window down:
                     // the hold simply ends, and its place
                     // stands as it was left. The arrow is
@@ -4880,11 +5164,35 @@ while true {
                             }
                             if moved == 1 {
                                 winmove(pixdesk, dragwin, nl, nt)
-                                // The vacated ground, the
-                                // window's shadow's reach
-                                // with it (Stone 33).
-                                pixwashwin(pixdesk, ol, ot, dw, dh)
-                                paintwindows(pixdesk, cellblock, notesblock)
+                                // Stone 34: only the road
+                                // the window travelled —
+                                // the ground it left and
+                                // the ground it took, as
+                                // one stretch — is
+                                // repainted, and only the
+                                // windows standing in that
+                                // road with it. The rest
+                                // of the desktop is never
+                                // washed or redrawn, so
+                                // it cannot flicker.
+                                let ux = ol
+                                if nl < ux {
+                                    ux = nl
+                                }
+                                let uy = ot
+                                if nt < uy {
+                                    uy = nt
+                                }
+                                let ux2 = ol + dw
+                                if nl + dw > ux2 {
+                                    ux2 = nl + dw
+                                }
+                                let uy2 = ot + dh
+                                if nt + dh > uy2 {
+                                    uy2 = nt + dh
+                                }
+                                layroad(pixdesk, ux, uy, ux2 - ux, uy2 - uy)
+                                paintregion(pixdesk, cellblock, notesblock)
                             }
                         }
                     }

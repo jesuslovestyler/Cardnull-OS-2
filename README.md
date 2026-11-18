@@ -2941,6 +2941,74 @@ reported in the open rather than repaired under its
 name.
 
 
+### Stone 34 — The drag that no longer flickers
+
+The first of the four glitches Tyler witnessed in
+UTM on November 16, 2026, answered at its root:
+"when i move windows it flickers the windows."
+
+**The mechanism.** A drag moved its window one cell
+at a time, and every step called the whole-desktop
+repaint: every closed window washed to black, every
+open window redrawn whole — frames, glass, text and
+all — straight into the picture screen, with no back
+buffer anywhere. Many times a second, windows that
+had nothing to do with the move were washed and
+redrawn in front of the user's eyes. That
+wash-and-redraw shimmer was the flicker. The bench
+reckoned it too, in the runtime's own loop passes:
+one six-step drag of a window cost 11,765 passes,
+nearly all of them repainting untouched windows.
+
+**The fix is scope, not speed.** A drag now repaints
+only the road the window travelled — the ground it
+left and the ground it took, taken as one stretch of
+letter cells — and, within that road, only the
+windows whose places touch it. The road is washed
+bare, then its windows are painted in the standing
+order the whole-desktop repaint has always used
+(closed fellows washed in window order, open fellows
+drawn in window order, the forward window last), so
+the road's final pixels are exactly what the old
+repaint would have laid there — the desktop's final
+state is unchanged, pixel for pixel. A window
+outside the road is never washed and never redrawn,
+so it cannot flicker. Two honest edges are kept: an
+open window standing where a closed fellow's wash
+will fall joins the repaint (the wash would rub a
+hole in it that nothing repaints), and while the
+start menu or the rest panel stands open — both
+paint over everything in their own words — the
+whole-desktop repaint keeps its say.
+
+The reckoning stands in `paintregion` in
+`src/cardnull.nifla`, beside `paintwindows`. The
+road and the window being painted travel through
+the desk (its ledger at 384 to 403 in
+`src/pixface.nifla`; the desk stands 404 bytes now),
+because the machine's registers are already full
+with a repaint call's three blocks — the same road
+the paint cells' block has always taken. A lone
+window's six-step drag now costs 3,685 loop passes,
+under a third of the old road's 11,765; a drag whose
+road honestly holds several windows costs what
+those windows cost, and no more.
+
+Proven by `prove-stone34.sh`: the welcome window is
+dragged across a populated desktop while every pixel
+below it is hashed — mid-drag, button still held,
+the bystanders stand pixel for pixel untouched, and
+the drag's loop passes are read out of the guest and
+reckoned; the files window is then dragged across
+the verse window and back, the crossed window
+standing repainted behind it and decoding whole once
+brought forward again. The drag proofs of Stones 22,
+29 and 33, the pointer-trail proof, and the
+no-witness proof pass as they did. As with every
+fix here, this is bench-proved; the witness that
+counts is Tyler's own in UTM, still to come.
+
+
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 
 This is not one of this system's own stones; it is the
