@@ -745,6 +745,43 @@ make pixbar(desk: bytes) {
     pixstartbutton(desk)
 }
 
+// Lays the bar's own ground again under the window
+// chips (Stone 39): the chips stand on the bar's upper
+// row from the second cell to the screen's right edge,
+// and on its lower row in the middle ground between
+// the bar's name and the clock's ground — and when a
+// window opens or closes the chips are laid again, the
+// ground they stood on must first stand as the bar
+// itself stands, or a closed window's chip would leave
+// its plate behind. The bands laid here are pixbar's
+// own — the sheen and its middle band above, the tint
+// strip and the bar's blue below — over exactly the
+// chips' two spans, and nothing else on the bar is
+// touched: the start button stands left of the second
+// cell, the name left of the tenth, and the clock's
+// ground right of the lower span's end (the grid's
+// fortieth cell from its right at the wide size, its
+// tenth at the narrow — the very ground drawclock
+// fills at every tick, which no chip may stand on).
+make pixchipground(desk: bytes) {
+    let cs = pget(desk, 320)
+    let w = pget(desk, 8)
+    let top = pixbartop(desk)
+    pixinkrgb(desk, glasssheen())
+    pixfill(desk, 2 * cs, top, w - 2 * cs, cs / 2)
+    pixinkrgb(desk, glassmid())
+    pixfill(desk, 2 * cs, top + cs / 2, w - 2 * cs, cs / 2)
+    let cols = pget(desk, 28)
+    let endcol = cols - 10
+    if cols >= 48 {
+        endcol = cols - 40
+    }
+    pixinkrgb(desk, glasstint())
+    pixfill(desk, 10 * cs, top + cs, (endcol - 10) * cs, cs / 4)
+    pixink(desk, 1)
+    pixfill(desk, 10 * cs, top + cs + cs / 4, (endcol - 10) * cs, cs - cs / 4)
+}
+
 // Draws one letter at a pixel corner with the pen's color:
 // its shape read from the letter block the desk names, its
 // eight rows laid at 'sc' times size — twice at the words'

@@ -626,6 +626,33 @@
 //          a person types in the terminal is answered
 //          in the terminal, and the words that open
 //          windows open them still.
+// Stone 39: the bar shows the open windows — GUI
+//          completeness II, in the ladder planned
+//          November 18, 2026. The bottom bar carries
+//          one plain-words presence chip to each of
+//          the eight windows a person opens and
+//          closes — Files, Editor, Paint, Calculator,
+//          Verse, Help, Settings, Terminal, the names
+//          the desktop already uses, in the icons'
+//          order — the front window's chip white on
+//          the bar's blue, a window behind white on
+//          light gray, as their title bars stand. The
+//          chips are laid along the bar's upper row
+//          and, when it fills (at large print, whose
+//          bar is narrower), on its lower row's
+//          middle ground, clear of the bar's name and
+//          its clock; they are painted at every whole
+//          repaint and after the region repaints that
+//          move the forward place, so they track
+//          every opening, closing, and coming-
+//          forward. A press on a chip raises its
+//          window by Stones 34 and 35's region road.
+//          No chip minimizes, and no chip opens: the
+//          icons, the menu, and the words remain the
+//          openers. The welcome and feather windows
+//          keep no chip — they are the desktop's own
+//          first furniture, standing open from the
+//          rising under their title bars.
 //
 // The arrangement of the screen (the text face's rows;
 // on the face of light the same words stand on its grid,
@@ -2394,6 +2421,175 @@ make oneicons(desk) {
     }
 }
 
+// ---- the bar's window chips (Stone 39) ----
+//
+// The bottom bar shows the open windows: one
+// plain-words presence chip to a window, carrying
+// the window's own name — the names the desktop
+// already uses, in the icons' order (Stone 38):
+// Files, Editor, Paint, Calculator, Verse, Help,
+// Settings, Terminal. (The welcome and feather
+// windows keep no chip: they are the desktop's own
+// first furniture, standing open from the rising
+// under their title bars at the desktop's heart,
+// and the bar's chips are for the eight windows a
+// person opens and closes at the icons, the menu,
+// and the typed words.) The front window's chip
+// stands white on the bar's blue, as its title bar
+// stands blue; a window standing behind stands
+// white on light gray, as its title bar stands
+// gray — the chip tells at the bar what the title
+// bars tell on the desktop. A press on a chip
+// raises its window to the front (the pointer's
+// reckoning in the main loop), exactly as a press
+// on the window itself does. No chip minimizes,
+// and no chip opens a closed window: a window with
+// no chip is not open, and the icons, the menu, and
+// the words remain its openers.
+//
+// The chips are laid from the bar's upper row,
+// beginning at its second cell (the start button
+// stands in the first two), one blank cell between
+// chips; when the upper row fills, the laying goes
+// on at the lower row's middle ground, beginning
+// at its tenth cell (the bar's name stands in the
+// eight before it) and ending where the clock's
+// ground begins, so no chip ever stands under the
+// name, the button, or the clock, and the clock's
+// own redrawing at every tick can never rub one
+// out. At either word size the eight names, laid
+// so, stand whole on the bar together — reckoned
+// on the bench: fifty-one letters and seven blanks
+// at the widest, against the upper row's sixty-two
+// cells at the usual size and the two rows' room
+// together at the large.
+//
+// The laying is reckoned once, here — chipplace —
+// and the painter below and the pointer's pressing
+// in the main loop both read it, the discipline
+// the icons and the windows have kept: painter and
+// pointer can never disagree about where a chip
+// stands. The chips are painted at the end of
+// every whole repaint (paintwindows), so they
+// track every opening, closing, and coming-forward
+// the standing records, and again after the few
+// region repaints that move the forward place (the
+// feather visits and the feather windows' own
+// presses, Stones 34 and 35's road) — the bar is
+// never inside a region road, for no window stands
+// on it, so those repaints leave the chips to this
+// painting alone.
+
+// The window the chip at 'slot' speaks for, in the
+// icons' order: the forward reckoning's own numbers.
+make chipwin(slot) {
+    if slot == 0 { give 3 }
+    if slot == 1 { give 5 }
+    if slot == 2 { give 6 }
+    if slot == 3 { give 8 }
+    if slot == 4 { give 7 }
+    if slot == 5 { give 9 }
+    if slot == 6 { give 4 }
+    give 10
+}
+
+// The name the chip at 'slot' carries: the window's
+// own plain name, as its title bar and its icon
+// speak it.
+make chipname(slot) {
+    if slot == 0 { give "Files" }
+    if slot == 1 { give "Editor" }
+    if slot == 2 { give "Paint" }
+    if slot == 3 { give "Calculator" }
+    if slot == 4 { give "Verse" }
+    if slot == 5 { give "Help" }
+    if slot == 6 { give "Settings" }
+    give "Terminal"
+}
+
+// The last column a chip on 'row' may reach (the
+// first column past its ground): the grid's own
+// edge on the bar's upper row (row 0); on the lower
+// row (row 1), the clock's ground's first column —
+// the fortieth from the right on a wide grid, the
+// tenth on a narrow one, the ground drawclock
+// fills.
+make chiplimit(desk, row) {
+    if row == 0 {
+        give pget(desk, 28)
+    }
+    if pget(desk, 28) >= 48 {
+        give pget(desk, 28) - 40
+    }
+    give pget(desk, 28) - 10
+}
+
+// Where the chip at 'slot' stands: its row on the
+// bar (0 the upper, 1 the lower) times 256 plus its
+// first column — or nothing (0 - 1) when its window
+// stands closed, or when the bar has no room for it
+// (a laying the eight names never meet, at either
+// size, as the heading reckons). The laying packs
+// the open windows' chips in the icons' order from
+// the upper row's second cell, one blank cell
+// between chips, going on at the lower row's tenth
+// cell when the upper row fills.
+make chipplace(desk, slot) {
+    let row = 0
+    let col = 2
+    let s = 0
+    while s <= slot {
+        let win = chipwin(s)
+        if winopen(desk, win) == 1 {
+            let w = length(chipname(s))
+            if col + w > chiplimit(desk, row) {
+                row = 1
+                col = 10
+            }
+            if s == slot {
+                if col + w > chiplimit(desk, row) {
+                    give 0 - 1
+                }
+                give row * 256 + col
+            }
+            col = col + w + 1
+        } else {
+            if s == slot {
+                give 0 - 1
+            }
+        }
+        s = s + 1
+    }
+    give 0 - 1
+}
+
+// Paints the bar's chips from the desk's standing:
+// the chips' ground is first laid as the bar itself
+// stands (pixface's pixchipground), so a window that
+// closed leaves no plate behind and the chips that
+// remain pack from the row's beginning again; then
+// each open window's chip is laid at its reckoned
+// place — the front window's white on blue, the
+// others white on light gray, in the text face's
+// own attribute reckoning the menu's words use.
+make paintchips(desk) {
+    pixchipground(desk)
+    let s = 0
+    while s < 8 {
+        let place = chipplace(desk, s)
+        if place >= 0 {
+            let row = place / 256
+            let col = place - row * 256
+            let attr = 127
+            if pget(desk, 180) == chipwin(s) {
+                attr = 31
+            }
+            pixline(desk, (pget(desk, 32) - 2 + row) * 256 + col, chipname(s), attr)
+        }
+        s = s + 1
+    }
+}
+
 // ---- the bar's menu (Stone 23) ----
 //
 // A press of the pointer on the top bar — the Cardnull
@@ -2735,6 +2931,13 @@ make paintwindows(desk, block, notes) {
     if pget(desk, 292) == 1 {
         onerest(desk)
     }
+    // The bar's window chips (Stone 39) are painted
+    // last of all: they stand on the bar, which no
+    // window, menu, or panel covers, and painting them
+    // here — at every whole repaint, which is every
+    // opening, closing, and coming-forward — keeps
+    // them always telling the standing as it is.
+    paintchips(desk)
 }
 
 // ---- the region repaint (Stone 34) ----
@@ -6064,6 +6267,70 @@ while true {
                                     }
                                 }
                                 if acted == 0 {
+                                    // The bar's window chips
+                                    // (Stone 39): a press on
+                                    // a chip raises its
+                                    // window to the front,
+                                    // exactly as a press on
+                                    // the window itself does.
+                                    // The press is tried
+                                    // against the chips'
+                                    // own reckoning
+                                    // (chipplace), the one
+                                    // their painter reads,
+                                    // so the two can never
+                                    // disagree about where a
+                                    // chip stands. The
+                                    // raising repaints by
+                                    // Stones 34 and 35's
+                                    // region road — the
+                                    // stretch holding the
+                                    // raised window and the
+                                    // window it takes the
+                                    // forward place from,
+                                    // whose title bar the
+                                    // coming-forward
+                                    // repaints in behind
+                                    // colors — and the chips
+                                    // are painted again,
+                                    // for the front chip's
+                                    // blue has moved; no
+                                    // other window is washed
+                                    // or redrawn. A press on
+                                    // the front window's own
+                                    // chip is the chip's
+                                    // still: the window
+                                    // already stands
+                                    // forward, and nothing
+                                    // is repainted.
+                                    let chipc = cxp / cellpx
+                                    let chipr = cyp / cellpx
+                                    let chips = 0
+                                    while chips < 8 {
+                                        let chplace = chipplace(pixdesk, chips)
+                                        if chplace >= 0 {
+                                            let chrow = chplace / 256
+                                            let chcol = chplace - chrow * 256
+                                            if chipr == pget(pixdesk, 32) - 2 + chrow {
+                                                if chipc >= chcol {
+                                                    if chipc < chcol + length(chipname(chips)) {
+                                                        let chwin = chipwin(chips)
+                                                        if pget(pixdesk, 180) != chwin {
+                                                            let oldfwd = pget(pixdesk, 180)
+                                                            pset(pixdesk, 180, chwin)
+                                                            layroadwins(pixdesk, chwin, oldfwd)
+                                                            paintregion(pixdesk, cellblock, notesblock)
+                                                            paintchips(pixdesk)
+                                                        }
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        chips = chips + 1
+                                    }
+                                }
+                                if acted == 0 {
                                     if pget(pixdesk, 172) == 1 {
                                         if cxp >= (pl + pw - 2) * cellpx {
                                             if cxp < (pl + pw - 1) * cellpx {
@@ -7085,6 +7352,7 @@ while true {
                                                             pset(pixdesk, 180, 6)
                                                             layroadwins(pixdesk, 6, oldfwd)
                                                             paintregion(pixdesk, cellblock, notesblock)
+                                                            paintchips(pixdesk)
                                                             acted = 1
                                                         }
                                                     }
@@ -7122,6 +7390,7 @@ while true {
                                                             pset(pixdesk, 180, 8)
                                                             layroadwins(pixdesk, 8, oldfwd)
                                                             paintregion(pixdesk, cellblock, notesblock)
+                                                            paintchips(pixdesk)
                                                             acted = 1
                                                         }
                                                     }
@@ -7513,6 +7782,13 @@ while true {
             // the two of them repaints exactly that.
             layroadwins(pixdesk, 2, oldfwd)
             paintregion(pixdesk, cellblock, notesblock)
+            // The visit moved the forward place (Stone
+            // 39): the bar's chips are painted again, so
+            // the front chip's blue leaves the window it
+            // stood on — the feather window keeps no chip
+            // of its own, so no chip stands blue while
+            // the feather stands forward.
+            paintchips(pixdesk)
         }
         if how == 1 {
             // A refusal, sounded as well as written

@@ -3154,6 +3154,142 @@ early suites as recorded above. Bench-proved, as
 every fix here; the witness that counts is
 Tyler's own in UTM, still to come.
 
+### Stone 39 — The bar shows the open windows
+
+GUI completeness II, in the ladder planned
+November 18, 2026: the desktop had its windows,
+its icons, and its menu — but the bar at its foot
+said nothing about which windows stood open, or
+which one stood forward, except what a person
+could see of the desktop itself. The bar tells it
+now.
+
+**Presence chips.** The bottom bar — the glass
+face of Stone 33, with its round cardinal start
+button — carries one plain-words presence chip to
+each of the eight windows a person opens and
+closes: Files, Editor, Paint, Calculator, Verse,
+Help, Settings, Terminal — the names the desktop
+already uses, in the icons' order of Stone 38.
+The front window's chip stands white on the bar's
+blue, as its title bar stands blue; a window
+standing behind stands white on light gray, as
+its title bar stands gray — the chip tells at the
+bar what the title bars tell on the desktop. The
+welcome and feather windows keep no chip: they
+are the desktop's own first furniture, standing
+open from the rising under their title bars at
+the desktop's heart, and the chips are for the
+windows the icons, the menu, and the typed words
+open and close.
+
+**The laying.** The chips are laid along the
+bar's upper row from its second cell (the start
+button stands in the first two), one blank cell
+between chips; when the upper row fills, the
+laying goes on at the lower row's middle ground,
+from its tenth cell (the bar's name stands in the
+eight before it) to where the clock's ground
+begins, so no chip ever stands under the button,
+the name, or the clock, and the clock's own
+redrawing at every tick can never rub one out.
+At the usual size the eight names — fifty-one
+letters and seven blanks — stand along the upper
+row together; at large print, whose bar holds
+forty-two cells, the row fills and the last chips
+stand on the lower row, as the proof's fourth
+boot shows. The laying is reckoned once
+(`chipplace` in `src/cardnull.nifla`), and the
+painter and the pointer's pressing both read it,
+the discipline the icons and windows have kept.
+The chips are painted at the end of every whole
+repaint — every opening, closing, and
+coming-forward — and again after the few region
+repaints that move the forward place (the feather
+windows' presses and the welcome feather's
+visits, Stones 34 and 35's road); the bar's own
+ground under the chips is first laid as the bar
+itself stands (`pixchipground` in
+`src/pixface.nifla` — the sheen bands above, the
+tint and blue below), so a closed window's chip
+leaves no plate behind and the chips that remain
+pack from the row's beginning again. No new desk
+standing was needed: the chips read the windows'
+standing the desk already keeps.
+
+**Raising.** A press on a chip raises its window
+to the front, exactly as a press on the window
+itself does — and by the same economy: the
+raising repaints by the region road of Stones 34
+and 35, the stretch holding the raised window and
+the window it takes the forward place from, whose
+title bar the coming-forward repaints in behind
+colors, and the chips are painted again, for the
+front chip's blue has moved. No other window is
+washed or redrawn. A press on the front window's
+own chip is the chip's still: the window already
+stands forward, and nothing is repainted. No chip
+minimizes, and no chip opens a closed window —
+presence and raising are the whole of the stone.
+
+**One latent fault of the baseline, found and
+recorded.** This stone's first proof order opened
+every window in one boot, and the machine reset:
+on the Stone 38 baseline, in this bench's present
+build, the help window and the calculator's
+opening visit together reset the machine, in
+either order (help then calculator, calculator
+then help). It was reproduced on a pristine
+Stone 38 tree built with this toolchain — no
+Stone 39 code anywhere in it — so it is a latent
+fault of the baseline, not of this stone, and it
+is not this stone's to fix. The proof therefore
+never asks the two to stand together: the help
+window's chip is proved in boots 2 and 4, the
+calculator's in boot 3, and every other pairing
+stands together freely. The fault is recorded
+here so a later stone can take it up with its
+eyes open. (The same bench note applies to
+`prove-stone34.sh` and `prove-stone35.sh`: their
+harnesses read the runtime's per-run guard count
+(`__guard_passes`), which the current toolchain
+no longer lays in the kernel — the per-loop guard
+of Nifla Stone 33 keeps a depth (`__guard_depth`)
+instead — so both harnesses stop at their setup
+on the baseline and on this build alike, before
+any system code runs. Their scenarios were not
+weakened or re-aimed by this stone; the reckoning
+they read is the language's to restore.)
+
+**The building number.** This stone's growth
+carried the kernel's staged segment end to
+**317,462 bytes** — 10,218 bytes under the BIOS
+doorman's 320 KiB claim, no stage moved.
+
+Proven by `prove-stone39.sh`, in four boots and
+seventy-six checks: at the rising the bar carries
+the terminal's chip alone, standing behind; the
+words 'files' and 'verse' lay their chips and move
+the blue between them; one press on the files
+chip raises the files window, its title bar and
+its chip both turning blue; six windows opened by
+their words stand chipped together, and Escape's
+closing packs the chips again with the closed
+window's ground restored; the calculator, opened
+last over the terminal at their shared first
+place, yields to one press on the terminal's
+chip; and at large print the chips stand large
+with the terminal's on the lower row, the bar's
+name and clock whole beside it. The proofs for
+Stones 38, 33, 28, 23, 29, 30, and 31 and the
+no-witness proof pass with it (Stone 33's pointer
+check failed once on this bench — twenty pixels
+at the arrow's own resting place, a screendump
+caught mid-carry — and passed on the re-run, on
+this build and on the baseline alike). Bench-
+proved, as every stone here; the witness that
+counts is Tyler's own in UTM, still to come.
+
 
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 
@@ -3579,6 +3715,9 @@ was split by duty, without changing its behavior:
   and sechoice, the settings window and its choice rows;
   Stone 21: oneeditor, the editor window and its two ways),
   reading the windows' standing from the pixel face's desk.
+  The bar's window chips live here too (Stone 39: chipwin,
+  chipname, chipplace, paintchips — the laying reckoned
+  once, read by the painter and the pointer alike).
 - `src/screenlib.nifla` — the screen library: drawing on the text
   screen's own memory (clearscreen, writeat, paintrow, paintrect,
   scrollanswers).
@@ -3629,7 +3768,10 @@ was split by duty, without changing its behavior:
   (pixbegin, pixfill, pixglyph, pixline, pixprintline,
   cellbyte, and their helpers). The pointer's arrow is
   drawn here too (Stone 13: arrowload, pixsave,
-  pixrestore, pixarrow).
+  pixrestore, pixarrow). The bar's ground under the
+  window chips is laid here too (Stone 39:
+  pixchipground — pixbar's own bands over the chips'
+  two spans, and nothing else on the bar).
 - `src/mouse.nifla` — the pointer (Stone 13): the PS/2
   mouse's waking and the gathering of its packets into a
   desk the main body hands it, polled once a pass
