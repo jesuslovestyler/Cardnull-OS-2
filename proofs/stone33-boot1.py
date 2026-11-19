@@ -157,8 +157,8 @@ if d:
            "the calm blue-green tint stands where the sheen meets the blue")
     expect(pixel(d, 300, 760) == BLUE,
            "the bar's lower row keeps the bar's blue")
-    expect(pixel(d, 300, 735) == BLACK,
-           "the typing line's row above the bar stands plain at its middle")
+    expect(decode(d, 44, 6, ">", GRAY) == ">",
+           "the typing line stands at the terminal window's foot, one row above the bar (Stone 38)")
     # The start button's cardinal, in its own shape.
     expect(count_in(d, RED, 2, 738, 31, 767) > 40,
            "the button carries the cardinal's deep red")
@@ -257,6 +257,15 @@ if d:
             # shadow repainted, not black.
             if FX * 16 <= x < (FX + 54) * 16 + 5 and 26 * 16 <= y < 35 * 16 + 5:
                 continue
+            # The terminal window's own ground (Stone
+            # 38): its rect (rows 32 to 45, from cell 5)
+            # and its shadow's reach past it — the
+            # terminal stands open on the desktop from
+            # the rising, over the files window's old
+            # place, and that ground must show the
+            # terminal repainted whole, not black.
+            if 5 * 16 <= x < (5 + 54) * 16 + 5 and 32 * 16 <= y < 46 * 16 + 5:
+                continue
             if pixel(d, x, y) != BLACK:
                 bad.append((x, y))
                 if len(bad) > 8:
@@ -272,6 +281,15 @@ if d:
             # honestly the feather's; the check judges
             # the strip below it.
             if y < 35 * 16 + 5:
+                continue
+            # The strip is the terminal window's own
+            # right shadow too (Stone 38): its edge
+            # stands at the very same x, its shadow
+            # reaching to y 741 — the strip is honestly
+            # the terminal's for the whole of the old
+            # place's height, and the check judges what
+            # little stands below it.
+            if y < 46 * 16 + 5:
                 continue
             # The strip's crossing of the new place's
             # foot shadow (its corner square, five rows

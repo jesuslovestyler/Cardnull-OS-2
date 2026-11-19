@@ -156,6 +156,9 @@ make wordkind(word) {
     if word == "help" {
         give 21
     }
+    if word == "terminal" {
+        give 22
+    }
     give 1
 }
 

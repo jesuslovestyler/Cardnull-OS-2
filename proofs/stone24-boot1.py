@@ -33,6 +33,18 @@
 # desktop's corner before each reading, so no reading
 # ever reads the arrow.
 #
+# Stone 38 adaptation: the door's plain-words line no
+# longer stands on the desktop's ground (the old
+# answers strip at row 24) — the console lives in the
+# terminal window now, and the paint window stands on
+# the terminal's own first place, over it. The line is
+# therefore read at the end, in the terminal once
+# Escape has closed the paint window and the terminal
+# stands revealed — Stone 30's road for its own door
+# line. There it wraps at the window's measure: its
+# first line ends at "then", and "draw." stands on
+# the row below it.
+#
 # The window's place on this face (1024x768, sixty-four
 # cells across): fifty-four wide, centered — left at
 # cell 5, top at the layout's row for the text face's
@@ -143,9 +155,6 @@ if d:
     park()
     time.sleep(0.6)
     d = dump()
-    said = decode(d, 24, 2, "The paint feather visited. Pick a color, then draw.", GRAY)
-    expect(said == "The paint feather visited. Pick a color, then draw.",
-           f"the door's plain-words line says the paint feather visited (read: {said!r})")
     said = decode(d, 34, 8, "Pick a color, then draw below.", WHITE)
     expect(said == "Pick a color, then draw below.",
            f"the feather's invitation reads whole in its window (read: {said!r})")
@@ -237,5 +246,23 @@ if d:
     said = decode(d, 36, 8, "Color: Blue", WHITE)
     expect(said == "Color: Blue",
            f"the chosen color stands after the clearing (read: {said!r})")
+
+# Escape closes the paint window, and the terminal —
+# which shares the paint window's first place and
+# still stands there beneath it — stands revealed,
+# holding the door's plain-words line in its answers.
+sendkey("esc")
+d = waitdump(lambda d: d is not None
+             and decode(d, 32, 6, "Terminal", WHITE) == "Terminal", 15)
+expect(d is not None, "Escape closed the paint window, the terminal standing in its place")
+if d:
+    said = ""
+    for r in range(33, 43):
+        if decode(d, r, 7, "The paint feather visited. Pick a color, then", GRAY) \
+                == "The paint feather visited. Pick a color, then":
+            said = decode(d, r + 1, 7, "draw.", GRAY)
+            break
+    expect(said == "draw.",
+           f"the door's plain-words line says the paint feather visited (read: {said!r})")
 
 done()

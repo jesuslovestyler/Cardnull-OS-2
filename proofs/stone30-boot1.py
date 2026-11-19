@@ -183,11 +183,17 @@ d = waitdump(lambda d: d is not None and pixel(d, KX, KY) == PURPLE, 25)
 expect(d is not None, "the calculator window stands with the feather's keys painted")
 if d:
     park()
-    time.sleep(0.6)
-    d = dump()
-    said = decode(d, 24, 2, "The calculator feather visited. Press its keys to reckon.", GRAY)
-    expect(said == "The calculator feather visited. Press its keys to reckon.",
-           f"the door's plain-words line says the calculator feather visited (read: {said!r})")
+    # (Stone 38: the invitation is waited for itself —
+    # the heavier repaints can catch the window
+    # mid-draw on an earlier frame. The door's line
+    # stands in the terminal window's keeping, under
+    # this window while it stands forward; it is read
+    # after Escape, when the terminal stands revealed.)
+    d = waitdump(lambda d: d is not None
+                 and decode(d, 34, 8, "Press the keys to reckon a sum.", WHITE)
+                 == "Press the keys to reckon a sum.", 15)
+    expect(d is not None, "the calculator window stands painted whole")
+if d:
     said = decode(d, 34, 8, "Press the keys to reckon a sum.", WHITE)
     expect(said == "Press the keys to reckon a sum.",
            f"the feather's invitation reads whole in its window (read: {said!r})")
@@ -259,11 +265,30 @@ press(*K0, "5 share 0")
 press(*EQUALS, "Cannot share out by 0.")
 press(*CLEAR, "0")
 
-# Escape closes the window.
+# Escape closes the window. (Stone 38: the closing
+# is read by the calculator's keys going and the
+# terminal's title standing in its place — the two
+# windows share a first place, and the terminal
+# still stands there when the calculator closes.)
 sendkey("esc")
 d = waitdump(lambda d: d is not None
-             and pixel(d, 200, 32 * 16 + 8) == BLACK, 15)
+             and cell_pixel(d, 13, 35) != PURPLE
+             and decode(d, 32, 6, "Terminal", WHITE) == "Terminal", 15)
 expect(d is not None, "Escape closed the calculator window")
+if d:
+    # The door's plain-words line, read in the
+    # terminal now that it stands revealed (Stone 38):
+    # it wraps at the window's measure — its first
+    # line ends at "keys", and "to reckon." stands on
+    # the row below it.
+    said = ""
+    for r in range(33, 43):
+        if decode(d, r, 7, "The calculator feather visited. Press its keys", GRAY) \
+                == "The calculator feather visited. Press its keys":
+            said = decode(d, r + 1, 7, "to reckon.", GRAY)
+            break
+    expect(said == "to reckon.",
+           f"the door's plain-words line says the calculator feather visited (read: {said!r})")
 
 # The menu: a press on the start button opens it,
 # risen from the bar at the screen's foot, its nine
@@ -291,6 +316,10 @@ park()
 d = waitdump(lambda d: d is not None
              and cell_pixel(d, 13, 35) == PURPLE, 25)
 expect(d is not None, "a press on the menu's Calculator choice opened the calculator window")
+# (Stone 38: the sum's line is waited for itself —
+# the frame that first shows a key's ground can
+# catch the visit's painting mid-draw.)
+d = waitdump(lambda d: d is not None and sumline(d) == "0", 15)
 if d:
     expect(sumline(d) == "0",
            f"the sum's line stands as it was left (read: {sumline(d)!r})")
@@ -309,7 +338,8 @@ time.sleep(0.4)
 mousebutton(0)
 time.sleep(0.4)
 d = waitdump(lambda d: d is not None
-             and pixel(d, 200, 32 * 16 + 8) == BLACK, 15)
+             and decode(d, 32, 6, "Calculator", WHITE) != "Calculator"
+             and cell_pixel(d, 13, 35) != PURPLE, 15)
 expect(d is not None, "a press on the calculator window's close mark closed it")
 
 done()

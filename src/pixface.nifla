@@ -190,8 +190,23 @@
 //       before paintregion is called, the machine's
 //       registers being already full with the call's
 //       three blocks; and the window callpainter is to
-//       paint (400), laid the same way. The desk stands
-//       404 bytes now.
+//       paint (400), laid the same way.
+//  404  the terminal window's standing (Stone 38):
+//       whether the tenth window stands open (404),
+//       its place (408 its left column, 412 its top
+//       row, in letter cells — laid at the face's
+//       rising and written by dragging, like the pairs
+//       at 236 to 352; 180's forward reckoning grows
+//       again: 10 is the terminal window), and the
+//       address of the answers' keeping block (416) —
+//       eleven rows of forty-eight letter-and-color
+//       cells where the typing line's answers are
+//       kept, so the window's painter can lay them
+//       again after any repaint. The answers' first
+//       and last rows (128 and 132) and the typing
+//       line's row (136) are laid inside this window
+//       by layplaces now. The desk stands 420 bytes
+//       now.
 //  320  the letter cell's size in pixels (Stone 28):
 //       sixteen at the words' usual size — the font's
 //       eight by eight drawn at twice size — and
@@ -915,8 +930,127 @@ make pixscroll(desk: bytes) {
 // answers' colors (light gray on black); gives back the
 // next free row. A word longer than the whole width is
 // simply cut at the width — no word the system speaks is.
+// ---- the terminal window's keeping (Stone 38) ----
+//
+// The desktop's typing line and its answers live in a
+// window of their own now — the terminal, the tenth
+// window — and the answers are kept in a block of
+// cells (a letter byte and a color byte to a cell,
+// the feather canvases' own format), so the window's
+// painter can lay them again after any repaint:
+// eleven rows of forty-eight letters, the window's
+// inner measure. The block's address stands in the
+// desk at 416, the way the paint cells' address
+// stands at 288, and the floors below reach it
+// through the desk. The window's place stands in the
+// desk at 408 and 412, its open standing at 404; its
+// measures are reckoned here and in cardnull.nifla's
+// tewide and tehigh, from the same rule, so painter
+// and pointer agree. The answers' first row and last
+// row stand in the desk at 128 and 132, as they
+// always have — layplaces lays them inside the
+// window now, and the typing line's row at 136 with
+// them.
+
+make termwide(desk: bytes) -> number {
+    if pget(desk, 28) >= 56 {
+        give 54
+    }
+    give pget(desk, 28) - 2
+}
+
+make termhigh(desk: bytes) -> number {
+    give 14
+}
+
+make termcellget(desk: bytes, off: number) -> number {
+    give floor(desk, off) {
+        mov rax, [r10]
+        mov rcx, qword ptr [rbx + 416]
+        movzx eax, byte ptr [rcx + rax]
+    }
+}
+
+make termcellput(desk: bytes, off: number, val: number) {
+    floor(desk, off, val) {
+        mov rax, [r10]
+        mov rcx, qword ptr [rbx + 416]
+        mov rdx, [r10 + 8]
+        mov byte ptr [rcx + rax], dl
+    }
+}
+
+// Lays one kept row of the answers in the terminal
+// window: the row's letters in the answers' own
+// colors (light gray on black), at the window's inner
+// left edge, two cells in from its frame. The row is
+// laid in two passes — every cell's ground first, then
+// every letter — because the woven pass (ground, letter,
+// ground, letter, ...) loses the heads of the row's
+// first letters at the large size on the bench: the
+// kept block holds the whole line and the separated
+// passes lay it whole, while the woven pass, with the
+// same calls in the same order per cell, does not.
+make drawtermrow(desk: bytes, row: number) {
+    let cs = pget(desk, 320)
+    let tl = pget(desk, 408)
+    let brow = row - pget(desk, 128)
+    pixpaper(desk, 0)
+    pset(desk, 56, pget(desk, 60))
+    let c = 0
+    while c < 48 {
+        pixfill(desk, (tl + 2 + c) * cs, row * cs, cs, cs)
+        c = c + 1
+    }
+    pset(desk, 56, pget(desk, 64 + 7 * 4))
+    c = 0
+    while c < 48 {
+        let code = termcellget(desk, (brow * 48 + c) * 2)
+        if code != 32 {
+            pixglyph(desk, (tl + 2 + c) * cs, row * cs, code, cs / 8)
+        }
+        c = c + 1
+    }
+}
+
+// Lays every kept row of the answers in the window —
+// the terminal window's painter's body.
+make drawtermbody(desk: bytes) {
+    let r = pget(desk, 128)
+    while r <= pget(desk, 132) {
+        drawtermrow(desk, r)
+        r = r + 1
+    }
+}
+
+// The answers scroll (Stone 38): the kept rows shift
+// up one line in their block, and the last row is
+// cleared to resting cells; the window's painter
+// lays the shifted body at the next repaint. The framebuffer
+// scroll this replaces (pixscroll) moved the old
+// answers strip on the desktop's ground; the answers
+// live in their window's keeping now, and the block
+// is what scrolls.
+make termshift(desk: bytes) {
+    let r = 0
+    while r < 10 {
+        let c = 0
+        while c < 96 {
+            termcellput(desk, (r * 48) * 2 + c, termcellget(desk, ((r + 1) * 48) * 2 + c))
+            c = c + 1
+        }
+        r = r + 1
+    }
+    let c2 = 0
+    while c2 < 48 {
+        termcellput(desk, (10 * 48 + c2) * 2, 32)
+        termcellput(desk, (10 * 48 + c2) * 2 + 1, 7)
+        c2 = c2 + 1
+    }
+}
+
 make pixprintline(desk: bytes, row: number, text: text) -> number {
-    let usable = pget(desk, 28) - 4
+    let usable = termwide(desk) - 6
     let bot = pget(desk, 132)
     let n = length(text)
     let r = row
@@ -948,12 +1082,29 @@ make pixprintline(desk: bytes, row: number, text: text) -> number {
             }
         }
         if r > bot {
-            pixscroll(desk)
+            termshift(desk)
             r = bot
         }
-        pixpaper(desk, 0)
-        pixspan(desk, start, end - start, 7)
-        pixtext(desk, r, 2, text)
+        // The line is laid in the terminal's keeping
+        // (Stone 38) — the answers live in the window's
+        // block now, not on the desktop's ground, and
+        // they are drawn only by the window's painter,
+        // in the standing order: the main loop repaints
+        // the terminal's region when the answer stream
+        // moves, so an answer never paints over a
+        // window standing above the terminal.
+        let brow = r - pget(desk, 128)
+        let k = 0
+        while k < end - start {
+            termcellput(desk, (brow * 48 + k) * 2, textbyte(text, start + k))
+            termcellput(desk, (brow * 48 + k) * 2 + 1, 7)
+            k = k + 1
+        }
+        while k < 48 {
+            termcellput(desk, (brow * 48 + k) * 2, 32)
+            termcellput(desk, (brow * 48 + k) * 2 + 1, 7)
+            k = k + 1
+        }
         r = r + 1
         start = end
         if start < n {
@@ -981,22 +1132,28 @@ make pixnoteline(desk: bytes, block: bytes, row: number, off: number) -> number 
     let r = row
     let bot = pget(desk, 132)
     if r > bot {
-        pixscroll(desk)
+        termshift(desk)
         r = bot
     }
     let n = cellbyte(block, off)
-    let cellpx = pget(desk, 320)
-    pixpaper(desk, 0)
+    // The note is laid in the terminal's keeping
+    // (Stone 38), beside the answers it stands among,
+    // and drawn only by the window's painter, as
+    // pixprintline's lines are.
+    let brow = r - pget(desk, 128)
     let i = 0
     while i < n {
-        let code = cellbyte(block, off + 1 + i)
-        pset(desk, 56, pget(desk, 60))
-        pixfill(desk, (2 + i) * cellpx, r * cellpx, cellpx, cellpx)
-        if code != 32 {
-            pset(desk, 56, pget(desk, 64 + 7 * 4))
-            pixglyph(desk, (2 + i) * cellpx, r * cellpx, code, cellpx / 8)
+        if i < 48 {
+            termcellput(desk, (brow * 48 + i) * 2, cellbyte(block, off + 1 + i))
+            termcellput(desk, (brow * 48 + i) * 2 + 1, 7)
         }
         i = i + 1
+    }
+    let k = n
+    while k < 48 {
+        termcellput(desk, (brow * 48 + k) * 2, 32)
+        termcellput(desk, (brow * 48 + k) * 2 + 1, 7)
+        k = k + 1
     }
     give r + 1
 }

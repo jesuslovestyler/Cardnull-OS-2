@@ -129,8 +129,16 @@ d = waitdump(lambda d: d is not None
              and decode(d, GY + 5, GX + 4, NOTES[2], WHITE) == NOTES[2], 15)
 expect(d is not None, "the third entry now stands picked, white on blue")
 
-# Tab cycles through all three windows: files to
-# welcome, welcome to feather, feather back to files.
+# Tab cycles through the open windows (Stone 38:
+# four stand open now — the terminal window stands
+# open from the rising, and the cycle reaches it
+# between the files window and the welcome): files
+# to terminal, terminal to welcome, welcome to
+# feather, feather back to files.
+sendkey("tab")
+d = waitdump(lambda d: d is not None and pixel(d, 400, 32 * 16 + 10) == BLUE
+             and pixel(d, 400, GY * 16 + 10) == DARK, 15)
+expect(d is not None, "Tab brought the terminal window forward, the files window behind")
 sendkey("tab")
 d = waitdump(lambda d: d is not None and pixel(d, 400, 90) == BLUE
              and pixel(d, 400, GY * 16 + 10) == DARK, 15)

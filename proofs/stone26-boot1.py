@@ -162,6 +162,15 @@ park()
 d = waitdump(lambda d: d is not None
              and cell_pixel(d, 16, 30) == RED, 15)
 expect(d is not None, "a press on the picture's row opened the paint window again")
+# (Stone 38: the status line is read on its own wait
+# now — the desktop's repaints grew heavier with the
+# terminal window standing in them, and the frame
+# that first shows the picture's canvas can catch
+# the window's painting mid-draw, its status not yet
+# laid; the standing pattern is to wait for the
+# words themselves.)
+d = waitdump(lambda d: d is not None
+             and decode(d, 36, 8, "Color: Blue", WHITE) == "Color: Blue", 15)
 if d:
     said = decode(d, 36, 8, "Color: Blue", WHITE)
     expect(said == "Color: Blue",

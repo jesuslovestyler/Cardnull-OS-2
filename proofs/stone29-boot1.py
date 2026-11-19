@@ -131,14 +131,27 @@ if d:
     expect(said == REF,
            f"the verse's reference stands plainly under it (read: {said!r})")
 
-# Tab brings the welcome window forward, and the verse
-# window's bar goes quiet behind it. (The welcome
-# window's bar is read at x=700 — clear of its title's
-# own white letters, which stand at its left.)
+# Tab brings the next open window forward (Stone
+# 38: the cycle holds ten windows now — the terminal
+# stands open from the rising, between the help
+# window and the welcome in the cycle's order, and
+# it shares the verse window's first place, so the
+# bar read at x=300 — clear of both windows' names —
+# is the terminal's own when it comes forward). The first Tab brings the terminal
+# forward over the verse's place; the second brings
+# the welcome window forward, and the bar at x=200
+# goes quiet behind it. (The welcome window's bar is
+# read at x=700 — clear of its title's own white
+# letters, which stand at its left.)
+sendkey("tab")
+d = waitdump(lambda d: d is not None
+             and pixel(d, 300, VY * 16 + 8) == BLUE
+             and decode(d, VY, VX + 1, "Terminal", WHITE) == "Terminal", 15)
+expect(d is not None, "Tab brought the terminal window forward, standing on the verse window's place")
 sendkey("tab")
 d = waitdump(lambda d: d is not None
              and pixel(d, 700, 5 * 16 + 8) == BLUE
-             and pixel(d, 200, VY * 16 + 8) == DARK, 15)
+             and pixel(d, 300, VY * 16 + 8) == DARK, 15)
 expect(d is not None, "Tab brought the welcome window forward, the verse window behind")
 
 # The word again, and the window stands forward again.
@@ -149,10 +162,16 @@ d = waitdump(lambda d: d is not None
              and decode(d, VY + 10, VX + 2, REF, BLACK) == REF, 25)
 expect(d is not None, "the word 'verse' brought the window forward again, its verse standing")
 
-# Escape closes it back to the desktop.
+# Escape closes it back to the desktop. (Stone 38:
+# the terminal window shares the verse window's
+# first place and still stands there when the verse
+# closes — the closing is read by the verse's own
+# words going, its reference no longer standing,
+# with the terminal's title standing in its stead.)
 sendkey("esc")
 d = waitdump(lambda d: d is not None
-             and pixel(d, 200, VY * 16 + 8) == BLACK, 15)
+             and decode(d, VY + 10, VX + 2, REF, BLACK) != REF
+             and decode(d, VY, VX + 1, "Terminal", WHITE) == "Terminal", 15)
 expect(d is not None, "Escape closed the verse window")
 
 # The menu: a press on the start button opens it,
@@ -191,9 +210,20 @@ expect(d is not None, "a press on the menu's Verse choice opened the verse windo
 # it at (920, 520), on the close mark's cell (one
 # great move of (+880, -160) saturates the pointer's
 # reckoning on the bench and falls short — measured
-# on the bench while this proof was made).
+# on the bench while this proof was made). (Stone
+# 38: the terminal window stands on the verse
+# window's place and over it — its close mark stands
+# at the very same cell, the top window's mark — so
+# the first press closes the terminal, and the
+# second, on the same cell, closes the verse.)
 mousemove(440, -80)
 mousemove(440, -80)
+mousebutton(1)
+mousebutton(0)
+d = waitdump(lambda d: d is not None
+             and decode(d, VY, VX + 1, "Terminal", WHITE) != "Terminal"
+             and decode(d, VY, VX + 1, "Verse", WHITE) == "Verse", 15)
+expect(d is not None, "a press on the shared close mark closed the terminal window standing on top")
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None

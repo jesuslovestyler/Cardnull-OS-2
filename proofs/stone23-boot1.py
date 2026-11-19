@@ -80,12 +80,14 @@ def decode(d, prow, pcol, text, ink):
 
 def menu_ground_clean(d):
     """Every pixel of the menu's own ground that no
-    window covers — rows 37 to 44, cells 0 to 5 (the
-    menu's foot row, 45, is the typing line's row) —
-    is plain black desktop again."""
+    window covers — rows 37 to 44, cells 0 to 4 — is
+    plain black desktop again. (Stone 38: the read
+    stops at cell 4 now — the terminal window's frame
+    stands at cell 5 on this ground, a window's own
+    standing, not the menu's leavings.)"""
     w, h, px = d
     for y in range(37 * 16, 45 * 16):
-        for x in range(0, 6 * 16):
+        for x in range(0, 5 * 16):
             o = (y * w + x) * 3
             if px[o] != 0 or px[o + 1] != 0 or px[o + 2] != 0:
                 return False

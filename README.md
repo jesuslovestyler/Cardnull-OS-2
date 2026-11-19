@@ -3072,6 +3072,89 @@ did. Bench-proved, as every fix here; the witness
 that counts is Tyler's own in UTM, still to come.
 
 
+### Stone 38 — The desktop at the rising
+
+Tyler's steering, November 18, 2026: "make a real
+desktop gui like windows 7 or Mac OS for cardnull
+instead of being in shell at start up." Until now
+the machine woke to its console standing on the
+desktop's ground, the typing line and its answers
+laid below the windows on the face itself. The
+machine now wakes to the desktop alone.
+
+**The console lives in a window.** The terminal
+window — the tenth window — stands open at the
+rising with its prompt at its foot, and the typing
+line and the kept answers live inside it, painted
+from the same keeping block they always used.
+Closed, it is raised again by the first keystroke,
+as the typing line was always the first thing a
+keystroke reached; the word 'terminal' brings it
+forward, and Escape closes it as it closes every
+window. Down the desktop's left edge stand eight
+icons — Files, Editor, Paint, Calculator, Verse,
+Help, Settings, Terminal, in the order Tyler named
+them — each a small picture with the window's own
+plain name beside it, and a press on an icon opens
+its window, as the start menu's choices and the
+typed words do. The words themselves are
+unchanged: what a person types is answered in the
+terminal, and the words that open windows open
+them still.
+
+**The completion sweep.** The stone was built on
+November 18 and left standing while the language's
+loop guard was re-counted (Nifla Stone 33, which
+also cures at the root the paint and calculator
+freezes Tyler witnessed — the old Stones 36 and 37
+needed no work here). Completed November 19: every
+early proof suite was run under the desktop world.
+The suites for Stones 3–8, 12, and 18 pass as they
+stood (Stones 10 and 11 keep no proof scripts).
+Where a suite assumed the shell-at-boot world, its
+checks were re-aimed at the places the named
+things now stand — the answers inside the terminal
+window, the feather reached by the start menu's
+Feather choice as the word 'feather' reaches it —
+the checks themselves unweakened: Stones 9, 13,
+14, 15, and 24, and Stone 16 with them, which
+rides on Stone 9's scenario.
+
+Stone 28's one failing check was answered at its
+root. At the large size, a terminal answer's first
+letters never reached the screen, though the kept
+block held the whole line and the tail stood
+plain. The loss was pinned to the woven pass in
+the terminal row's painting, which laid each
+cell's paper and then its letter, cell by cell;
+the row is painted in two passes now — the paper
+across the whole row first, the letters after —
+and the line stands whole at both sizes.
+
+The stick proof's structure checks pass as they
+did; its one USB boot proves intermittent on this
+bench — for the Stone 35 image as for this one,
+the loader's refusal landing at a different
+sector from boot to boot — which is the bench's
+emulated USB road, not this stone's doing; the
+same image boots as a disc every time.
+
+Proven by `prove-stone38.sh`, in four boots and
+nineteen checks: the boot arrives at the desktop
+itself with no shell face before it, the icons
+stand named down the left edge, the terminal
+stands open with its prompt at its foot, a press
+on an icon opens its window, a typed word's answer
+stands inside the terminal, the word 'files'
+typed there opens the files window as it always
+has, and closing the terminal and typing raises
+it again with the answer inside. The Stones 28,
+15, 24, 29, and 30 proofs pass with it, and the
+early suites as recorded above. Bench-proved, as
+every fix here; the witness that counts is
+Tyler's own in UTM, still to come.
+
+
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 
 This is not one of this system's own stones; it is the

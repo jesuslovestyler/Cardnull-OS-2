@@ -102,8 +102,10 @@ if d:
     expect(said == "19:", f"the bar clock starts on Eastern time at the usual size (read: {said!r})")
     said = decode(d, 47, 2, "Cardnull", WHITE, 2)
     expect(said == "Cardnull", f"the bar's title stands at the usual size (read: {said!r})")
-    expect(pixel(d, 300, 767) == BLUE and pixel(d, 300, 735) == BLACK,
+    expect(pixel(d, 300, 767) == BLUE,
            "the bar stands at the screen's foot at the usual size, two rows tall")
+    expect(decode(d, 44, 6, ">", GRAY, 2) == ">",
+           "the typing line stands at the terminal window's foot, one row above the bar (Stone 38)")
 
 typewrite("settings")
 enter()
@@ -162,7 +164,14 @@ if d:
 # button goes down, and four small steps carry the
 # point by (+48, +96) in all.
 sendkey("esc")
-d = waitdump(lambda d: d is not None and pixel(d, 100, 396) == BLACK, 15)
+# (Stone 38: the closing is read by the settings
+# window's own name going — at the large size its
+# whole place is covered by the welcome window
+# above and the terminal window below when it
+# closes, so no plain ground of its own remains to
+# read.)
+d = waitdump(lambda d: d is not None
+             and decode(d, 14, 2, "Settings", WHITE, 3) != "Settings", 15)
 expect(d is not None, "Escape closed the settings window at the large size")
 mousemove(492 - PX, 84 - PY)
 PX, PY = 492, 84
@@ -206,12 +215,26 @@ if d:
 # whose first row is row 16 at this size).
 sendkey("esc")
 typewrite("hello")
+# (Stone 38: the typing line echoes in the terminal
+# window now — at the large size its foot stands at
+# row 28, the typed words three cells in from its
+# frame.)
 d = waitdump(lambda d: d is not None
-             and decode(d, 29, 2, "hello", GRAY, 3) == "hello", 15)
+             and decode(d, 28, 4, "hello", GRAY, 3) == "hello", 15)
 expect(d is not None, "the typing line echoes at the large size")
 enter()
+# (Stone 38: the answer stands in the terminal
+# window — and the welcome window, dragged down the
+# desktop in this boot, stands forward over the
+# terminal's first rows, with the feather window's
+# bar on the same row behind it. Two Escapes close
+# the welcome and then the feather that comes
+# forward in its place, and the answer is read in
+# the terminal standing revealed.)
+sendkey("esc")
+sendkey("esc")
 d = waitdump(lambda d: d is not None
-             and decode(d, 16, 2, "Hello. It is good to see you.", GRAY, 3)
+             and decode(d, 17, 3, "Hello. It is good to see you.", GRAY, 3)
              == "Hello. It is good to see you.", 25)
 expect(d is not None, "the answer stands at the large size")
 

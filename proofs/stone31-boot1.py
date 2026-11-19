@@ -262,10 +262,20 @@ if d:
     expect(said == "Page 1 of 5",
            f"the up arrow on the first page turned nothing (read: {said!r})")
 
-# Tab brings the welcome window forward, and the help
-# window's bar goes quiet behind it. (The welcome
-# window's bar is read at x=700 — clear of its title's
-# own white letters, which stand at its left.)
+# Tab brings the next open window forward (Stone
+# 38: the cycle holds ten windows now — the terminal
+# stands open from the rising, after the help window
+# in the cycle's order — so the first Tab brings the
+# terminal forward, and the second brings the
+# welcome window forward, the help window's bar
+# going quiet behind it. (The welcome window's bar
+# is read at x=700 — clear of its title's own white
+# letters, which stand at its left.)
+sendkey("tab")
+d = waitdump(lambda d: d is not None
+             and decode(d, 32, 6, "Terminal", WHITE) == "Terminal"
+             and pixel(d, 300, 32 * 16 + 8) == BLUE, 15)
+expect(d is not None, "Tab brought the terminal window forward, the help window behind")
 sendkey("tab")
 d = waitdump(lambda d: d is not None
              and pixel(d, 700, 5 * 16 + 8) == BLUE

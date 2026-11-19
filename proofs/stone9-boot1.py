@@ -44,10 +44,15 @@ if d:
     expect(band(d, 336, 352, GRAY) > 30, "the invitation is drawn")
 
 typewrite("time")
-d = waitdump(lambda d: d is not None and band(d, 720, 736, GRAY) > 30, 15)
+# Stone 38: the typing line lives in the terminal
+# window now, at its foot (row 44, y 704..719) — the
+# echo stands there, in the same light gray.
+d = waitdump(lambda d: d is not None and band(d, 704, 720, GRAY) > 30, 15)
 expect(d is not None, "the typing line echoes in light")
 enter()
-d = waitdump(lambda d: d is not None and band(d, 384, 400, GRAY) > 50, 20)
+# Stone 38: the answers live in the terminal window
+# too, from its first answer row (row 33, y 528..543).
+d = waitdump(lambda d: d is not None and band(d, 528, 544, GRAY) > 50, 20)
 expect(d is not None, "the word 'time' is answered in light")
 
 d1 = dump()

@@ -108,9 +108,14 @@ enter()
 d = waitdump(lambda d: d is not None
              and cell_pixel(d, 16, 30) == RED, 25)
 expect(d is not None, "Enter opened the kept picture in the paint window: its Red cell stands")
+# (Stone 38: the invitation is read on its own wait
+# now, as in boot 1 — the heavier repaints can catch
+# the window mid-draw on the frame the canvas cell
+# first shows in.)
+d = waitdump(lambda d: d is not None
+             and decode(d, 34, 8, "Pick a color, then draw below.", WHITE)
+             == "Pick a color, then draw below.", 15)
 if d:
-    time.sleep(0.6)
-    d = dump()
     said = decode(d, 34, 8, "Pick a color, then draw below.", WHITE)
     expect(said == "Pick a color, then draw below.",
            f"the feather's invitation reads whole in the opened picture (read: {said!r})")

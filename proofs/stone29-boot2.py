@@ -125,8 +125,12 @@ d = waitdump(lambda d: d is not None
 expect(d is not None, "a press on the Large row stood the words large")
 
 sendkey("esc")
+# (Stone 38: the closing is read at x=700 now — the
+# old sample at x=100 stands on the Calculator
+# icon's name, which stands on that ground since
+# the desktop gained its icons.)
 d = waitdump(lambda d: d is not None
-             and pixel(d, 100, LY * 24 + 12) == BLACK, 15)
+             and pixel(d, 700, LY * 24 + 12) == BLACK, 15)
 expect(d is not None, "Escape closed the settings window")
 
 # The word 'verse', on the large face: the window

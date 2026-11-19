@@ -136,8 +136,12 @@ d = waitdump(lambda d: d is not None
 expect(d is not None, "a press on the Large row stood the words large")
 
 sendkey("esc")
+# (Stone 38: the closing is read at x=700 now — the
+# old sample at x=100 stands on an icon's name,
+# which stands on that ground since the desktop
+# gained its icons.)
 d = waitdump(lambda d: d is not None
-             and pixel(d, 100, LY * 24 + 12) == BLACK, 15)
+             and pixel(d, 700, LY * 24 + 12) == BLACK, 15)
 expect(d is not None, "Escape closed the settings window")
 
 # The word 'help', on the large face: the window stands
@@ -170,8 +174,10 @@ if d:
     check_page(d, 1)
 
 sendkey("esc")
+# (Stone 38: read at x=700, as the settings closing
+# above — the old sample stands on an icon's name.)
 d = waitdump(lambda d: d is not None
-             and pixel(d, 100, HY * 24 + 12) == BLACK, 15)
+             and pixel(d, 700, HY * 24 + 12) == BLACK, 15)
 expect(d is not None, "Escape closed the help window at the large size")
 
 done()

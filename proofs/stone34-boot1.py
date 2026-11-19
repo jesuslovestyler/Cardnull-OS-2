@@ -288,9 +288,12 @@ cmd("mouse_button 0")
 time.sleep(1.2)
 g1 = xp1(GA)
 drag_cost = g1 - g0
-expect(drag_cost < 5882,
+expect(drag_cost < 6600,
        f"the lone window's six-step drag cost {drag_cost} loop passes — "
-       "under half the old whole-desktop road's measured 11,765")
+       "the old whole-desktop road measured 11,765 on the desktop of "
+       "Stone 34; the road now also restores the desktop's icons it "
+       "crosses (Stone 38), and the drag still costs little more than "
+       "half the old road's measure")
 
 d = dump()
 expect(rect_hash(d, 0, 312, 1024, 735) == bystanders,
@@ -300,8 +303,11 @@ time.sleep(0.6)
 d = dump()
 expect(decode(d, 5, 10, "Welcome", WHITE) == "Welcome",
        "the dragged welcome window decodes at its new place (left cell 9, top row 5)")
-expect(decode(d, 32, 6, "Verse", WHITE) == "Verse",
-       "the verse window below decodes as it did")
+expect(decode(d, 32, 6, "Terminal", WHITE) == "Terminal",
+       "the terminal window standing on the verse window's place decodes "
+       "as it did (Stone 38: the two windows share that first place — "
+       "the verse window's own wholeness is proved below, when Tab "
+       "brings it forward again)")
 
 # ---- Drag 2: the files window across the verse -----
 #
@@ -330,8 +336,11 @@ expect(decode(d, 28, 11, "Files", WHITE) == "Files",
 expect(pixel(d, 90, 520) == FRAME,
        "the crossed verse window's title bar stands in the frame's gray — "
        "repainted as the window behind, neither washed black nor left blue")
-expect(pixel(d, 90, 600) == LIGHT,
-       "the crossed verse window's body stands in its light ground")
+expect(pixel(d, 90, 600) == BLACK,
+       "the crossed ground shows the terminal window's dark body over "
+       "the verse window's place (Stone 38: the terminal stands over "
+       "the verse there — the verse's own light ground is proved whole "
+       "below, when Tab brings the verse forward again)")
 expect(pixel(d, 5 * 16 + 8, 31 * 16 + 8) == BLACK,
        "the files window's old title ground, beyond the verse window's cover, stands plain")
 expect(pixel(d, 7 * 16, 44 * 16 + 8) == BLACK,
@@ -370,6 +379,21 @@ expect(back is not None,
 if back:
     expect(decode(back, 42, 7, "1 John 5:13", BLACK) == "1 John 5:13",
            "the verse window's reference decodes whole after both crossings")
+
+# Tab on to the terminal window (Stone 38): it stood
+# under both crossings on the verse window's place,
+# and brought forward it too must decode whole — the
+# crossings cost it nothing either.
+term = None
+for _ in range(6):
+    cmd("sendkey tab")
+    time.sleep(0.5)
+    d = dump()
+    if decode(d, 32, 6, "Terminal", WHITE) == "Terminal":
+        term = d
+        break
+expect(term is not None,
+       "the crossed terminal window, brought forward, decodes whole after both crossings")
 
 try:
     cmd("quit")

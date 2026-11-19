@@ -24,7 +24,14 @@ expect(d is not None, "the pixel desktop came up on the tampered-feather disc")
 
 typewrite("feather")
 enter()
-d = waitdump(lambda d: d is not None and band(d, 384, 448, GRAY) > 50, 25)
+# Stone 38: the visit brings the feather window
+# forward over the terminal's first answer rows, so
+# the refusal — printed in the terminal as an answer,
+# in the same light gray — stands covered until the
+# feather window is closed with Escape, the way a
+# person would uncover it.
+sendkey("esc")
+d = waitdump(lambda d: d is not None and band(d, 528, 560, GRAY) > 50, 25)
 expect(d is not None, "the refusal is drawn as an answer in light")
 if d:
     expect(count(d, GREEN) < 100,

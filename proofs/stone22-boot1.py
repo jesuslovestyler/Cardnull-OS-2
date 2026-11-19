@@ -83,7 +83,13 @@ def old_place_remnants(d):
     right edge (five pixels, at y 560 to 564 here),
     which is the feather's own ground too. The arrow
     stands at the new place, inside the new rect, so it
-    never falls in the part compared here."""
+    never falls in the part compared here. (Stone 38:
+    the terminal window's own ground is left out the
+    same way — it stands open behind at left cell 5,
+    top row 32, fifty-four by fourteen, over the files
+    window's first place, and that ground must show
+    the terminal repainted, not black — with its
+    shadow's reach past its foot and right edge.)"""
     w, h, px = d
     bad = []
     for y in range(GY * 16, (GY + 15) * 16):
@@ -91,6 +97,8 @@ def old_place_remnants(d):
             if NX * 16 <= x < (NX + 54) * 16 + 5 and NY * 16 <= y < (NY + 15) * 16 + 5:
                 continue
             if GX * 16 <= x < (GX + 54) * 16 + 5 and 26 * 16 <= y < 35 * 16 + 5:
+                continue
+            if GX * 16 <= x < (GX + 54) * 16 + 5 and 32 * 16 <= y < 46 * 16 + 5:
                 continue
             o = (y * w + x) * 3
             if px[o] != 0 or px[o + 1] != 0 or px[o + 2] != 0:

@@ -60,7 +60,13 @@ expect(d is not None, "the desktop is drawn")
 if d:
     said = decode(d, 47, 56, "19:", WHITE, 2)
     expect(said == "19:", f"an old-shape card rises at the usual size, on Eastern time (read: {said!r})")
-    expect(pixel(d, 300, 767) == BLUE and pixel(d, 300, 735) == BLACK,
+    # Stone 38 adaptation: the pixel just above the bar
+    # (300, 735) was the old ground's black before the
+    # desktop-at-boot world; now the terminal window
+    # stands there, and the pixel is its bottom frame
+    # edge (dark gray) — still not bar blue, so the bar
+    # is exactly two rows tall, as named.
+    expect(pixel(d, 300, 767) == BLUE and pixel(d, 300, 735) == (85, 85, 85),
            "the bar stands at the screen's foot, two rows tall: the usual size, as before this stone")
 
 typewrite("settings")

@@ -112,11 +112,17 @@ if d:
 # keeps it, as the answer says). The clicks below then
 # move the choice again, so the disk this boot leaves
 # behind carries the clicked choices for boot 2.
+# (Stone 38: the answer stands in the terminal
+# window now — the console's kept rows, at its inner
+# left edge — not on the desktop's ground where the
+# answers strip stood; the check reads the window's
+# kept rows for the answer's line.)
 typewrite("eastern")
 enter()
 d = waitdump(lambda d: d is not None
-             and decode(d, 24, 2, "The clock now shows Eastern time.", GRAY)
-             == "The clock now shows Eastern time.", 15)
+             and any(decode(d, r, 7, "The clock now shows Eastern time.", GRAY)
+                     == "The clock now shows Eastern time."
+                     for r in range(33, 44)), 15)
 expect(d is not None, "the typed word 'eastern' is answered in plain words, as before")
 
 # A press of the pointer on the world's-standard row
@@ -154,9 +160,17 @@ d = waitdump(lambda d: d is not None
              and decode(d, GY + 8, GX + 4, "Chime off", WHITE) == "Chime off", 15)
 expect(d is not None, "the window now shows the chime standing off")
 
-# Tab cycles through all four windows: settings to
-# welcome, welcome to feather, feather back to settings
+# Tab cycles through the open windows (Stone 38:
+# five stand open now — the terminal window stands
+# open from the rising, and the cycle reaches it
+# between the settings window and the welcome):
+# settings to terminal, terminal to welcome, welcome
+# to feather, feather back to settings
 # (the files window stands closed and is passed over).
+sendkey("tab")
+d = waitdump(lambda d: d is not None and pixel(d, 400, 32 * 16 + 10) == BLUE
+             and pixel(d, 400, GY * 16 + 10) == DARK, 15)
+expect(d is not None, "Tab brought the terminal window forward, the settings window behind")
 sendkey("tab")
 d = waitdump(lambda d: d is not None and pixel(d, 400, 90) == BLUE
              and pixel(d, 400, GY * 16 + 10) == DARK, 15)

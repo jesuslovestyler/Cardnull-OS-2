@@ -97,12 +97,19 @@ enter()
 
 
 def heading_row(d):
+    # (Stone 38: the word's answer stands in the
+    # terminal window's keeping now — its rows, at its
+    # inner left edge — and the heading, forty-nine
+    # letters, wraps at the window's measure: its
+    # first line ends at "turned", and "off:" stands
+    # on the row below it.)
     if d is None:
         return None
-    for r in range(24, 29):
-        if decode(d, r, 2, "Your notes, kept until the machine is turned off:",
-                  GRAY) == "Your notes, kept until the machine is turned off:":
-            return r
+    for r in range(33, 42):
+        if decode(d, r, 7, "Your notes, kept until the machine is turned",
+                  GRAY) == "Your notes, kept until the machine is turned":
+            if decode(d, r + 1, 7, "off:", GRAY) == "off:":
+                return r
     return None
 
 
@@ -110,7 +117,7 @@ d = waitdump(lambda d: heading_row(d) is not None, 15)
 expect(d is not None, "the word 'notes' answers that the notes are kept until the machine is turned off")
 if d:
     r = heading_row(d)
-    said = decode(d, r + 1, 2, NOTE, GRAY)
+    said = decode(d, r + 2, 7, NOTE, GRAY)
     expect(said == NOTE,
            f"the note the window kept stands in the word's reckoning (read: {said!r})")
 

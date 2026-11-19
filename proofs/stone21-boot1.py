@@ -130,9 +130,16 @@ if d:
            f"the note's whole words stand as the draft (read: {said!r})")
 
 # Escape closes the window; the note stands untouched,
-# as the list below will show again.
+# as the list below will show again. (Stone 38: the
+# closing is read by the draft's words going — the
+# terminal window shares the editor's top row and
+# still stands there when the editor closes, its bar
+# where the editor's bar stood — and by the deep
+# ground at (600, 600) standing black, where the
+# editor's light body stood over the terminal's
+# dark one.)
 sendkey("esc")
-d = waitdump(lambda d: d is not None and pixel(d, 400, GY * 16 + 10) == BLACK
+d = waitdump(lambda d: d is not None and decode(d, GY + 3, GX + 2, OLD, WHITE) != OLD
              and pixel(d, 600, 600) == BLACK, 15)
 expect(d is not None, "Escape closed the editor window back to the desktop")
 
@@ -184,7 +191,8 @@ d = waitdump(lambda d: d is not None
              and decode(d, GY + 3, GX + 2, "a" * 43, WHITE) == "a" * 43, 25)
 expect(d is not None, "the draft stops at the note's measure of forty-three letters")
 sendkey("esc")
-d = waitdump(lambda d: d is not None and pixel(d, 400, GY * 16 + 10) == BLACK, 15)
+d = waitdump(lambda d: d is not None
+             and decode(d, GY + 3, GX + 2, "a" * 43, WHITE) != "a" * 43, 15)
 expect(d is not None, "Escape threw the over-long draft away with the window")
 
 # The page still holds exactly the two notes: the
@@ -248,8 +256,13 @@ expect(d is not None, "Tab brought the editor window forward among the five")
 # Escape closes the editor; the files window, still
 # open at the same place on the desktop, stands in its
 # place — its own heading reads where the editor's
-# stood.
+# stood. (Stone 38: the terminal window stands over
+# the files window's heading while the files window
+# stands behind, so its word is typed to bring it
+# forward before the heading is read.)
 sendkey("esc")
+typewrite("files")
+enter()
 d = waitdump(lambda d: d is not None
              and decode(d, FY + 2, GX + 2, "Notes kept on the disk:", GRAY)
              == "Notes kept on the disk:", 15)
