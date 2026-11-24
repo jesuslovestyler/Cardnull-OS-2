@@ -8,22 +8,25 @@
 #   The files and verse windows stand open low on the
 #   desktop and the welcome window high. The welcome
 #   window is dragged by its title bar, six small
-#   steps right, across empty desktop: mid-drag — the
-#   button still held — the whole populated desktop
-#   below must hash exactly as before the drag (the
-#   region repaint never writes a window outside the
-#   road, at any instant, where the old whole-desktop
-#   road washed and redrew everything on every step;
-#   that wash-and-redraw shimmer was the flicker),
-#   and the drag's whole cost in the runtime's loop
-#   passes — read out of the guest through the
-#   monitor — must stand under half the old road's
-#   measured 11,765 passes for six steps. Then the
-#   files window is dragged across the verse window
-#   and back: the crossed window stands repainted in
-#   its behind colors under the drag's road, the
-#   vacated ground stands plain, and both windows
-#   decode whole at the end (proofs/stone34-boot1.py).
+#   steps right, across empty desktop: after every
+#   step — the button still held — the whole populated
+#   desktop below must hash exactly as before the drag
+#   (no repaint writes a bystander, at any instant;
+#   the wash-and-redraw of bystanders was the flicker),
+#   and after the drop the dragged window's body must
+#   stand whole — a census of its interior and all
+#   five of its lines decoding (Stone 45's
+#   body-always-lands check, added when this proof was
+#   restored: its loop-pass counter read a compiler
+#   cell, __guard_passes, that the compiler no longer
+#   lays in the kernel, and the per-step hash now
+#   checks directly what the counter stood for). Then
+#   the files window is dragged across the verse
+#   window and back: the crossed window stands
+#   repainted in its behind colors under the drag's
+#   road, the vacated ground stands plain, and both
+#   windows decode whole at the end
+#   (proofs/stone34-boot1.py).
 #
 # Prints PASS or FAIL.
 

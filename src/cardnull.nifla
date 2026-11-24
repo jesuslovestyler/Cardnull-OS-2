@@ -852,6 +852,51 @@
 //          changes: the raising answers 0 and the
 //          page is never painted.
 //
+// Stone 45: the repaint roads healed — the two faults
+//          Tyler witnessed in UTM on the Stone 44
+//          build (November 24, 2026): dragging the
+//          welcome window left its body a flat gray
+//          with garbled streaks where its words should
+//          stand, and every window flickered while a
+//          window moved. Both faults lived in the
+//          repaint roads, not the drag's arithmetic.
+//          The face paints straight onto the screen —
+//          no back buffer, no clipping — and a window's
+//          painter lays the frame's gray undercoat
+//          first, then the body over it; a region
+//          repaint pass could write farther than its
+//          road (a re-laid icon's whole span, a
+//          repainted window's whole place and shadow)
+//          and leave that writing standing on a window
+//          the pass never repainted, its undercoat
+//          showing and its words streaked — the state
+//          right, the glass wrong, healed only by some
+//          later whole repaint. paintregion's set is
+//          now closed before anything is washed: any
+//          window a pass's writing can fall on joins
+//          the set and is repainted in the same pass,
+//          after the icons, so a window's body always
+//          lands. And a drag step no longer repaints
+//          bystanders whole: dragstep washes only the
+//          ground the window leaves, lays its icons
+//          again, and paints the window at its new
+//          place; the windows a step uncovers stand
+//          washed until the drop, when one region
+//          repaint over the whole road the drag
+//          travelled — gathered step by step — makes
+//          the glass whole once. The drag's own proof,
+//          prove-stone34, stands restored with it: its
+//          loop-pass counter read a compiler cell the
+//          compiler no longer lays in the kernel, so
+//          the bystanders' ground is now hashed after
+//          every step instead, and the dragged
+//          window's body is censused and its lines
+//          decoded after the drop. The desk stands
+//          476 bytes now: the drag step's errand
+//          travels at 464 to 475, the way the road
+//          travels at 384.
+//
+//
 // The arrangement of the screen (the text face's rows;
 // on the face of light the same words stand on its grid,
 // and since Stone 33 its bar stands at the foot):
@@ -4092,7 +4137,12 @@ make layroadwins(desk, wina, winb) {
 // right and bottom, for its shadow's reach — touches
 // the road is painted its standing way, in the standing
 // order. Windows outside the road are not touched at
-// all.
+// all — unless the pass's own writing reaches them
+// (Stone 45's closure, below): a pass writes farther
+// than the road, and every window its writing falls
+// on is repainted in the same pass, so no window is
+// ever left with a writing standing on it and no body
+// over it.
 make paintregion(desk, block, notes) {
     let rx = pget(desk, 384)
     let ry = pget(desk, 388)
@@ -4156,6 +4206,84 @@ make paintregion(desk, block, notes) {
             }
             win = win + 1
         }
+        // Stone 45: the body-always-lands closure. A
+        // pass writes farther than the road it serves:
+        // the road is washed bare below; every icon the
+        // road touches is laid again whole, all three
+        // of its rows and its name beside its picture,
+        // wherever that span stands; and every window
+        // the pass repaints is painted whole — frame,
+        // body, and the shadow's reach past its right
+        // and foot — with no clipping anywhere in the
+        // face. So a window standing where any of those
+        // writings fall, but not itself in the set,
+        // would keep the writing standing on it with no
+        // body over it: the frame's gray undercoat
+        // showing where its words should stand, an
+        // icon's name stamped across its body — the
+        // broken glass Tyler witnessed in UTM (Nov 24,
+        // 2026), its state right and its picture wrong,
+        // healed only when some later whole repaint
+        // happened by. The set is therefore closed
+        // before anything is washed: a window whose
+        // place meets a re-laid icon's whole span, or
+        // the place-and-shadow of a window already in
+        // the set, joins the set — and the closing
+        // repeats until no window is added, since a
+        // joined window's own painting writes just as
+        // far. Every window a pass writes on is then
+        // repainted in that same pass, after the icons,
+        // in the standing order — so its body always
+        // lands.
+        let changed = 1
+        while changed == 1 {
+            changed = 0
+            let cicon = 0
+            while cicon < 10 {
+                let ctop = iconat(desk, cicon)
+                if rectstouchx(1, 13, rx, rw) == 1 {
+                    if rectstouchy(ctop, 3, ry, rh) == 1 {
+                        win = 1
+                        while win <= 12 {
+                            if inset(set, win) == 0 {
+                                if rectstouchx(winleft(desk, win), winwide(desk, win), 1, 13) == 1 {
+                                    if rectstouchy(wintop(desk, win), winhigh(desk, win), ctop, 3) == 1 {
+                                        set = set + winbit(win)
+                                        changed = 1
+                                    }
+                                }
+                            }
+                            win = win + 1
+                        }
+                    }
+                }
+                cicon = cicon + 1
+            }
+            let member = 1
+            while member <= 12 {
+                if inset(set, member) == 1 {
+                    let el = winleft(desk, member)
+                    let et = wintop(desk, member)
+                    let ew = winwide(desk, member)
+                    let eh = winhigh(desk, member)
+                    win = 1
+                    while win <= 12 {
+                        if win != member {
+                            if inset(set, win) == 0 {
+                                if rectstouchx(winleft(desk, win), winwide(desk, win), el, ew + 1) == 1 {
+                                    if rectstouchy(wintop(desk, win), winhigh(desk, win), et, eh + 1) == 1 {
+                                        set = set + winbit(win)
+                                        changed = 1
+                                    }
+                                }
+                            }
+                        }
+                        win = win + 1
+                    }
+                }
+                member = member + 1
+            }
+        }
         // The road itself washed bare, the way a closed
         // window's wash leaves its own place.
         pixwashwin(desk, rx, ry, rw, rh)
@@ -4208,6 +4336,55 @@ make paintregion(desk, block, notes) {
             }
         }
     }
+}
+
+// dragstep paints one step of a window's drag
+// (Stone 45): the ground the window is leaving is
+// washed bare — its frame's place and its shadow's,
+// the wash pixwashwin has always made — and the
+// icons standing in that ground are laid again; the
+// window is set at its new place and painted there,
+// standing forward as it has since the hold was
+// taken, so its painting over whatever it now covers
+// is the true picture. No other window is painted.
+// Until this stone a drag step repainted, whole,
+// every window touching the road of the ground left
+// and taken together — so bystanders were washed and
+// redrawn again and again as the window passed, the
+// flicker Tyler saw in UTM. Now the windows a step
+// uncovers stand washed until the button is let go,
+// when the drop's one region repaint over the whole
+// road the drag travelled makes the glass whole
+// again (the drag's following in the main body keeps
+// that road). A step's whole work is the leaving
+// ground and the dragged window itself. The step's
+// errand — which window, and the place it is going
+// to — travels in the desk at 464 to 475, the way
+// the region repaint's road travels at 384: the
+// call's three blocks already fill the machine's
+// registers.
+make dragstep(desk, block, notes) {
+    let win = pget(desk, 464)
+    let newleft = pget(desk, 468)
+    let newtop = pget(desk, 472)
+    let ol = winleft(desk, win)
+    let ot = wintop(desk, win)
+    let dw = winwide(desk, win)
+    let dh = winhigh(desk, win)
+    pixwashwin(desk, ol, ot, dw, dh)
+    let ii = 0
+    while ii < 10 {
+        let itop = iconat(desk, ii)
+        if rectstouchx(1, 13, ol, dw) == 1 {
+            if rectstouchy(itop, 3, ot, dh) == 1 {
+                oneicon(desk, ii)
+            }
+        }
+        ii = ii + 1
+    }
+    winmove(desk, win, newleft, newtop)
+    pset(desk, 400, win)
+    callpainter(desk, block, notes)
 }
 
 // ---- window dragging (Stone 22) ----
@@ -4963,15 +5140,16 @@ if fbflags - (fbflags / 8192) * 8192 >= 4096 {
     }
 }
 if pix == 1 {
-    // The desk stands 464 bytes since Stone 42 (the
+    // The desk stands 476 bytes since Stone 45 (the
     // region repaint's road and window at 384 to 403,
     // the terminal window's standing, place, and
     // answers-keeping address at 404 to 423, the
     // Bible window's standing, page, place, and
-    // chapter pick at 424 to 443, and the Shield
+    // chapter pick at 424 to 443, the Shield
     // window's standing, place, and the door's
-    // reckoning at 444 to 463).
-    pixdesk = makebytes(464)
+    // reckoning at 444 to 463, and the drag step's
+    // errand at 464 to 475).
+    pixdesk = makebytes(476)
     fontblock = makebytes(1024)
     fontload(fontblock)
     // The pointer's shapes and its save block (Stone 13):
@@ -5250,6 +5428,21 @@ let calcask = 0
 let dragwin = 0
 let draggox = 0
 let draggoy = 0
+// The drag's whole road (Stone 45): the stretch of
+// cells holding every place the held window has stood
+// since the hold was taken — its corner at the taking,
+// grown by each step's new place. (The shadow's reach
+// past a place is the wash's own six pixels, and the
+// region repaint's set already reckons a cell of
+// grace, so the road itself is just the places.) The
+// steps themselves paint only the leaving ground and
+// the window (dragstep); when the button is let go,
+// one region repaint over this road makes the glass
+// whole again.
+let dragax = 0
+let dragay = 0
+let dragax2 = 0
+let dragay2 = 0
 if pix == 1 {
     mouseup = mouseinit()
     mx = pget(pixdesk, 8) / 2 - 8
@@ -7585,23 +7778,33 @@ while true {
                     // the window is set where the pointer's
                     // hold on it now stands — its new place
                     // clamped whole onto the desktop, at the
-                    // edges simply — and only the road it
-                    // travelled is repainted (Stone 34: the
-                    // ground it left and the ground it took,
-                    // and the windows standing in that road),
-                    // so the vacated ground and any window
-                    // that stood under it stand whole, and
-                    // the rest of the desktop never flickers.
-                    // Letting
-                    // the button go sets the window down:
-                    // the hold simply ends, and its place
-                    // stands as it was left. The arrow is
+                    // edges simply. Stone 34 first narrowed
+                    // the repaint to the road travelled;
+                    // Stone 45 narrows the step itself:
+                    // a step paints only the ground the
+                    // window is leaving and the window at
+                    // its new place (dragstep), and never a
+                    // bystander window — the whole-window
+                    // repainting of every window the road
+                    // touched, step after step, was the
+                    // flicker. The windows a step uncovers
+                    // stand washed for the drag's length.
+                    // Letting the button go sets the window
+                    // down and makes the glass whole: one
+                    // region repaint over the drag's whole
+                    // road — every place the window stood,
+                    // gathered step by step in dragax and
+                    // its kin — repaints everything the
+                    // steps left washed, in the standing
+                    // order, once. The arrow is
                     // off the screen for the whole of this
                     // pass (it is laid again at the pass's
                     // end, over the kept patch, as always),
                     // so a drag leaves no trail of it.
                     if dragwin != 0 {
                         if andmask(btn, 1) == 0 {
+                            layroad(pixdesk, dragax, dragay, dragax2 - dragax, dragay2 - dragay)
+                            paintregion(pixdesk, cellblock, notesblock)
                             dragwin = 0
                         } else {
                             let dw = winwide(pixdesk, dragwin)
@@ -7636,36 +7839,31 @@ while true {
                                 moved = 1
                             }
                             if moved == 1 {
-                                winmove(pixdesk, dragwin, nl, nt)
-                                // Stone 34: only the road
-                                // the window travelled —
-                                // the ground it left and
-                                // the ground it took, as
-                                // one stretch — is
-                                // repainted, and only the
-                                // windows standing in that
-                                // road with it. The rest
-                                // of the desktop is never
-                                // washed or redrawn, so
-                                // it cannot flicker.
-                                let ux = ol
-                                if nl < ux {
-                                    ux = nl
+                                // Stone 45: the new place
+                                // joins the drag's whole
+                                // road, and the step itself
+                                // is dragstep's — the
+                                // leaving ground washed and
+                                // its icons laid again, the
+                                // window painted at its new
+                                // place, and no other window
+                                // touched.
+                                if nl < dragax {
+                                    dragax = nl
                                 }
-                                let uy = ot
-                                if nt < uy {
-                                    uy = nt
+                                if nt < dragay {
+                                    dragay = nt
                                 }
-                                let ux2 = ol + dw
-                                if nl + dw > ux2 {
-                                    ux2 = nl + dw
+                                if nl + dw > dragax2 {
+                                    dragax2 = nl + dw
                                 }
-                                let uy2 = ot + dh
-                                if nt + dh > uy2 {
-                                    uy2 = nt + dh
+                                if nt + dh > dragay2 {
+                                    dragay2 = nt + dh
                                 }
-                                layroad(pixdesk, ux, uy, ux2 - ux, uy2 - uy)
-                                paintregion(pixdesk, cellblock, notesblock)
+                                pset(pixdesk, 464, dragwin)
+                                pset(pixdesk, 468, nl)
+                                pset(pixdesk, 472, nt)
+                                dragstep(pixdesk, cellblock, notesblock)
                             }
                         }
                     }
@@ -9536,6 +9734,15 @@ while true {
                                                         dragwin = cand
                                                         draggox = cxp / cellpx - wl
                                                         draggoy = cyp / cellpx - wt
+                                                        // Stone 45: the
+                                                        // drag's whole
+                                                        // road starts as
+                                                        // the window's
+                                                        // own place.
+                                                        dragax = wl
+                                                        dragay = wt
+                                                        dragax2 = wl + ww
+                                                        dragay2 = wt + winhigh(pixdesk, cand)
                                                         pset(pixdesk, 180, cand)
                                                         paintwindows(pixdesk, cellblock, notesblock)
                                                         acted = 1

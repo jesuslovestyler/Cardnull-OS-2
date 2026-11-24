@@ -1,20 +1,31 @@
 # Stone 34 proof, boot 1: the region repaint — a drag
 # no longer flickers the windows. Self-contained: it
 # drives the monitor itself (the way tools/pixels.py
-# does) because it also reads the runtime's loop-pass
-# counter out of the guest, which the shared scenario
-# namespace cannot reach.
+# does).
 #
-# The bench numbers this proof stands on, measured on
-# the build BEFORE this stone (same bench, same kind
-# of drag): boot with the files and verse windows
-# opened left the loop-pass counter at 120,856 of its
-# million; one six-step drag of a window cost 11,765
-# passes; one whole-desktop repaint cost 4,277. Nearly
-# all of the old drag's cost was repainting windows the
-# drag never touched — the wash-and-redraw shimmer
-# Tyler saw as flicker in UTM ("when i move windows it
-# flickers the windows", Nov 16, 2026).
+# Restored at Stone 45. As first written, this proof
+# also read the runtime's loop-pass counter out of
+# the guest through the monitor, from a global cell
+# the compiler then laid in the kernel under the name
+# __guard_passes, and held the drag's cost under half
+# the old road's measured 11,765 passes. The compiler
+# no longer lays that cell in the kernel — each loop's
+# guard now stands in the loop's own frame, and the
+# global cell survives only in the feather runtime's
+# data — so the number has nothing honest left to
+# read. The property the number stood for is checked
+# here directly instead, and more strongly: the
+# bystanders' ground is hashed after EVERY step of
+# the first drag, not once in its middle, and must
+# stand pixel for pixel untouched at every instant —
+# a drag that washed and redrew its bystanders, the
+# flicker itself, would be caught at the step that
+# did it. Stone 45 also adds the dragged window's own
+# wholeness after the drop: a census of its body's
+# interior (no frame-gray may stand there — the gray
+# body of Tyler's witness was the frame's undercoat
+# left showing) and a decoding of all five of its
+# lines.
 #
 # The proof makes two drags.
 #
@@ -25,26 +36,34 @@
 # welcome window stands high (left cell 6, top row 5,
 # fifty-one by fourteen). The welcome window's title
 # bar is pressed — bringing it forward with a
-# whole-desktop repaint of the old kind — and only
-# then is every pixel of the desktop below the
-# welcome window's shadow — the bystanders' ground,
-# feather, files, verse and all — hashed, so the hash
-# judges the drag's own repainting alone.
-# The welcome window is dragged by its title bar,
-# six small steps, right three cells. Mid-drag — the
-# button still held — the bystanders' ground must hash
-# exactly as before: the region repaint never writes
-# it, at any instant. (The old road washed and redrew
-# every bystander on every step, so any mid-drag
-# picture could catch them half-drawn — the flicker,
-# made visible.) The pass counter is read after the
-# drag's opening press (which brings the window
-# forward with a whole-desktop repaint of the old
-# kind), so the count is the drag's alone; it must
-# stand under half the old road's measured 11,765.
-# After the window is set down it decodes at its new
-# place, and the bystanders' ground still hashes as
-# before.
+# whole-desktop repaint — and only then is every
+# pixel of the desktop below the welcome window's
+# shadow — the bystanders' ground, feather, files,
+# verse and all — hashed, so the hash judges the
+# drag's own repainting alone. The welcome window is
+# dragged by its title bar, six small steps, right
+# three cells. After every step — the button still
+# held — the bystanders' ground must hash exactly as
+# before: the drag's steps never write it, at any
+# instant (Stone 45: a step paints only the ground
+# the window leaves and the window itself). After
+# the window is set down, one region repaint over
+# the drag's whole road has made the glass whole:
+# the bystanders' ground still hashes as before, the
+# welcome window decodes at its new place, its body
+# census stands clean, and its five lines decode.
+# (The bench's mouse can lose a packet under load
+# and a drag fall short; the drag is retried, up to
+# three takings, until the window has truly moved —
+# the checks judge the road the drag travelled,
+# however far the bench carried it. One hardening
+# of the harness stands with the restoration, no
+# check weakened: a screendump is read only after
+# a breath and believed only when its measure is
+# whole — the first restored runs read frames a
+# step behind the glass under this bench's load,
+# took a repaint still in flight for a settled
+# desktop, and sent drag steps into it to be lost.)
 #
 # Drag 2 — a crossing. The files window is dragged
 # right five cells and up three rows, ACROSS the verse
@@ -63,15 +82,12 @@
 
 import hashlib
 import os
-import re
 import socket
-import subprocess
 import sys
 import time
 
 SOCK = sys.argv[1]
 DUMP = sys.argv[2]
-REPO = os.getcwd()
 
 BLUE = (0, 0, 170)
 WHITE = (255, 255, 255)
@@ -80,8 +96,8 @@ FRAME = (85, 85, 85)
 LIGHT = (170, 170, 170)
 
 _vals = {}
-for _m in re.finditer(r"block\[(\d+)\] = (\d+)",
-                      open("src/font.nifla").read()):
+for _m in __import__("re").finditer(r"block\[(\d+)\] = (\d+)",
+                                    open("src/font.nifla").read()):
     _vals[int(_m.group(1))] = int(_m.group(2))
 GLYPHS = {}
 for _code in range(32, 127):
@@ -149,12 +165,26 @@ def cmd(t):
 
 
 def dump():
-    cmd(f"screendump {DUMP}")
-    with open(DUMP, "rb") as f:
-        data = f.read()
-    parts = data.split(b"\n", 3)
-    dims = parts[1].split()
-    return int(dims[0]), int(dims[1]), parts[3]
+    # The pixels.py discipline, and one guard more:
+    # a breath after the screendump command before
+    # the file is read (under load the dump can lag
+    # a frame behind, or be read half-written), and
+    # the picture is believed only when its measure
+    # is whole — a torn read is taken again.
+    for _ in range(3):
+        cmd(f"screendump {DUMP}")
+        time.sleep(0.15)
+        with open(DUMP, "rb") as f:
+            data = f.read()
+        parts = data.split(b"\n", 3)
+        if len(parts) < 4:
+            continue
+        dims = parts[1].split()
+        w, h = int(dims[0]), int(dims[1])
+        if len(parts[3]) >= w * h * 3:
+            return w, h, parts[3]
+        time.sleep(0.2)
+    return w, h, parts[3]
 
 
 def pixel(d, x, y):
@@ -186,32 +216,21 @@ def waitdump(fn, secs=30):
     return None
 
 
-def xp1(addr):
-    out = cmd(f"xp /1gx {addr:#x}")
-    toks = [t for t in out.replace(":", " ").split() if t.startswith("0x")]
-    return int(toks[-1], 16)
-
-
-def guard_addr():
-    nm = subprocess.run(["nm", "build/cardnull.elf"], cwd=REPO,
-                        capture_output=True, text=True).stdout
-    for ln in nm.splitlines():
-        p = ln.split()
-        if len(p) == 3 and p[2] == "__guard_passes":
-            return int(p[0], 16)
-    raise RuntimeError("no __guard_passes in the built kernel")
-
-
 PX, PY = 506, 378
 
 
 def go(x, y):
+    # Paced the pixels.py way — a small step and a
+    # pause for each, so the guest's mouse queue is
+    # never outrun and the pointer truly stands where
+    # this reckoning believes it does.
     global PX, PY
     while PX != x or PY != y:
-        dx = max(-200, min(200, x - PX))
-        dy = max(-200, min(200, y - PY))
+        dx = max(-64, min(64, x - PX))
+        dy = max(-64, min(64, y - PY))
         cmd(f"mouse_move {dx} {dy}")
         PX, PY = PX + dx, PY + dy
+        time.sleep(0.25)
 
 
 def typewrite(text):
@@ -243,7 +262,71 @@ def rect_hash(d, x0, y0, x1, y1):
     return m.hexdigest()
 
 
-GA = guard_addr()
+def settle(secs=12):
+    # Waits until the desktop above the bar stands
+    # still — three successive pictures of it alike,
+    # the first taken only after a breath, so a
+    # repaint the guest has not yet begun cannot be
+    # mistaken for one already done — so the next
+    # input is never sent into a guest still busy
+    # repainting the last one (this bench loses mouse
+    # packets under repaint load; the bar's own clock
+    # is below the watched stretch and cannot keep it
+    # restless). Returns the settled picture.
+    time.sleep(0.5)
+    end = time.time() + secs
+    prev = None
+    same = 0
+    last = None
+    while time.time() < end:
+        try:
+            last = dump()
+        except (IOError, OSError):
+            last = None
+        if last is not None:
+            h = rect_hash(last, 0, 0, 1024, 736)
+            if h == prev:
+                same += 1
+                if same >= 2:
+                    return last
+            else:
+                same = 0
+            prev = h
+        time.sleep(0.3)
+    return last
+
+
+def press_takes_hold(x, y, barx, bary):
+    # Presses at (x, y) and confirms the taking
+    # semantically: the pressed window's title bar
+    # turns the front window's blue (a pixel deep in
+    # its bar, below the sheen), which only the
+    # take-hold's bringing-forward paints. A press
+    # the bench's mouse lost changes nothing and is
+    # simply tried again by the caller.
+    go(x, y)
+    cmd("mouse_button 1")
+    end = time.time() + 8
+    while time.time() < end:
+        time.sleep(0.4)
+        try:
+            d = dump()
+        except (IOError, OSError):
+            d = None
+        if d is not None and pixel(d, barx, bary) == BLUE:
+            return True
+    return False
+
+
+def welcome_left(d):
+    # The welcome window's left cell, found by its
+    # title on row 5 — the title's words begin one
+    # cell in from the window's left.
+    for pl in range(4, 20):
+        if decode(d, 5, pl + 1, "Welcome", WHITE) == "Welcome":
+            return pl
+    return 0
+
 
 d = waitdump(lambda d: d is not None and d[0] == 1024
              and count_color(d, BLUE) > 5000, 40)
@@ -262,47 +345,79 @@ expect(d is not None, "the files and verse windows stand open low on the desktop
 # (y 735), the whole width.
 time.sleep(1.0)
 
-go(200, 5 * 16 + 8)
-cmd("mouse_button 1")
-time.sleep(0.8)
-# The press has brought the welcome window forward —
-# a whole-desktop repaint of the old kind, done and
-# settled. The bystanders' ground is hashed only now,
-# so what the hash judges is the drag's own repainting.
-d = dump()
-bystanders = rect_hash(d, 0, 312, 1024, 735)
-g0 = xp1(GA)
-mid_ok = True
-for i in range(6):
-    cmd("mouse_move 8 0")
-    PX, PY = PX + 8, PY
-    time.sleep(0.35)
-    if i == 2:
-        dmid = dump()
-        if rect_hash(dmid, 0, 312, 1024, 735) != bystanders:
-            mid_ok = False
-expect(mid_ok,
-       "mid-drag, button still held, the whole populated desktop below "
-       "stands pixel for pixel untouched — the region repaint never writes it")
-cmd("mouse_button 0")
-time.sleep(1.2)
-g1 = xp1(GA)
-drag_cost = g1 - g0
-expect(drag_cost < 6600,
-       f"the lone window's six-step drag cost {drag_cost} loop passes — "
-       "the old whole-desktop road measured 11,765 on the desktop of "
-       "Stone 34; the road now also restores the desktop's icons it "
-       "crosses (Stone 38), and the drag still costs little more than "
-       "half the old road's measure")
+pl = welcome_left(dump())
+expect(pl == 6, "the welcome window stands at its home place (left cell 6, top row 5)")
 
+bystanders = None
+steps_clean = True
+moved_to = 0
+for attempt in range(3):
+    if not press_takes_hold((pl + 4) * 16, 5 * 16 + 8,
+                            (pl + 3) * 16, 5 * 16 + 10):
+        cmd("mouse_button 0")
+        settle()
+        continue
+    d = settle()
+    if bystanders is None:
+        # The press has brought the welcome window
+        # forward — a whole-desktop repaint, done and
+        # settled. The bystanders' ground is hashed
+        # only now, so what the hash judges is the
+        # drag's own repainting. (The arrow stands at
+        # the press point, above the hashed ground, in
+        # this picture and in the drop's alike.)
+        bystanders = rect_hash(d, 0, 312, 1024, 735)
+    for i in range(6):
+        cmd("mouse_move 8 0")
+        PX, PY = PX + 8, PY
+        dstep = settle()
+        if dstep is None or rect_hash(dstep, 0, 312, 1024, 735) != bystanders:
+            steps_clean = False
+    cmd("mouse_button 0")
+    d = settle()
+    go((pl + 4) * 16, 5 * 16 + 8)
+    d = settle()
+    moved_to = welcome_left(d)
+    if moved_to > pl:
+        break
+    pl = moved_to if moved_to else pl
+
+expect(steps_clean,
+       "at every step of the drag, button still held, the whole populated "
+       "desktop below stands pixel for pixel untouched — no step washes or "
+       "redraws a bystander (the flicker, checked at every instant)")
+expect(moved_to > 6,
+       f"the welcome window was truly dragged from its home place (it stands at left cell {moved_to})")
 d = dump()
 expect(rect_hash(d, 0, 312, 1024, 735) == bystanders,
-       "after the drag the bystanders' ground still stands pixel for pixel as it was")
-go(700, 400)
-time.sleep(0.6)
-d = dump()
-expect(decode(d, 5, 10, "Welcome", WHITE) == "Welcome",
-       "the dragged welcome window decodes at its new place (left cell 9, top row 5)")
+       "after the drop the bystanders' ground still stands pixel for pixel as it was")
+
+if moved_to:
+    # The body-always-lands census (Stone 45): inside
+    # the dragged window's body — below its title bar,
+    # inside its frame — the frame's gray undercoat
+    # may not stand anywhere; the body is its light
+    # ground and its black words, whole.
+    gray = 0
+    for y in range((5 + 2) * 16, (5 + 13) * 16):
+        for x in range((moved_to + 1) * 16, (moved_to + 50) * 16):
+            if pixel(d, x, y) == FRAME:
+                gray += 1
+    expect(gray < 100,
+           f"the dragged welcome window's body stands whole — {gray} "
+           "frame-gray pixels inside it (a left-behind undercoat band "
+           "stands in the tens of thousands)")
+    lines = ["Welcome to Cardnull",
+             "This computer is public domain:",
+             "free for everyone, forever.",
+             "\"Unless Yahweh builds the house,",
+             "they labor in vain who build it.\" - Psalm 127:1"]
+    whole = True
+    for off, want in zip([2, 4, 6, 8, 10], lines):
+        if decode(d, 5 + off, moved_to + 2, want, BLACK) != want:
+            whole = False
+    expect(whole,
+           "all five of the dragged welcome window's lines decode whole at its new place")
 expect(decode(d, 32, 6, "Terminal", WHITE) == "Terminal",
        "the terminal window standing on the verse window's place decodes "
        "as it did (Stone 38: the two windows share that first place — "
@@ -319,18 +434,23 @@ expect(decode(d, 32, 6, "Terminal", WHITE) == "Terminal",
 # proofs' larger steps (small steps can outrun the
 # bench mouse's packet under a repaint's load). New
 # place: (10, 28).
-go(400, 31 * 16 + 8)
-cmd("mouse_button 1")
-time.sleep(0.5)
+held = False
+for _try in range(3):
+    held = press_takes_hold(400, 31 * 16 + 8, 8 * 16, 31 * 16 + 10)
+    if held:
+        break
+    cmd("mouse_button 0")
+    settle()
+expect(held, "the files window's title bar takes hold for the crossing drag")
+settle()
 for i in range(5):
     cmd("mouse_move 16 -10")
     PX, PY = PX + 16, PY - 10
-    time.sleep(0.35)
+    settle()
 cmd("mouse_button 0")
-time.sleep(1.2)
+settle()
 go(700, 400)
-time.sleep(0.6)
-d = dump()
+d = settle()
 expect(decode(d, 28, 11, "Files", WHITE) == "Files",
        "the dragged files window decodes at its new place (left cell 10, top row 28)")
 expect(pixel(d, 90, 520) == FRAME,
@@ -348,18 +468,23 @@ expect(pixel(d, 7 * 16, 44 * 16 + 8) == BLACK,
 
 # Drag the files window back home (left cell 5, top
 # row 31), the same five steps reversed.
-go(400, 28 * 16 + 8)
-cmd("mouse_button 1")
-time.sleep(0.5)
+held = False
+for _try in range(3):
+    held = press_takes_hold(400, 28 * 16 + 8, 13 * 16, 28 * 16 + 10)
+    if held:
+        break
+    cmd("mouse_button 0")
+    settle()
+expect(held, "the files window's title bar takes hold for the drag back home")
+settle()
 for i in range(5):
     cmd("mouse_move -16 10")
     PX, PY = PX - 16, PY + 10
-    time.sleep(0.3)
+    settle()
 cmd("mouse_button 0")
-time.sleep(0.8)
+settle()
 go(700, 400)
-time.sleep(0.5)
-d = dump()
+d = settle()
 expect(decode(d, 31, 6, "Files", WHITE) == "Files",
        "the files window decodes back at its home place")
 
@@ -369,9 +494,8 @@ expect(decode(d, 31, 6, "Files", WHITE) == "Files",
 back = None
 for _ in range(6):
     cmd("sendkey tab")
-    time.sleep(0.5)
-    d = dump()
-    if decode(d, 32, 6, "Verse", WHITE) == "Verse":
+    d = settle()
+    if d is not None and decode(d, 32, 6, "Verse", WHITE) == "Verse":
         back = d
         break
 expect(back is not None,
@@ -387,9 +511,8 @@ if back:
 term = None
 for _ in range(6):
     cmd("sendkey tab")
-    time.sleep(0.5)
-    d = dump()
-    if decode(d, 32, 6, "Terminal", WHITE) == "Terminal":
+    d = settle()
+    if d is not None and decode(d, 32, 6, "Terminal", WHITE) == "Terminal":
         term = d
         break
 expect(term is not None,

@@ -4267,6 +4267,138 @@ second monitor has carried the page yet, and that
 witness, like every witness, is Tyler's in UTM and
 on his own hardware.
 
+### Stone 45 — The repaint roads healed
+
+Tyler witnessed the Stone 44 build in UTM the day
+it landed (November 24, 2026) and found two faults
+with his own eyes: dragging the welcome window left
+its body a big flat gray, with garbled streak lines
+along the rows where its words should stand, and
+while a window moved, all the windows flickered.
+The bench's diagnosis (kept with the day's scratch)
+pinned both to the repaint roads, and this stone
+heals them there.
+
+The face paints straight onto the screen — there is
+no back buffer and no clipping anywhere in it — and
+every window's painter first lays its frame's full
+undercoat, a flat dark gray (85, 85, 85), and only
+then paints the body over it: the welcome's own
+body is light (170, 170, 170) with black words. A
+region repaint (paintregion, the road Stones 34 and
+35 laid) washed its road, re-laid every icon the
+road touched — whole, all three rows and the name
+beside the picture — and repainted the windows
+whose places touched the road. But a pass writes
+farther than its road: an icon's whole span can
+stand partly outside the road, over a window that
+does not touch the road at all; and a repainted
+window is painted whole, frame and body and the
+shadow's reach past its right and foot, over
+whatever stands there — including a window in front
+of it whose own place never touched the road. Such
+a window kept the writing standing on it with no
+body over it: the frame's gray undercoat where its
+words belonged, an icon's name stamped across its
+body — state right, glass wrong, healed only when
+some later whole repaint happened by. The set is
+now closed before anything is washed (the
+body-always-lands closure): a window whose place
+meets a re-laid icon's whole span, or the
+place-and-shadow of a window already in the set,
+joins the set, and the closing repeats until no
+window is added, since a joined window's own
+painting writes just as far. Every window a pass
+writes on is repainted in that same pass, after the
+icons, in the standing order.
+
+The flicker was the drag road itself: at Stone 34
+a drag step repainted, whole, every window touching
+the union of the ground left and the ground taken —
+so as a window crossed the desktop, its bystanders
+were washed and redrawn at every step. A step now
+paints only what the step itself disturbs
+(dragstep): the ground the window is leaving is
+washed bare and its icons laid again, and the
+window — forward since the hold was taken — is
+painted at its new place. The windows a step
+uncovers stand washed for the drag's length; the
+drag's following gathers the whole road the window
+travelled, place by place, and letting the button
+go lays one region repaint over that whole road,
+which makes the glass whole again, once. The step's
+errand travels in the desk at 464 to 475 (the desk
+stands 476 bytes now), the way the region repaint's
+road travels at 384 — the call's three blocks fill
+the machine's registers already.
+
+The stone also restores the drag's own proof.
+prove-stone34 had stood broken since the compiler
+changed under it: it read the runtime's loop-pass
+counter from a global cell, __guard_passes, that
+the compiler no longer lays in the kernel (each
+loop's guard stands in the loop's own frame now),
+so it died before booting and the drag road had no
+working guard. The restored proof checks directly
+what the counter stood for, and more strongly: the
+populated desktop below the dragged welcome window
+is hashed after EVERY step of its drag, button
+still held, and must stand pixel for pixel
+untouched at every instant; and after the drop the
+dragged window's own wholeness is proved — a census
+of its body's interior finds no frame-gray standing
+in it, and all five of its lines decode. Its drags
+are taken the way this bench demands: the pointer
+paced in small steps, each take-hold confirmed by
+the pressed window's title bar turning the front
+window's blue before any step is sent, and frames
+left to settle between inputs — the bench's mouse
+loses packets under repaint load, and a press it
+lost is simply tried again. A screendump in the
+restored harness is read only after a breath and
+believed only when its measure is whole: the first
+restored runs read frames a step behind the glass
+under this bench's load, took repaints still in
+flight for settled desktops, and sent drag steps
+into them to be lost. The proof passed whole on
+this stone's code — twenty-one checks, the
+crossings and the returns of its second drag among
+them.
+
+The companion proofs stand: the disc's own
+(prove-iso, fourteen checks), Stones 38, 39, 40,
+43, and 44, the EFI door, and the feather start all
+pass on this stone's tree. Stone 41's proof fails
+its two start-menu checks and Stone 42's fails its
+eight — the stale-menu reckoning Stone 42's growth
+left in Stone 41's proof, met again: those proofs
+read the menu at the rows Stone 41's menu stood on,
+and Stone 46's growth (the next stone) moves the
+reckoning again and mends both proofs there, as
+recorded with that stone. The no-witness proof
+failed its welcome-panel checks on a single first
+frame read mid-paint — its letter checks passed in
+the same frame — the first-frame timing flake this
+bench has always had; nothing at the rising changed
+at this stone.
+
+The bench limit, stated plainly, because it was
+measured and not guessed: after the proof's whole
+pass, this bench's emulated mouse would no longer
+carry a drag at all — a take-hold confirmed by the
+title bar's blue, six paced steps sent, and the
+window unmoved — and the same harness on the
+unmodified Stone 44 tree showed the same standstill,
+so the limit is the bench's, not this stone's
+roads. Tyler's UTM drags windows on the living
+machine (it was a moving drag that showed him the
+faults), where the mouse is hardware-paced and
+faithful. So the healing stands proved on the roads
+and their ordering and on the one whole pass the
+bench gave; the witness that the flicker and the
+gray body are gone from the living machine is
+Tyler's in UTM, still to come.
+
 ## The EFI door verified (November 24, 2026)
 
 The disc has carried two doors since it was first

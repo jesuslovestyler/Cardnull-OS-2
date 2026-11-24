@@ -260,8 +260,17 @@
 //       the rising (456) and how many it has turned
 //       away for a card that did not reckon true
 //       (460). (180's forward reckoning grows again:
-//       12 is the Shield window.) The desk stands
-//       464 bytes now.
+//       12 is the Shield window.) The desk stood
+//       464 bytes then.
+//  464  the drag step's errand (Stone 45): which
+//       window a drag step is moving (464) and the
+//       place it is going to (468 its left column,
+//       472 its top row, in letter cells) — laid by
+//       the drag's following in the main body before
+//       each dragstep call, the way the region
+//       repaint's road is laid at 384, the call's
+//       three blocks filling the machine's registers
+//       already. The desk stands 476 bytes now.
 //  320  the letter cell's size in pixels (Stone 28):
 //       sixteen at the words' usual size — the font's
 //       eight by eight drawn at twice size — and
