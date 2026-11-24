@@ -896,6 +896,30 @@
 //          travels at 464 to 475, the way the road
 //          travels at 384.
 //
+// Stone 46: all the programs in the start menu — at
+//          Tyler's word from the same witness ("i was
+//          thinking all those programs would be in
+//          the start menu"). The bar's menu carried
+//          eleven choices; Paint and Terminal stood
+//          on the desktop with none. The menu now
+//          carries thirteen, in the desktop icons'
+//          own order: Welcome and Feather first, as
+//          they have always stood, then Files, Editor,
+//          Paint, Calculator, Verse, Help, Settings,
+//          Terminal, Bible, Shield, and Rest last —
+//          Paint after Editor and Terminal after
+//          Settings, where they stand among their
+//          neighbors. The menu's reckoning grew with
+//          it (thirteen rows, its top two rows higher,
+//          its foot still on the bar's top edge), and
+//          painter and pointer read the same reckoning
+//          as they always have, so the press that
+//          picks a choice lands on the choice the
+//          painter drew. The two new choices open
+//          their windows exactly as their typed words
+//          do — Paint with its feather's opening visit
+//          asked for, Terminal with its kept answers
+//          standing in it.
 //
 // The arrangement of the screen (the text face's rows;
 // on the face of light the same words stand on its grid,
@@ -3601,14 +3625,28 @@ make paintchips(desk) {
 // the start button), it is twelve
 // cells wide — room for the longest name, Settings,
 // with the frame's breathing room the windows keep —
-// and eleven cells high, one row to a choice (ten
+// and thirteen cells high, one row to a choice (twelve
 // window choices, and Rest under them since Stone 25,
 // standing last since Stone 29, one row lower again
 // since Stone 30's Calculator choice took the seventh
 // row, and one row lower again since Stone 31's Help
 // choice took the eighth row, since Stone 41's Bible
 // choice took the ninth, and since Stone 42's Shield
-// choice took the tenth).
+// choice took the tenth). Since Stone 46 the choices
+// stand in the desktop icons' own order — Welcome and
+// Feather first, as they have always stood, then
+// Files, Editor, Paint, Calculator, Verse, Help,
+// Settings, Terminal, Bible, Shield, and Rest last —
+// for Tyler's word at his Stone 44 witness: all the
+// programs belong in the start menu. Paint and
+// Terminal stood on the desktop from Stones 24 and 38
+// with no row here; they have theirs now, Paint after
+// Editor and Terminal after Settings, where they
+// stand among their neighbors on the desktop, and
+// Settings and the choices under it moved down to
+// make their room — the menu's choices and the
+// desktop's icons now name the same programs in the
+// same order.
 
 make menuleft(desk) {
     give 0
@@ -3618,11 +3656,12 @@ make menutop(desk) {
     // Stone 33: the menu rises from the start button at
     // the screen's foot — its foot stands on the bar's
     // top edge, so its top is the bar's two rows and its
-    // own eleven rows up from the grid's foot (eleven
-    // since Stone 42's Shield choice took the tenth
-    // row; ten since Stone 41's Bible choice took the
-    // ninth).
-    give pget(desk, 32) - 13
+    // own thirteen rows up from the grid's foot
+    // (thirteen since Stone 46's Paint and Terminal
+    // choices took their rows; eleven since Stone 42's
+    // Shield choice took the tenth row; ten since
+    // Stone 41's Bible choice took the ninth).
+    give pget(desk, 32) - 15
 }
 
 make menuwide(desk) {
@@ -3630,7 +3669,7 @@ make menuwide(desk) {
 }
 
 make menuhigh(desk) {
-    give 11
+    give 13
 }
 
 // Wipes the menu's place back to the plain desktop:
@@ -3644,10 +3683,11 @@ make menuwash(desk) {
 }
 
 // Paints the bar's menu from the desk's standing: open,
-// its gray edge and black body and the eleven choices in
-// white, one to a row; closed, nothing — putting the
-// menu away is menuwash's and the windows' painting's
-// work.
+// its gray edge and black body and the thirteen choices
+// in white, one to a row — the desktop icons' own order
+// since Stone 46, Welcome and Feather first and Rest
+// last; closed, nothing — putting the menu away is
+// menuwash's and the windows' painting's work.
 make onemenu(desk) {
     if pget(desk, 268) == 1 {
         let ml = menuleft(desk)
@@ -3662,14 +3702,16 @@ make onemenu(desk) {
         pixline(desk, (mt + 0) * 256 + (ml + 1), "Welcome", 15)
         pixline(desk, (mt + 1) * 256 + (ml + 1), "Feather", 15)
         pixline(desk, (mt + 2) * 256 + (ml + 1), "Files", 15)
-        pixline(desk, (mt + 3) * 256 + (ml + 1), "Settings", 15)
-        pixline(desk, (mt + 4) * 256 + (ml + 1), "Editor", 15)
-        pixline(desk, (mt + 5) * 256 + (ml + 1), "Verse", 15)
-        pixline(desk, (mt + 6) * 256 + (ml + 1), "Calculator", 15)
+        pixline(desk, (mt + 3) * 256 + (ml + 1), "Editor", 15)
+        pixline(desk, (mt + 4) * 256 + (ml + 1), "Paint", 15)
+        pixline(desk, (mt + 5) * 256 + (ml + 1), "Calculator", 15)
+        pixline(desk, (mt + 6) * 256 + (ml + 1), "Verse", 15)
         pixline(desk, (mt + 7) * 256 + (ml + 1), "Help", 15)
-        pixline(desk, (mt + 8) * 256 + (ml + 1), "Bible", 15)
-        pixline(desk, (mt + 9) * 256 + (ml + 1), "Shield", 15)
-        pixline(desk, (mt + 10) * 256 + (ml + 1), "Rest", 15)
+        pixline(desk, (mt + 8) * 256 + (ml + 1), "Settings", 15)
+        pixline(desk, (mt + 9) * 256 + (ml + 1), "Terminal", 15)
+        pixline(desk, (mt + 10) * 256 + (ml + 1), "Bible", 15)
+        pixline(desk, (mt + 11) * 256 + (ml + 1), "Shield", 15)
+        pixline(desk, (mt + 12) * 256 + (ml + 1), "Rest", 15)
     }
 }
 
@@ -8139,31 +8181,28 @@ while true {
                                                 pset(pixdesk, 180, 3)
                                             }
                                             if pick == 3 {
-                                                pset(pixdesk, 208, 1)
-                                                pset(pixdesk, 180, 4)
-                                            }
-                                            if pick == 4 {
                                                 pset(pixdesk, 220, 1)
                                                 pset(pixdesk, 224, 0)
                                                 pset(pixdesk, 228, 0)
                                                 pset(pixdesk, 308, 0)
                                                 pset(pixdesk, 180, 5)
                                             }
-                                            if pick == 5 {
-                                                // The menu's Verse
+                                            if pick == 4 {
+                                                // The menu's Paint
                                                 // choice (Stone
-                                                // 29): the verse
+                                                // 46): the paint
                                                 // window opens and
-                                                // the day's verse
-                                                // is reckoned as it
-                                                // opens, exactly as
-                                                // the word 'verse'
+                                                // the paint
+                                                // feather's opening
+                                                // visit is asked
+                                                // for, exactly as
+                                                // the word 'paint'
                                                 // opens it.
-                                                pset(pixdesk, 336, verseday(utcnow, offset))
-                                                pset(pixdesk, 324, 1)
-                                                pset(pixdesk, 180, 7)
+                                                pset(pixdesk, 272, 1)
+                                                pset(pixdesk, 180, 6)
+                                                paintask = 1
                                             }
-                                            if pick == 6 {
+                                            if pick == 5 {
                                                 // The menu's
                                                 // Calculator choice
                                                 // (Stone 30): the
@@ -8178,6 +8217,20 @@ while true {
                                                 pset(pixdesk, 340, 1)
                                                 pset(pixdesk, 180, 8)
                                                 calcask = 1
+                                            }
+                                            if pick == 6 {
+                                                // The menu's Verse
+                                                // choice (Stone
+                                                // 29): the verse
+                                                // window opens and
+                                                // the day's verse
+                                                // is reckoned as it
+                                                // opens, exactly as
+                                                // the word 'verse'
+                                                // opens it.
+                                                pset(pixdesk, 336, verseday(utcnow, offset))
+                                                pset(pixdesk, 324, 1)
+                                                pset(pixdesk, 180, 7)
                                             }
                                             if pick == 7 {
                                                 // The menu's Help
@@ -8194,6 +8247,22 @@ while true {
                                                 pset(pixdesk, 180, 9)
                                             }
                                             if pick == 8 {
+                                                pset(pixdesk, 208, 1)
+                                                pset(pixdesk, 180, 4)
+                                            }
+                                            if pick == 9 {
+                                                // The menu's
+                                                // Terminal choice
+                                                // (Stone 46): the
+                                                // terminal window
+                                                // opens, exactly
+                                                // as the word
+                                                // 'terminal' opens
+                                                // it.
+                                                pset(pixdesk, 404, 1)
+                                                pset(pixdesk, 180, 10)
+                                            }
+                                            if pick == 10 {
                                                 // The menu's Bible
                                                 // choice (Stone
                                                 // 41): the Bible
@@ -8209,7 +8278,7 @@ while true {
                                                 pset(pixdesk, 424, 1)
                                                 pset(pixdesk, 180, 11)
                                             }
-                                            if pick == 9 {
+                                            if pick == 11 {
                                                 // The menu's Shield
                                                 // choice (Stone
                                                 // 42): the Shield
@@ -8220,7 +8289,7 @@ while true {
                                                 pset(pixdesk, 444, 1)
                                                 pset(pixdesk, 180, 12)
                                             }
-                                            if pick == 10 {
+                                            if pick == 12 {
                                                 // The menu's Rest
                                                 // choice (Stone
                                                 // 25): the menu is

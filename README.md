@@ -4399,6 +4399,64 @@ bench gave; the witness that the flicker and the
 gray body are gone from the living machine is
 Tyler's in UTM, still to come.
 
+### Stone 46 — All the programs in the start menu
+
+At the same witness Tyler gave the word: all the
+programs belong in the start menu. The menu named
+eleven choices, and two of the desktop's programs
+were missing from it — Paint and Terminal could be
+opened from their icons or their typed words, but
+not from the menu. The menu names thirteen now, and
+its choices stand in the desktop icons' own order:
+Welcome and Feather first, as they have always
+stood, then Files, Editor, Paint, Calculator,
+Verse, Help, Settings, Terminal, Bible, and Shield,
+with Rest last, as it has always stood. Paint
+stands fifth, after Editor, and Terminal tenth,
+after Settings — where each stands among its
+neighbors on the desktop itself. The menu's
+reckoning grew with it: thirteen rows, its foot
+still on the bar's top edge, its top two rows
+higher; the painter and the pointer read the one
+reckoning, as the menu's discipline has always
+required, and the two new choices open their
+windows exactly as their typed words do — Paint
+with its feather's opening visit standing in it,
+Terminal brought forward — and the moved choices,
+Bible eleventh among them, land where they always
+landed.
+
+The stone's proof (prove-stone46) opens the menu,
+decodes all thirteen choices at their rows, and
+presses the new and the moved: Paint, Terminal,
+Bible on its contents page, and Rest, whose panel
+Stay then puts away — twenty-two checks, passing
+whole. Its presses are taken the way this bench
+demands, and the taking is recorded in the proof
+itself: the road to each press point is walked in
+small steps, a lost press is simply taken again,
+and Rest's row — the menu's lowest, eight pixels
+from the bar — is pressed first among the choices,
+while the pointer's reckoning is freshest; on this
+bench the reckoning drifts a little with every move
+it is given, and the proof's first runs, which
+pressed Rest last, watched that drift spend itself
+on the lowest row.
+
+The growth stales the menu reckonings two older
+proofs carry, and both are mended here, as the
+discipline requires — no check weakened, the same
+words decoded at their true rows: Stone 41's proof
+reads the thirteen choices from row 33, Bible on
+row 43, its press on the Bible choice at that row;
+Stone 42's proof the same thirteen, Shield standing
+twelfth — on row 44, the very row it stood on
+before, the menu having risen as far as the choice
+moved down. Both proofs pass whole again on this
+stone's tree (Stone 41's, one hundred twelve
+checks; Stone 42's, forty-five). The companions of
+the stone before stand as recorded there.
+
 ## The EFI door verified (November 24, 2026)
 
 The disc has carried two doors since it was first

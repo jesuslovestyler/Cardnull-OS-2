@@ -10,19 +10,21 @@
 # is read on the window's own title bar once a press
 # on its box opens it on its contents page, exactly
 # as the typed word does; a press on the window's
-# close mark closes it. The bar's menu — risen one
-# row higher than Stone 31 left it, its ten choices
-# decoded, Bible the ninth choice and Rest last —
-# opens it by a press on the Bible choice, and
-# Escape closes it.
+# close mark closes it. The bar's menu — its
+# thirteen choices decoded (the menu grew at Stone
+# 42 by the Shield choice and at Stone 46 by the
+# Paint and Terminal choices, and its choices stand
+# in the icons' order since Stone 46), Bible the
+# eleventh choice and Rest last — opens it by a
+# press on the Bible choice, and Escape closes it.
 #
 # The window's place is boot 1's: left cell 5, top
 # row 30, fifty-four wide, sixteen high. The ninth
 # icon's box stands at rows 33 to 35 (the icons stand
 # four rows apart from row 1), its name at row 34
 # beside the picture. The menu rises from the bar at
-# the screen's foot: ten rows from row 36, its choices
-# one to a row from row 36, Bible on row 44.
+# the screen's foot: thirteen rows from row 33, its
+# choices one to a row from row 33, Bible on row 43.
 
 import re
 
@@ -142,24 +144,26 @@ d = waitdump(lambda d: d is not None
 expect(d is not None, "a press on the Bible window's close mark closed it")
 
 # The menu: a press on the start button opens it, its
-# ten choices decoded — the nine windows' names with
-# Bible the ninth choice, and Rest last.
+# thirteen choices decoded — the twelve windows'
+# names in the icons' order (Stone 46) with Bible
+# the eleventh choice, and Rest last.
 click(16, 752)
 d = waitdump(lambda d: d is not None
-             and decode(d, 44, 1, "Bible", WHITE) == "Bible", 25)
+             and decode(d, 43, 1, "Bible", WHITE) == "Bible", 25)
 expect(d is not None, "a press on the start button opened the menu, with Bible standing in it")
 if d:
-    for i, word in enumerate(("Welcome", "Feather", "Files", "Settings",
-                              "Editor", "Verse", "Calculator", "Help",
-                              "Bible", "Rest")):
-        said = decode(d, 36 + i, 1, word, WHITE)
+    for i, word in enumerate(("Welcome", "Feather", "Files", "Editor",
+                              "Paint", "Calculator", "Verse", "Help",
+                              "Settings", "Terminal", "Bible", "Shield",
+                              "Rest")):
+        said = decode(d, 33 + i, 1, word, WHITE)
         expect(said == word,
                f"the menu's choice {i + 1} reads {word!r} (read: {said!r})")
 
 # A press on the Bible choice opens the window again,
 # exactly as the typed word does. The choice's row
-# stands at (40, 712).
-click(40, 712)
+# stands at (40, 696).
+click(40, 696)
 d = waitdump(lambda d: d is not None
              and decode(d, BY, BX + 1, "Bible", WHITE) == "Bible"
              and decode(d, BY + 3, BX + 2, "One whole book stands here:", BLACK) == "One whole book stands here:", 25)

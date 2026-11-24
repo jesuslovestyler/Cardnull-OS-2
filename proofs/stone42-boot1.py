@@ -19,10 +19,13 @@
 # so the mark's cell is 5 + 54 - 2 = 57, pixels 912
 # to 928, center 920; its top row is 28, the window
 # clamped whole above the bar — closes it. The bar's
-# menu — risen one row higher than Stone 41 left it,
-# its eleven choices decoded, Shield the tenth
-# window choice and Rest last — opens it by a press
-# on the Shield choice. Its chip stands on the bar:
+# menu — its thirteen choices decoded (Stone 46: the
+# menu grew by the Paint and Terminal choices, rose
+# two rows higher, and its choices stand in the
+# icons' order; Shield stands twelfth and Rest
+# last, on the very row Shield stood on before, the
+# menu having risen as far as the choice moved
+# down) — opens it by a press on the Shield choice. Its chip stands on the bar:
 # with the files window forward the Shield's title
 # bar stands in its behind gray, and a press on the
 # Shield's chip raises it, its bar blue again. And
@@ -176,19 +179,21 @@ d = waitdump(lambda d: d is not None
 expect(d is not None, "a press on the Shield window's close mark closed it")
 
 # The menu: a press on the start button opens it, its
-# eleven choices decoded — the ten windows' names
-# with Shield the tenth choice, and Rest last. The
-# menu rises from the bar at the screen's foot:
-# eleven rows from row 35.
+# thirteen choices decoded — the twelve windows'
+# names in the icons' order (Stone 46), with Shield
+# the twelfth choice, and Rest last. The menu rises
+# from the bar at the screen's foot: thirteen rows
+# from row 33.
 click(16, 752)
 d = waitdump(lambda d: d is not None
              and decode(d, 44, 1, "Shield", WHITE) == "Shield", 25)
 expect(d is not None, "a press on the start button opened the menu, with Shield standing in it")
 if d:
-    for i, word in enumerate(("Welcome", "Feather", "Files", "Settings",
-                              "Editor", "Verse", "Calculator", "Help",
-                              "Bible", "Shield", "Rest")):
-        said = decode(d, 35 + i, 1, word, WHITE)
+    for i, word in enumerate(("Welcome", "Feather", "Files", "Editor",
+                              "Paint", "Calculator", "Verse", "Help",
+                              "Settings", "Terminal", "Bible", "Shield",
+                              "Rest")):
+        said = decode(d, 33 + i, 1, word, WHITE)
         expect(said == word,
                f"the menu's choice {i + 1} reads {word!r} (read: {said!r})")
 
