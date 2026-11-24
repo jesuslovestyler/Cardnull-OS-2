@@ -4399,6 +4399,17 @@ bench gave; the witness that the flicker and the
 gray body are gone from the living machine is
 Tyler's in UTM, still to come.
 
+Addendum (later the same day, on the Stone 46
+tree, the bench quiet): the no-witness proof
+passes whole — forty checks — and with it the
+full companion sweep of the stone before (the
+disc's own proof and Stones 38, 39, 40, 43, and
+44, the EFI door, and the feather start) passes
+on the final tree. The reading above stands
+confirmed: the no-witness failures at this stone
+were the first-frame timing flake, nothing at the
+rising.
+
 ### Stone 46 — All the programs in the start menu
 
 At the same witness Tyler gave the word: all the
