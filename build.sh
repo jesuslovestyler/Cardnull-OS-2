@@ -61,7 +61,10 @@ mkdir -p build
 #              shows, and the day's reckoning (Stone 29)
 #   helpwords  the plain words the help window shows,
 #              in five short pages (Stone 31)
-LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/featherdoor.nifla src/commands.nifla src/usbkey.nifla src/xhcikey.nifla src/rtclock.nifla src/diskkeep.nifla src/font.nifla src/pixface.nifla src/mouse.nifla src/speaker.nifla src/rest.nifla src/verses.nifla src/helpwords.nifla"
+#   bibletext  the book of Jonah, whole, in the World
+#              English Bible's wording, as the Bible
+#              reading window shows it (Stone 41)
+LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/featherdoor.nifla src/commands.nifla src/usbkey.nifla src/xhcikey.nifla src/rtclock.nifla src/diskkeep.nifla src/font.nifla src/pixface.nifla src/mouse.nifla src/speaker.nifla src/rest.nifla src/verses.nifla src/helpwords.nifla src/bibletext.nifla"
 PRELUDE=""
 for lib in $LIBRARIES; do
     # Word splitting is intended: one --prelude pair per file.

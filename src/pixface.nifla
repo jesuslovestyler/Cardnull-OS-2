@@ -221,8 +221,32 @@
 //       again after any repaint. The answers' first
 //       and last rows (128 and 132) and the typing
 //       line's row (136) are laid inside this window
-//       by layplaces now. The desk stands 420 bytes
-//       now.
+//       by layplaces now. The desk stood 420 bytes
+//       then.
+//  424  the Bible window's standing (Stone 41): whether
+//       it stands open (424), which page of the kept
+//       book stands in it (428: 0 the contents page,
+//       then the book's pages in order, laid by the main
+//       body when the window is opened and turned by its
+//       foot's presses and the arrow keys), its place
+//       (432 its left column, 436 its top row, in letter
+//       cells) — the eleventh window's pair, laid at the
+//       face's rising and written by dragging, like the
+//       pairs at 236 to 412 — and the contents page's
+//       chapter pick (440: 1 to 4, the chapter Enter or
+//       the foot's Read word will read). (180's forward
+//       reckoning grows again: 11 is the Bible window.)
+//       The standing begins at 424, not 420: the
+//       terminal's answers-block address at 416 is read
+//       whole, eight bytes at a time, by the floor that
+//       lays the answers (drawtermbody's kin), so its
+//       high half at 420 to 423 must stand empty — a
+//       first laying of this standing at 420 wrote the
+//       window's open mark into that high half, the
+//       answers' address went wild, and the window
+//       would not open; the bench caught it, and the
+//       standing stands clear of the address now.
+//       The desk stands 444 bytes now.
 //  320  the letter cell's size in pixels (Stone 28):
 //       sixteen at the words' usual size — the font's
 //       eight by eight drawn at twice size — and

@@ -3459,6 +3459,141 @@ Stone 33's known pointer flake. Bench-proved,
 as every stone here; the witness that counts is
 Tyler's own in UTM, still to come.
 
+### Stone 41 — The Bible reading window, and the doorman set right
+
+The eleventh window is a reading window: the
+whole book of Jonah, in the World English
+Bible's own words, kept in the system itself
+(`src/bibletext.nifla`, a library in the build's
+list) and read at length without any disc or
+disk beyond the one the system stands on. It
+opens on a contents page — "One whole book
+stands here: Jonah, in the World English
+Bible's own words. Pick a chapter:" — with the
+four chapters listed and the picked one standing
+white on blue; the arrow keys move the pick,
+Enter (or the foot's "Read") opens the chapter,
+and the book reads in thirty pages, its words
+wrapped at thirty-six letters to the window's
+measure. A reading page's foot offers "Back",
+names the standing page ("Page 2 of 30"), and
+offers "More"; the down and up arrows turn the
+pages the same way, the last page's foot offers
+"First page" back to the contents, and Escape
+closes the window. Four roads lead in, as they
+do to every window: the typed word `bible`, a
+ninth desktop icon (a blue book with a gold
+cross, the palette's gold, ninth down the left
+edge), the start menu's ninth choice (the menu
+stands ten choices tall now, Rest still last),
+and a ninth chip on the bar. The window's
+standing lives at the desk's end — its open
+mark at 424, the standing page at 428, its
+place at 432 and 436, the contents pick at
+440 — and the desk stands 444 bytes now. (The
+standing begins at 424 and not 420 for a reason
+the bench taught while this stone was built:
+the terminal's answers-block address at 416 is
+read whole, eight bytes at a time, so its high
+half at 420 must stand empty; a first laying
+that wrote this window's open mark there sent
+the address wild and the window would not open.)
+
+**The doorman set right.** This stone's growth
+carried the staged file to 484,880 bytes, and
+with it an old fault in the BIOS doorman stood
+revealed — the hardest hunt in this repository
+so far, and its verdict is recorded plainly:
+the fault was never in this window's source,
+and never in the Nifla compilers, though a
+day's bisection first blamed the bare compiler.
+What was happening was a reset. The doorman's
+header had long carried a claim — 352 KiB at
+the last raising — for the system file's stage
+at 0x40000, and the file had outgrown the claim:
+its stage in truth runs to 0xB6260 and had
+swallowed both the module stages at
+0x98000–0xA0000 and the protected-mode stack's
+top at 0x8F000, which none of the claim's
+raisings (Stones 20, 26, 29, 32, 40) had ever
+moved. The doorman's own pushes in its
+segment-copy loop then landed inside the staged
+file and overwrote the system's code, and the
+staged settings and feather overwrote the
+segment's tail of strings; a pointer press on
+the running desktop derailed on the overwritten
+code, faulted, and reset the machine — wearing
+the look of the Bible window closing, since the
+fresh boot's desk differs from the running one
+in just the two fields a close writes. Found by
+a full-image diff of the running kernel against
+its file and an interrupt trace of the press
+(November 20, 2026), and fixed the way this
+note's map now tells: the stack's top moved to
+0x3F000, below the system stage and above the
+loader's own data, and the four module stages
+moved to the free low ground between that data
+and the stage — settings at 0x10000, the
+feather at 0x10800, the paint feather at
+0x12000, the calculator feather at 0x14000.
+On the healed loader a press no longer resets
+the machine, and the running kernel stands
+byte-identical to its file across the whole
+segment but for one bit the CPU itself sets in
+the GDT. The EFI doorman never staged the
+system on fixed ground — it reads its files
+into the firmware's own buffers and lays the
+segments straight from them — so this fault was
+the BIOS door's alone; its own verification,
+owed since this hunt, is the next thing taken
+in hand after this stone.
+
+**The build keeps the laying now.** A stage
+check stands in build-iso.sh (the OS half of
+the armor Nifla's Stone 43 specified): on every
+build, by the files' actual sizes and never any
+claim, the staged system's span must meet no
+module stage and not the stack's top, every
+module's stage span must meet neither the
+system's span nor another stage, and every
+module file must fit its stage — and a build
+that breaks the law stops there and says so, in
+plain words, instead of a window misbehaving on
+someone's screen months later. The check was
+itself proved on the bench: a settings file
+grown past its stage stops the build with the
+law named.
+
+Bench-proved by prove-stone41.sh in two boots
+and 109 checks — the contents page decoded line
+by line, Jonah 1 read word for word against the
+bundled text, the pages turned by the arrows
+and by presses on the foot's own words (the
+presses that reset the machine before the
+doorman was set right), Jonah 4 read to the
+book's last page, First page home, Escape
+closing; and the icon, the close mark, and the
+menu's Bible choice in the second boot — with
+the disc proof and the Stones 40, 39, 38, 17,
+no-witness, and feather-start proofs passing
+together (Stone 17's USB boot failed once on
+this bench's emulated USB road, as it has
+before, and passed whole on the re-run). Two
+aims of the second boot's proof were corrected
+where the proof, not the system, had them
+wrong: the close mark is pressed at its own
+cell's center, (920, 488), and the icon's name
+is read where it stands in the clear — its
+first letter beside its picture, the terminal
+window at the rising covering the rest, as a
+window stands over the icons it covers; the
+name whole is read on the opened window's own
+title bar. Bench-proved, as every stone here;
+the witness that counts is Tyler's own in UTM,
+still to come. Committed locally only: the
+ferry to GitHub is deferred to the batch at
+chain end, when Stones 40–44 travel together.
+
 
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 

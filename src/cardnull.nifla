@@ -59,6 +59,10 @@
 //   src/helpwords.nifla  the plain words the help
 //                        window shows, in five short
 //                        pages (Stone 31)
+//   src/bibletext.nifla  the book of Jonah, whole, in
+//                        the World English Bible's
+//                        wording, as the Bible reading
+//                        window shows it (Stone 41)
 //   src/cardnull.nifla   this main body: the boot
 //                        sequence, the first-breath lift,
 //                        the state, the face, the typing
@@ -719,6 +723,52 @@
 //          second picture's place that does not stand
 //          there; the window offers the picture no
 //          "Copy", and says nothing it cannot do.
+// Stone 41: a Bible reading window — an eleventh
+//          window on the face of light, opened by the
+//          word 'bible', by a ninth icon at the
+//          desktop's left edge, and by a new choice,
+//          Bible, in the bar's menu (the menu's ninth
+//          window choice; Rest stands under it now,
+//          ten rows in all). Where the verse window
+//          shows one verse for the day, this window
+//          reads a passage at length: the whole book
+//          of Jonah — all four chapters, all forty-
+//          eight verses — in the World English
+//          Bible's wording exactly, the translation
+//          the verse window already carries, kept in
+//          bibletext.nifla a chapter at a time and
+//          wrapped as they are painted, nine lines to
+//          a page, thirty pages in all with its
+//          contents page. It opens on that contents
+//          page, which names the book and its
+//          translation and lists its chapters; the
+//          chapter pick moves with the arrow keys and
+//          Enter reads the picked chapter, and a
+//          press on the contents page's foot reads it
+//          too.
+//          Each reading page stands under its
+//          passage's plain name at the window's head
+//          ("Jonah 1"), each chapter beginning on a
+//          fresh page; the pages turn forward and
+//          back by the arrow keys and by the foot's
+//          words — Back at its left, More at its
+//          right, First page on the last page, which
+//          returns to the contents page. The window
+//          is a window like the others: it drags by
+//          its title bar, Tab reaches it, Escape and
+//          its close mark close it, its chip stands
+//          on the bar with the others' (Stone 39's
+//          laying grown to nine chips), and its
+//          standing lives in the desk at 424 to 440.
+//          The text stands in the kernel with the
+//          kept verses and the help words: Stone 40
+//          left 23,733 bytes of headroom under the
+//          doorman's 352 KiB claim, and this book and
+//          its window stand inside it — no claim
+//          raised, no stage moved, no disc or disk
+//          road needed (bibletext.nifla's heading and
+//          the README's Stone 41 section record the
+//          reckoning and the new segment end).
 //
 // The arrangement of the screen (the text face's rows;
 // on the face of light the same words stand on its grid,
@@ -2557,6 +2607,359 @@ make onehelp(desk) {
     }
 }
 
+// ---- the Bible window (Stone 41) ----
+//
+// An eleventh window, standing where the files,
+// settings, and editor windows stand. It is a READING
+// window: where the verse window (Stone 29) shows one
+// verse for the day, this window reads a passage at
+// length — the whole book of Jonah, all four chapters
+// and forty-eight verses, in the same World English
+// Bible wording the verse window carries, from the
+// kept text in bibletext.nifla. It opens on its
+// contents page, which names the book and its
+// translation and lists the four chapters as the
+// plain-words choice of a passage; the book's pages
+// follow, nine lines to a page, each chapter
+// beginning on a fresh page, so every page stands
+// under one passage's name — and the passage is
+// named plainly at the window's head, in the words a
+// person names it with ("Jonah 1"). The pages turn
+// forward and back — by the arrow keys, by presses
+// on the window's foot, and, on the contents page,
+// by the chapter pick (the main loop's doings). Its standing lives
+// in the desk at 424 to 440 (pixface.nifla's
+// ledger): open, the page that stands, its place,
+// and the contents page's chapter pick. The window
+// is fifty-four cells wide, like the help window's,
+// and sixteen high: its title row, the passage's
+// row, a breathing row, the page's nine lines, two
+// breathing rows, its foot — the turning word Back
+// at its left (on a reading page), the page's
+// standing ("Page 1 of 30") after it, and the
+// forward word at its right (More, First page on
+// the last page, Read on the contents page) — and
+// one row below.
+
+make bwide(desk) {
+    if pget(desk, 28) >= 56 {
+        give 54
+    }
+    give pget(desk, 28) - 2
+}
+
+make bleft(desk) {
+    give pget(desk, 432)
+}
+
+make btop(desk) {
+    give pget(desk, 436)
+}
+
+make bhigh(desk) {
+    give 16
+}
+
+// The reading's wrap measure for the standing face:
+// the window's inner width, and never wider than
+// thirty-six letters.
+make bibwidth(desk) {
+    let w = bwide(desk) - 4
+    if w > 36 {
+        give 36
+    }
+    give w
+}
+
+// The end of the wrapped line of 'text' that begins
+// at 'start' and must end by 'limit', wrapped at
+// thirty-six letters — the reading's one wrap
+// measure: the reading window's inner width —
+// thirty-six letters at the usual print size, and
+// the window's own narrower inner width at the large
+// size, as the verse window wraps its verse by its
+// window's width (Stone 29), so no line ever runs
+// past the window's edge at either size, and the
+// pagination is reckoned from the same measure the
+// painting uses. The hunting is the answers
+// printer's, as the verse window wraps: the line
+// runs to the measure, or back to the last space
+// within it; a word longer than the measure — no
+// word of this book is — would be cut at the measure.
+make bibspanend(text, start, limit, w) {
+    let end = start + w
+    if end >= limit {
+        give limit
+    }
+    let j = end
+    let hunting = 1
+    while hunting == 1 {
+        if j <= start {
+            hunting = 0
+        } else {
+            if textbyte(text, j) == 32 {
+                hunting = 0
+            } else {
+                j = j - 1
+            }
+        }
+    }
+    if j > start {
+        give j
+    }
+    give end
+}
+
+// Where a verse begins in its chapter's kept text:
+// the verses stand parted by a mark the book's words
+// never use (the upright bar, 124), and a verse's
+// place is found by counting the marks before it.
+make bibverseoff(ch, vi) {
+    let text = biblechaptertext(ch)
+    let n = length(text)
+    let pos = 0
+    let count = 0
+    while count < vi {
+        let hunting = 1
+        while hunting == 1 {
+            if pos >= n {
+                hunting = 0
+            } else {
+                if textbyte(text, pos) == 124 {
+                    hunting = 0
+                } else {
+                    pos = pos + 1
+                }
+            }
+        }
+        pos = pos + 1
+        count = count + 1
+    }
+    give pos
+}
+
+// How long a verse runs in its chapter's kept text:
+// from its beginning to the next mark, or to the
+// chapter's end.
+make bibverselen(ch, vi) {
+    let text = biblechaptertext(ch)
+    let n = length(text)
+    let pos = bibverseoff(ch, vi)
+    let len = 0
+    let hunting = 1
+    while hunting == 1 {
+        if pos + len >= n {
+            hunting = 0
+        } else {
+            if textbyte(text, pos + len) == 124 {
+                hunting = 0
+            } else {
+                len = len + 1
+            }
+        }
+    }
+    give len
+}
+
+// How many wrapped lines one verse takes, at the
+// reading's measure.
+make bibverselines(ch, vi, w) {
+    let text = biblechaptertext(ch)
+    let start = bibverseoff(ch, vi)
+    let limit = start + bibverselen(ch, vi)
+    let lines = 0
+    let going = 1
+    if start >= limit {
+        going = 0
+    }
+    while going == 1 {
+        let end = bibspanend(text, start, limit, w)
+        lines = lines + 1
+        start = end
+        if start < limit {
+            if textbyte(text, start) == 32 {
+                start = start + 1
+            }
+        }
+        if start >= limit {
+            going = 0
+        }
+    }
+    give lines
+}
+
+// How many lines a whole chapter takes: its verses'
+// wrapped lines, and a blank line between verses.
+make bibchapterlines(ch, w) {
+    let vcount = biblechapterverses(ch)
+    let lines = 0
+    let vi = 0
+    while vi < vcount {
+        lines = lines + bibverselines(ch, vi, w)
+        if vi < vcount - 1 {
+            lines = lines + 1
+        }
+        vi = vi + 1
+    }
+    give lines
+}
+
+// How many pages a whole chapter takes, at nine
+// lines to a page.
+make bibchapterpages(ch, w) {
+    give (bibchapterlines(ch, w) + 8) / 9
+}
+
+// How many pages stand in the reading window in
+// all: the contents page, and the chapters' pages
+// after it.
+make bibpages(w) {
+    let total = 1
+    let ch = 1
+    while ch <= 4 {
+        total = total + bibchapterpages(ch, w)
+        ch = ch + 1
+    }
+    give total
+}
+
+// The first page of a chapter (1 to 4): the contents
+// page stands first, then the pages of the chapters
+// before it.
+make bibchapterpage(ch, w) {
+    let page = 1
+    let before = 1
+    while before < ch {
+        page = page + bibchapterpages(before, w)
+        before = before + 1
+    }
+    give page
+}
+
+// Which chapter a page stands in (1 to 4; the
+// contents page gives 0).
+make bibpagechapter(page, w) {
+    if page == 0 {
+        give 0
+    }
+    let ch = 1
+    let at = 1
+    while ch <= 4 {
+        if page < at + bibchapterpages(ch, w) {
+            give ch
+        }
+        at = at + bibchapterpages(ch, w)
+        ch = ch + 1
+    }
+    give 4
+}
+
+// Paints the Bible window from the desk's standing:
+// closed, the plain desktop; open, its frame and
+// title bar, the standing page's passage named at
+// its head, and its nine lines in the window's light
+// ground — on the contents page, its kept lines with
+// the picked chapter's line standing white on blue,
+// as a choice stands; on a reading page, the
+// chapter's verses wrapped as they are painted (the
+// verse window's own way, Stone 29), from the page's
+// first line, a blank line between verses — and its
+// foot.
+make onebible(desk) {
+    let cs = pget(desk, 320)
+    let gx = bleft(desk)
+    let gy = btop(desk)
+    let gw = bwide(desk)
+    let gh = bhigh(desk)
+    if pget(desk, 424) == 0 {
+        pixwashwin(desk, gx, gy, gw, gh)
+    } else {
+        let front = 0
+        if pget(desk, 180) == 11 {
+            front = 1
+        }
+        winframe(desk, gy * 256 + gx, gh * 256 + gw, front)
+        pixspan(desk, 0, 5, 15)
+        pixtext(desk, gy, gx + 1, "Bible")
+        pixink(desk, 7)
+        pixfill(desk, gx * cs + 2, gy * cs + cs + 2, gw * cs - 4, gh * cs - cs - 4)
+        let page = pget(desk, 428)
+        let w = bibwidth(desk)
+        if page == 0 {
+            pixline(desk, (gy + 1) * 256 + (gx + 2), "Jonah", 112)
+            let pick = pget(desk, 440)
+            let li = 0
+            while li < 9 {
+                let line = biblecontents(li)
+                if length(line) > 0 {
+                    let attr = 112
+                    if li == pick + 3 {
+                        attr = 31
+                    }
+                    pixline(desk, (gy + 3 + li) * 256 + (gx + 2), line, attr)
+                }
+                li = li + 1
+            }
+        } else {
+            let ch = bibpagechapter(page, w)
+            pixline(desk, (gy + 1) * 256 + (gx + 2), "Jonah " + ch, 112)
+            let firstline = (page - bibchapterpage(ch, w)) * 9
+            let text = biblechaptertext(ch)
+            let vcount = biblechapterverses(ch)
+            let line = 0
+            let vi = 0
+            while vi < vcount {
+                let start = bibverseoff(ch, vi)
+                let limit = start + bibverselen(ch, vi)
+                let going = 1
+                if start >= limit {
+                    going = 0
+                }
+                while going == 1 {
+                    let end = bibspanend(text, start, limit, w)
+                    if line >= firstline {
+                        if line < firstline + 9 {
+                            pixpaper(desk, 7)
+                            pixspan(desk, start, end - start, 0)
+                            pixtext(desk, gy + 3 + (line - firstline), gx + 2, text)
+                        }
+                    }
+                    line = line + 1
+                    start = end
+                    if start < limit {
+                        if textbyte(text, start) == 32 {
+                            start = start + 1
+                        }
+                    }
+                    if start >= limit {
+                        going = 0
+                    }
+                }
+                if vi < vcount - 1 {
+                    line = line + 1
+                }
+                vi = vi + 1
+            }
+        }
+        if page > 0 {
+            pixline(desk, (gy + 14) * 256 + (gx + 2), "Back", 31)
+        }
+        let standing = "Page " + (page + 1) + " of " + bibpages(w)
+        if gw < 40 {
+            standing = "Page " + (page + 1)
+        }
+        pixline(desk, (gy + 14) * 256 + (gx + 8), standing, 112)
+        let nav = "More"
+        if page == 0 {
+            nav = "Read"
+        }
+        if page + 1 >= bibpages(w) {
+            nav = "First page"
+        }
+        pixline(desk, (gy + 14) * 256 + (gx + gw - 2 - length(nav)), nav, 31)
+    }
+}
+
 // The terminal window's painting (Stone 38): the
 // desktop's console in a window of its own — its
 // frame, its name, and the kept answers laid from
@@ -2687,6 +3090,15 @@ make oneicon(desk, ii) {
         pset(desk, 56, pget(desk, 64 + 10 * 4))
         pixglyph(desk, x + 5, y + 5, 62, 2)
     }
+    if ii == 8 {
+        // Bible (Stone 41): a blue book with a gold
+        // cross on its cover.
+        pixink(desk, 9)
+        pixfill(desk, x + 3, y + 2, 2 * cs - 6, 2 * cs - 4)
+        pixink(desk, 14)
+        pixfill(desk, x + cs - 1, y + 5, 2, 8)
+        pixfill(desk, x + cs - 4, y + 8, 8, 2)
+    }
     let name = ""
     if ii == 0 { name = "Files" }
     if ii == 1 { name = "Editor" }
@@ -2696,6 +3108,7 @@ make oneicon(desk, ii) {
     if ii == 5 { name = "Help" }
     if ii == 6 { name = "Settings" }
     if ii == 7 { name = "Terminal" }
+    if ii == 8 { name = "Bible" }
     pixspan(desk, 0, length(name), 15)
     pixtext(desk, top + 1, 4, name)
 }
@@ -2704,10 +3117,11 @@ make oneicon(desk, ii) {
 // furniture, laid before the windows in every whole
 // repaint, so a window stands over the icons it
 // covers and the icons stand whole where no window
-// stands.
+// stands. (Nine icons since Stone 41: the Bible
+// window's stands ninth, under the terminal's.)
 make oneicons(desk) {
     let ii = 0
-    while ii < 8 {
+    while ii < 9 {
         oneicon(desk, ii)
         ii = ii + 1
     }
@@ -2782,7 +3196,8 @@ make chipwin(slot) {
     if slot == 4 { give 7 }
     if slot == 5 { give 9 }
     if slot == 6 { give 4 }
-    give 10
+    if slot == 7 { give 10 }
+    give 11
 }
 
 // The name the chip at 'slot' carries: the window's
@@ -2796,7 +3211,8 @@ make chipname(slot) {
     if slot == 4 { give "Verse" }
     if slot == 5 { give "Help" }
     if slot == 6 { give "Settings" }
-    give "Terminal"
+    if slot == 7 { give "Terminal" }
+    give "Bible"
 }
 
 // The last column a chip on 'row' may reach (the
@@ -2867,7 +3283,7 @@ make chipplace(desk, slot) {
 make paintchips(desk) {
     pixchipground(desk)
     let s = 0
-    while s < 8 {
+    while s < 9 {
         let place = chipplace(desk, s)
         if place >= 0 {
             let row = place / 256
@@ -2935,8 +3351,9 @@ make menutop(desk) {
     // Stone 33: the menu rises from the start button at
     // the screen's foot — its foot stands on the bar's
     // top edge, so its top is the bar's two rows and its
-    // own nine rows up from the grid's foot.
-    give pget(desk, 32) - 11
+    // own ten rows up from the grid's foot (ten since
+    // Stone 41's Bible choice took the ninth row).
+    give pget(desk, 32) - 12
 }
 
 make menuwide(desk) {
@@ -2944,7 +3361,7 @@ make menuwide(desk) {
 }
 
 make menuhigh(desk) {
-    give 9
+    give 10
 }
 
 // Wipes the menu's place back to the plain desktop:
@@ -2981,7 +3398,8 @@ make onemenu(desk) {
         pixline(desk, (mt + 5) * 256 + (ml + 1), "Verse", 15)
         pixline(desk, (mt + 6) * 256 + (ml + 1), "Calculator", 15)
         pixline(desk, (mt + 7) * 256 + (ml + 1), "Help", 15)
-        pixline(desk, (mt + 8) * 256 + (ml + 1), "Rest", 15)
+        pixline(desk, (mt + 8) * 256 + (ml + 1), "Bible", 15)
+        pixline(desk, (mt + 9) * 256 + (ml + 1), "Rest", 15)
     }
 }
 
@@ -3101,6 +3519,9 @@ make paintwindows(desk, block, notes) {
     if pget(desk, 404) == 0 {
         oneterminal(desk)
     }
+    if pget(desk, 424) == 0 {
+        onebible(desk)
+    }
     // The desktop's icons (Stone 38) are laid after
     // the closed windows' washes and before the open
     // windows: a closed window has no ground presence
@@ -3159,6 +3580,11 @@ make paintwindows(desk, block, notes) {
             oneterminal(desk)
         }
     }
+    if f != 11 {
+        if pget(desk, 424) == 1 {
+            onebible(desk)
+        }
+    }
     if f == 1 {
         if pget(desk, 172) == 1 {
             onewelcome(desk)
@@ -3207,6 +3633,11 @@ make paintwindows(desk, block, notes) {
     if f == 10 {
         if pget(desk, 404) == 1 {
             oneterminal(desk)
+        }
+    }
+    if f == 11 {
+        if pget(desk, 424) == 1 {
+            onebible(desk)
         }
     }
     // The bar's menu stands over everything (Stone 23):
@@ -3304,6 +3735,9 @@ make callpainter(desk, block, notes) {
     }
     if win == 10 {
         oneterminal(desk)
+    }
+    if win == 11 {
+        onebible(desk)
     }
 }
 
@@ -3435,7 +3869,7 @@ make paintregion(desk, block, notes) {
     } else {
         let set = 0
         let win = 1
-        while win <= 10 {
+        while win <= 11 {
             let wl = winleft(desk, win)
             let wt = wintop(desk, win)
             let ww = winwide(desk, win)
@@ -3453,7 +3887,7 @@ make paintregion(desk, block, notes) {
         // fellow's wash will fall joins the set, or the
         // wash would rub a hole in it.
         win = 1
-        while win <= 10 {
+        while win <= 11 {
             if inset(set, win) == 1 {
                 if winopen(desk, win) == 0 {
                     let cl = winleft(desk, win)
@@ -3461,7 +3895,7 @@ make paintregion(desk, block, notes) {
                     let cw = winwide(desk, win)
                     let ch = winhigh(desk, win)
                     let other = 1
-                    while other <= 10 {
+                    while other <= 11 {
                         if winopen(desk, other) == 1 {
                             if inset(set, other) == 0 {
                                 let ql = winleft(desk, other)
@@ -3490,7 +3924,7 @@ make paintregion(desk, block, notes) {
         // ground's furniture, and a window stands over
         // the icons it covers.
         let ii = 0
-        while ii < 8 {
+        while ii < 9 {
             let itop = iconat(desk, ii)
             if rectstouchx(1, 13, rx, rw) == 1 {
                 if rectstouchy(itop, 3, ry, rh) == 1 {
@@ -3500,7 +3934,7 @@ make paintregion(desk, block, notes) {
             ii = ii + 1
         }
         win = 1
-        while win <= 10 {
+        while win <= 11 {
             if inset(set, win) == 1 {
                 if winopen(desk, win) == 0 {
                     pset(desk, 400, win)
@@ -3510,7 +3944,7 @@ make paintregion(desk, block, notes) {
             win = win + 1
         }
         win = 1
-        while win <= 10 {
+        while win <= 11 {
             if inset(set, win) == 1 {
                 if winopen(desk, win) == 1 {
                     if win != pget(desk, 180) {
@@ -3523,7 +3957,7 @@ make paintregion(desk, block, notes) {
         }
         let fwd = pget(desk, 180)
         if fwd >= 1 {
-            if fwd <= 10 {
+            if fwd <= 11 {
                 if inset(set, fwd) == 1 {
                     if winopen(desk, fwd) == 1 {
                         pset(desk, 400, fwd)
@@ -3584,6 +4018,7 @@ make winopen(desk, win) {
     if win == 8 { give pget(desk, 340) }
     if win == 9 { give pget(desk, 360) }
     if win == 10 { give pget(desk, 404) }
+    if win == 11 { give pget(desk, 424) }
     give 0
 }
 
@@ -3601,6 +4036,7 @@ make winleft(desk, win) {
     if win == 8 { give caleft(desk) }
     if win == 9 { give hleft(desk) }
     if win == 10 { give teleft(desk) }
+    if win == 11 { give bleft(desk) }
     give 0
 }
 
@@ -3615,6 +4051,7 @@ make wintop(desk, win) {
     if win == 8 { give catop(desk) }
     if win == 9 { give htop(desk) }
     if win == 10 { give tetop(desk) }
+    if win == 11 { give btop(desk) }
     give 0
 }
 
@@ -3629,6 +4066,7 @@ make winwide(desk, win) {
     if win == 8 { give cawide(desk) }
     if win == 9 { give hwide(desk) }
     if win == 10 { give tewide(desk) }
+    if win == 11 { give bwide(desk) }
     give 0
 }
 
@@ -3643,6 +4081,7 @@ make winhigh(desk, win) {
     if win == 8 { give cahigh(desk) }
     if win == 9 { give hhigh(desk) }
     if win == 10 { give tehigh(desk) }
+    if win == 11 { give bhigh(desk) }
     give 0
 }
 
@@ -3693,6 +4132,10 @@ make winmove(desk, win, newleft, newtop) {
     if win == 10 {
         pset(desk, 408, newleft)
         pset(desk, 412, newtop)
+    }
+    if win == 11 {
+        pset(desk, 432, newleft)
+        pset(desk, 436, newtop)
     }
 }
 
@@ -3782,6 +4225,18 @@ make layplaces(desk) {
         ht = 0
     }
     pset(desk, 372, ht)
+    // The Bible window's place (Stone 41), laid like
+    // the help window's — centered, at the layout's
+    // row 17, clamped whole onto the grid.
+    pset(desk, 432, (pget(desk, 28) - bwide(desk)) / 2)
+    let bt2 = layrow(desk, 17)
+    if bt2 + bhigh(desk) > pget(desk, 32) - 2 {
+        bt2 = pget(desk, 32) - 2 - bhigh(desk)
+    }
+    if bt2 < 0 {
+        bt2 = 0
+    }
+    pset(desk, 436, bt2)
     // The terminal window's place (Stone 38), and the
     // console's rows laid inside it: the answers' first
     // row (128) just under its title, their last row
@@ -4091,11 +4546,13 @@ if fbflags - (fbflags / 8192) * 8192 >= 4096 {
     }
 }
 if pix == 1 {
-    // The desk stands 420 bytes since Stone 38 (the
+    // The desk stands 436 bytes since Stone 41 (the
     // region repaint's road and window at 384 to 403,
     // the terminal window's standing, place, and
-    // answers-keeping address at 404 to 419).
-    pixdesk = makebytes(420)
+    // answers-keeping address at 404 to 423, and the
+    // Bible window's standing, page, place, and
+    // chapter pick at 424 to 443).
+    pixdesk = makebytes(444)
     let fontblock = makebytes(1024)
     fontload(fontblock)
     // The pointer's shapes and its save block (Stone 13):
@@ -4271,6 +4728,15 @@ if pix == 1 {
     // above.
     pset(pixdesk, 360, 0)
     pset(pixdesk, 364, 0)
+    // The Bible window's standing (Stone 41), at 424
+    // to 443: it starts closed — the word 'bible', its
+    // icon, and the menu's Bible choice open it — with
+    // its contents page standing in it and the first
+    // chapter picked there. Its place is laid with the
+    // other windows' places by layplaces above.
+    pset(pixdesk, 424, 0)
+    pset(pixdesk, 428, 0)
+    pset(pixdesk, 440, 1)
     // The terminal window's standing (Stone 38), at 404
     // to 416: it stands OPEN as the face rises — the
     // desktop arrives with its terminal on it, the
@@ -4642,6 +5108,24 @@ while true {
                             paintwindows(pixdesk, cellblock, notesblock)
                         }
                     }
+                    // The Bible window's reading (Stone
+                    // 41): while it stands forward, the
+                    // up arrow turns back a page — on the
+                    // contents page it moves the chapter
+                    // pick up instead, and stands still
+                    // on the first chapter.
+                    if pget(pixdesk, 180) == 11 {
+                        if pget(pixdesk, 428) == 0 {
+                            let bp = pget(pixdesk, 440)
+                            if bp > 1 {
+                                pset(pixdesk, 440, bp - 1)
+                                paintwindows(pixdesk, cellblock, notesblock)
+                            }
+                        } else {
+                            pset(pixdesk, 428, pget(pixdesk, 428) - 1)
+                            paintwindows(pixdesk, cellblock, notesblock)
+                        }
+                    }
                 }
             }
             if k == 80 {
@@ -4711,6 +5195,32 @@ while true {
                         }
                         pset(pixdesk, 364, hp)
                         paintwindows(pixdesk, cellblock, notesblock)
+                    }
+                    // The Bible window's reading (Stone
+                    // 41): while it stands forward, the
+                    // down arrow turns a page forward —
+                    // the foot's own turning (its More
+                    // word, and First page on the last
+                    // page): on the last page it returns
+                    // to the contents page. On the
+                    // contents page it moves the chapter
+                    // pick down instead, and stands
+                    // still on the last chapter.
+                    if pget(pixdesk, 180) == 11 {
+                        if pget(pixdesk, 428) == 0 {
+                            let bp = pget(pixdesk, 440)
+                            if bp < 4 {
+                                pset(pixdesk, 440, bp + 1)
+                                paintwindows(pixdesk, cellblock, notesblock)
+                            }
+                        } else {
+                            let bp2 = pget(pixdesk, 428) + 1
+                            if bp2 >= bibpages(bibwidth(pixdesk)) {
+                                bp2 = 0
+                            }
+                            pset(pixdesk, 428, bp2)
+                            paintwindows(pixdesk, cellblock, notesblock)
+                        }
                     }
                 }
             }
@@ -5017,6 +5527,40 @@ while true {
                         }
                     }
                 }
+                // The Bible window's Enter (Stone 41):
+                // while the Bible window stands forward
+                // on its contents page, Enter on an EMPTY
+                // typing line is the window's own key, not
+                // a command's — it reads the picked
+                // chapter, turning to that chapter's first
+                // page. 'bibused' marks the line as the
+                // window's, so no command kind fires for
+                // it below. The turning itself is done
+                // below, beside the kind's setting-aside
+                // — after the typing line is drawn again,
+                // as the kind blocks' own paintings come
+                // after it: the window's foot stands on
+                // the terminal's typing line's own row,
+                // and a painting made here would be
+                // overpainted by that drawing, as the
+                // help window's kind-block painting is
+                // not. The setup gate's waiting answer
+                // is never the window's, as with the other
+                // windows' Enters.
+                let bibused = 0
+                if awaiting == 0 {
+                    if klen == 0 {
+                        if pix == 1 {
+                            if pget(pixdesk, 180) == 11 {
+                                if pget(pixdesk, 424) == 1 {
+                                    if pget(pixdesk, 428) == 0 {
+                                        bibused = 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 let edused = 0
                 if awaiting == 0 {
                     if klen == 0 {
@@ -5191,6 +5735,18 @@ while true {
                     // picture opened it in the paint
                     // window; no kind's doing fires.
                     kind = 0
+                }
+                if bibused == 1 {
+                    // The line was the Bible window's own
+                    // (Stone 41): Enter on its contents
+                    // page read the picked chapter; no
+                    // kind's doing fires. The turning is
+                    // done here, after the typing line's
+                    // drawing above, the kind blocks'
+                    // own order.
+                    kind = 0
+                    pset(pixdesk, 428, bibchapterpage(pget(pixdesk, 440), bibwidth(pixdesk)))
+                    paintwindows(pixdesk, cellblock, notesblock)
                 }
                 if awaiting == 1 {
                     // The setup gate's answer (Stone 8):
@@ -5606,6 +6162,24 @@ while true {
                         ansrow = printline(ansrow, "This face has no windows to open.", pix, pixdesk)
                     }
                 }
+                if kind == 23 {
+                    // 'bible': the Bible reading window
+                    // is opened and brought forward (Stone
+                    // 41), with its contents page standing
+                    // in it and the first chapter picked
+                    // there. The text face has no windows,
+                    // and says so in plain words, as for
+                    // 'help'.
+                    if pix == 1 {
+                        pset(pixdesk, 428, 0)
+                        pset(pixdesk, 440, 1)
+                        pset(pixdesk, 424, 1)
+                        pset(pixdesk, 180, 11)
+                        paintwindows(pixdesk, cellblock, notesblock)
+                    } else {
+                        ansrow = printline(ansrow, "This face has no windows to open.", pix, pixdesk)
+                    }
+                }
                 if kind == 22 {
                     // 'terminal': the terminal window is
                     // opened and brought forward (Stone
@@ -5655,9 +6229,9 @@ while true {
                         let nxt = 0
                         let cand = cur
                         let tries = 0
-                        while tries < 10 {
+                        while tries < 11 {
                             cand = cand + 1
-                            if cand > 10 {
+                            if cand > 11 {
                                 cand = 1
                             }
                             let open = 0
@@ -5690,6 +6264,9 @@ while true {
                             }
                             if cand == 10 {
                                 open = pget(pixdesk, 404)
+                            }
+                            if cand == 11 {
+                                open = pget(pixdesk, 424)
                             }
                             if open == 1 {
                                 nxt = cand
@@ -5921,6 +6498,19 @@ while true {
                                     if pget(pixdesk, 180) == 0 {
                                         if pget(pixdesk, 404) == 1 {
                                             pset(pixdesk, 180, 10)
+                                            paintwindows(pixdesk, cellblock, notesblock)
+                                        }
+                                    }
+                                    // The Bible window
+                                    // joins the same
+                                    // reckoning (Stone 41):
+                                    // when it alone stands
+                                    // open, it comes forward
+                                    // in the closed window's
+                                    // place.
+                                    if pget(pixdesk, 180) == 0 {
+                                        if pget(pixdesk, 424) == 1 {
+                                            pset(pixdesk, 180, 11)
                                             paintwindows(pixdesk, cellblock, notesblock)
                                         }
                                     }
@@ -6164,6 +6754,62 @@ while true {
                                                 }
                                             }
                                         }
+                                    }
+                                }
+                                paintwindows(pixdesk, cellblock, notesblock)
+                            }
+                            if fr == 11 {
+                                // The Bible window closes
+                                // (Stone 41): another window,
+                                // if one stands open, comes
+                                // forward in its place — the
+                                // welcome first, then the
+                                // feather, the files, and the
+                                // settings, as the first
+                                // windows' closings reckon;
+                                // when none of those stands
+                                // open the reckoning below
+                                // finds the editor, the
+                                // paint window, the verse
+                                // window, the calculator, the
+                                // help window, or the
+                                // terminal in its turn.
+                                pset(pixdesk, 424, 0)
+                                if pget(pixdesk, 172) == 1 {
+                                    pset(pixdesk, 180, 1)
+                                } else {
+                                    if pget(pixdesk, 176) == 1 {
+                                        pset(pixdesk, 180, 2)
+                                    } else {
+                                        if pget(pixdesk, 188) == 1 {
+                                            pset(pixdesk, 180, 3)
+                                        } else {
+                                            if pget(pixdesk, 208) == 1 {
+                                                pset(pixdesk, 180, 4)
+                                            } else {
+                                                pset(pixdesk, 180, 0)
+                                            }
+                                        }
+                                    }
+                                }
+                                if pget(pixdesk, 180) == 0 {
+                                    if pget(pixdesk, 404) == 1 {
+                                        pset(pixdesk, 180, 10)
+                                    }
+                                    if pget(pixdesk, 360) == 1 {
+                                        pset(pixdesk, 180, 9)
+                                    }
+                                    if pget(pixdesk, 340) == 1 {
+                                        pset(pixdesk, 180, 8)
+                                    }
+                                    if pget(pixdesk, 324) == 1 {
+                                        pset(pixdesk, 180, 7)
+                                    }
+                                    if pget(pixdesk, 272) == 1 {
+                                        pset(pixdesk, 180, 6)
+                                    }
+                                    if pget(pixdesk, 220) == 1 {
+                                        pset(pixdesk, 180, 5)
                                     }
                                 }
                                 paintwindows(pixdesk, cellblock, notesblock)
@@ -6612,6 +7258,10 @@ while true {
                                 let ty = tetop(pixdesk)
                                 let tw = tewide(pixdesk)
                                 let th = tehigh(pixdesk)
+                                let jx = bleft(pixdesk)
+                                let jy = btop(pixdesk)
+                                let jw = bwide(pixdesk)
+                                let jh = bhigh(pixdesk)
                                 let acted = 0
                                 if acted == 0 {
                                     // The rest panel (Stone
@@ -6783,6 +7433,22 @@ while true {
                                                 pset(pixdesk, 180, 9)
                                             }
                                             if pick == 8 {
+                                                // The menu's Bible
+                                                // choice (Stone
+                                                // 41): the Bible
+                                                // reading window
+                                                // opens with its
+                                                // contents page
+                                                // standing in it,
+                                                // exactly as the
+                                                // word 'bible' opens
+                                                // it.
+                                                pset(pixdesk, 428, 0)
+                                                pset(pixdesk, 440, 1)
+                                                pset(pixdesk, 424, 1)
+                                                pset(pixdesk, 180, 11)
+                                            }
+                                            if pick == 9 {
                                                 // The menu's Rest
                                                 // choice (Stone
                                                 // 25): the menu is
@@ -6874,7 +7540,7 @@ while true {
                                     let chipc = cxp / cellpx
                                     let chipr = cyp / cellpx
                                     let chips = 0
-                                    while chips < 8 {
+                                    while chips < 9 {
                                         let chplace = chipplace(pixdesk, chips)
                                         if chplace >= 0 {
                                             let chrow = chplace / 256
@@ -7196,6 +7862,40 @@ while true {
                                     }
                                 }
                                 if acted == 0 {
+                                    if pget(pixdesk, 424) == 1 {
+                                        if cxp >= (jx + jw - 2) * cellpx {
+                                            if cxp < (jx + jw - 1) * cellpx {
+                                                if cyp >= jy * cellpx {
+                                                    if cyp < (jy + 1) * cellpx {
+                                                        pset(pixdesk, 424, 0)
+                                                        if pget(pixdesk, 180) == 11 {
+                                                            if pget(pixdesk, 172) == 1 {
+                                                                pset(pixdesk, 180, 1)
+                                                            } else {
+                                                                if pget(pixdesk, 176) == 1 {
+                                                                    pset(pixdesk, 180, 2)
+                                                                } else {
+                                                                    if pget(pixdesk, 188) == 1 {
+                                                                        pset(pixdesk, 180, 3)
+                                                                    } else {
+                                                                        if pget(pixdesk, 208) == 1 {
+                                                                            pset(pixdesk, 180, 4)
+                                                                        } else {
+                                                                            pset(pixdesk, 180, 0)
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
                                     // The terminal window's close mark
                                     // (Stone 38): the window closes
                                     // like any other — its keeping
@@ -7360,6 +8060,18 @@ while true {
                                             paintwindows(pixdesk, cellblock, notesblock)
                                         }
                                     }
+                                    // The Bible window joins
+                                    // the same reckoning
+                                    // (Stone 41): when it alone
+                                    // stands open, it comes
+                                    // forward in the closed
+                                    // window's place.
+                                    if pget(pixdesk, 180) == 0 {
+                                        if pget(pixdesk, 424) == 1 {
+                                            pset(pixdesk, 180, 11)
+                                            paintwindows(pixdesk, cellblock, notesblock)
+                                        }
+                                    }
                                 }
                                 if acted == 0 {
                                     // A press on the help
@@ -7387,6 +8099,62 @@ while true {
                                                     pset(pixdesk, 180, 9)
                                                     paintwindows(pixdesk, cellblock, notesblock)
                                                     acted = 1
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    // A press in the Bible
+                                    // window (Stone 41): on
+                                    // the contents page, a
+                                    // press on the foot's row
+                                    // reads the picked
+                                    // chapter, as Enter does.
+                                    // On a
+                                    // reading page, a press
+                                    // on the foot's row does
+                                    // what its words name:
+                                    // its left word's ground
+                                    // (the foot's first six
+                                    // cells) turns back a
+                                    // page, and the rest of
+                                    // the row turns forward —
+                                    // More, and First page on
+                                    // the last page, which
+                                    // returns to the contents
+                                    // page — the arrow keys'
+                                    // own turnings. Any such
+                                    // press brings the window
+                                    // forward, as a press on
+                                    // a window does.
+                                    if pget(pixdesk, 424) == 1 {
+                                        if cxp >= jx * cellpx {
+                                            if cxp < (jx + jw) * cellpx {
+                                                let prow = cyp / cellpx
+                                                if pget(pixdesk, 428) == 0 {
+                                                    if prow == jy + 14 {
+                                                            pset(pixdesk, 428, bibchapterpage(pget(pixdesk, 440), bibwidth(pixdesk)))
+                                                            pset(pixdesk, 180, 11)
+                                                            paintwindows(pixdesk, cellblock, notesblock)
+                                                            acted = 1
+                                                        }
+                                                } else {
+                                                    if prow == jy + 14 {
+                                                        let bpg = pget(pixdesk, 428)
+                                                        if cxp / cellpx < jx + 8 {
+                                                            pset(pixdesk, 428, bpg - 1)
+                                                        } else {
+                                                            let nb = bpg + 1
+                                                            if nb >= bibpages(bibwidth(pixdesk)) {
+                                                                nb = 0
+                                                            }
+                                                            pset(pixdesk, 428, nb)
+                                                        }
+                                                        pset(pixdesk, 180, 11)
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                        acted = 1
+                                                    }
                                                 }
                                             }
                                         }
@@ -8113,10 +8881,10 @@ while true {
                                     let fwd = pget(pixdesk, 180)
                                     let cand = fwd
                                     let tries = 0
-                                    while tries < 11 {
+                                    while tries < 12 {
                                         let took = 0
                                         if cand >= 1 {
-                                            if cand <= 10 {
+                                            if cand <= 11 {
                                                 if winopen(pixdesk, cand) == 1 {
                                                     let wl = winleft(pixdesk, cand)
                                                     let wt = wintop(pixdesk, cand)
@@ -8337,6 +9105,21 @@ while true {
                                     }
                                 }
                                 if acted == 0 {
+                                    if pget(pixdesk, 424) == 1 {
+                                        if cxp >= jx * cellpx {
+                                            if cxp < (jx + jw) * cellpx {
+                                                if cyp >= jy * cellpx {
+                                                    if cyp < (jy + jh) * cellpx {
+                                                        pset(pixdesk, 180, 11)
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
                                     // The desktop's icons
                                     // (Stone 38): a press
                                     // that no window, panel,
@@ -8369,7 +9152,7 @@ while true {
                                         if icol <= 13 {
                                             if irow >= 1 {
                                                 let ii = (irow - 1) / 4
-                                                if ii <= 7 {
+                                                if ii <= 8 {
                                                     if irow - iconat(pixdesk, ii) <= 2 {
                                                         if ii == 0 {
                                                             pset(pixdesk, 188, 1)
@@ -8410,6 +9193,12 @@ while true {
                                                         if ii == 7 {
                                                             pset(pixdesk, 404, 1)
                                                             pset(pixdesk, 180, 10)
+                                                        }
+                                                        if ii == 8 {
+                                                            pset(pixdesk, 428, 0)
+                                                            pset(pixdesk, 440, 1)
+                                                            pset(pixdesk, 424, 1)
+                                                            pset(pixdesk, 180, 11)
                                                         }
                                                         paintwindows(pixdesk, cellblock, notesblock)
                                                         acted = 1

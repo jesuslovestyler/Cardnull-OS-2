@@ -89,6 +89,12 @@
 //  21 — the help window is opened and brought forward
 //       ('help'; the window is the face of light's,
 //       Stone 31, and the doing is the main body's)
+//  22 — the terminal window is opened and brought
+//       forward ('terminal'; Stone 38)
+//  23 — the Bible reading window is opened and brought
+//       forward ('bible'; the window is the face of
+//       light's, Stone 41, and the doing is the main
+//       body's)
 make wordkind(word) {
     if word == "" {
         give 0
@@ -158,6 +164,9 @@ make wordkind(word) {
     }
     if word == "terminal" {
         give 22
+    }
+    if word == "bible" {
+        give 23
     }
     give 1
 }

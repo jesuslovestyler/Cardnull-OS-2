@@ -77,6 +77,71 @@ FEATHER_FILE="${FEATHER_FILE:-build/welcome.feather}"
 PAINT_FILE="${PAINT_FILE:-build/paint.feather}"
 CALC_FILE="${CALC_FILE:-build/calculator.feather}"
 
+# The stage check (Stone 41): the BIOS doorman stages the
+# system file entire at 0x40000, the four modules on the
+# low ground below it, and works in protected mode on a
+# stack whose top stands at 0x3F000 (boot/cardnull-boot
+# .asm's own map tells the laying). Stone 41's growth
+# carried the staged file's span across the old stages
+# and the old stack silently — the file outgrew the
+# header's claim while the claim went on being believed
+# — and the running machine reset on a pointer press.
+# So the laying is checked here, on every build, by the
+# files' ACTUAL sizes and never any claim: the system
+# span [0x40000, 0x40000 + its size) must meet no module
+# stage and not the stack's top, every module's stage
+# span must meet neither the system span nor another
+# stage, and every module file must fit its stage. A
+# build that breaks the law stops here and says so.
+SYS_BASE=262144        # 0x40000
+STACK_TOP=258048       # 0x3F000
+SET_BASE=65536;  SET_SPAN=2048    # 0x10000, 2 KiB
+FEA_BASE=67584;  FEA_SPAN=6144    # 0x10800, 6 KiB
+PNT_BASE=73728;  PNT_SPAN=8192    # 0x12000, 8 KiB
+CAL_BASE=81920;  CAL_SPAN=16384   # 0x14000, 16 KiB
+SYS_SIZE=$(wc -c < "$KERNEL_FILE")
+SYS_END=$(( SYS_BASE + SYS_SIZE ))
+stage_fail() {
+    echo "FAIL: the doorman's stage laying is broken — $1" >&2
+    echo "The system file stands at $SYS_SIZE bytes, staged at 0x40000 (span to $SYS_END)." >&2
+    echo "Move the stages in boot/cardnull-boot.asm and this check together, as the map there tells." >&2
+    exit 1
+}
+# The stack's top must stand outside the system span.
+if [ "$STACK_TOP" -ge "$SYS_BASE" ] && [ "$STACK_TOP" -lt "$SYS_END" ]; then
+    stage_fail "the protected-mode stack's top (0x3F000) stands inside the staged system's span"
+fi
+# Each stage: its file fits it, and its span meets neither
+# the system span nor (checked pairwise below) another's.
+check_stage() {
+    _name="$1"; _base="$2"; _span="$3"; _file="$4"
+    _size=$(wc -c < "$_file")
+    if [ "$_size" -gt "$_span" ]; then
+        stage_fail "the $_name file ($_size bytes) outgrows its stage ($_span bytes)"
+    fi
+    _end=$(( _base + _span ))
+    if [ "$_base" -lt "$SYS_END" ] && [ "$SYS_BASE" -lt "$_end" ]; then
+        stage_fail "the $_name stage stands inside the staged system's span"
+    fi
+}
+check_stage "settings"        "$SET_BASE" "$SET_SPAN" "$SETTINGS_FILE"
+check_stage "feather"         "$FEA_BASE" "$FEA_SPAN" "$FEATHER_FILE"
+check_stage "paint feather"   "$PNT_BASE" "$PNT_SPAN" "$PAINT_FILE"
+check_stage "calculator feather" "$CAL_BASE" "$CAL_SPAN" "$CALC_FILE"
+# The stages among themselves.
+stages_meet() {
+    _ab="$1"; _ae=$(( $1 + $2 )); _bb="$3"; _be=$(( $3 + $4 ))
+    [ "$_ab" -lt "$_be" ] && [ "$_bb" -lt "$_ae" ]
+}
+if stages_meet "$SET_BASE" "$SET_SPAN" "$FEA_BASE" "$FEA_SPAN" ||
+   stages_meet "$SET_BASE" "$SET_SPAN" "$PNT_BASE" "$PNT_SPAN" ||
+   stages_meet "$SET_BASE" "$SET_SPAN" "$CAL_BASE" "$CAL_SPAN" ||
+   stages_meet "$FEA_BASE" "$FEA_SPAN" "$PNT_BASE" "$PNT_SPAN" ||
+   stages_meet "$FEA_BASE" "$FEA_SPAN" "$CAL_BASE" "$CAL_SPAN" ||
+   stages_meet "$PNT_BASE" "$PNT_SPAN" "$CAL_BASE" "$CAL_SPAN"; then
+    stage_fail "two module stages stand inside one another's ground"
+fi
+
 if command -v clang >/dev/null 2>&1; then
     CLANG=clang
 elif [ -x "$HOME/qemu-root/usr/bin/clang" ]; then

@@ -59,19 +59,25 @@
 #   0x4400  the module table (four entries)
 #   0x4800  the memory map, as the BIOS gave it
 #   0x7C00  this loader (its stack grows down from here)
-#   0x40000 the system file, staged (up to 352 KiB)
-#   0x98000 the settings module, staged (up to 2 KiB)
-#   0x98800 the feather, staged (up to 6 KiB) — the
+#   0x10000 the settings module, staged (up to 2 KiB)
+#   0x10800 the feather, staged (up to 6 KiB) — the
 #           feather carries its card at its own head
 #           (Nifla Stone 20); no card module rides anymore
-#   0x9A000 the paint feather, staged (Stone 24: the
+#   0x12000 the paint feather, staged (Stone 24: the
 #           second feather, its own card at its own head,
 #           received through the same door) — its claim is
-#           8 KiB now (Stone 32)
-#   0x9C000 the calculator feather, staged (Stone 30:
+#           8 KiB
+#   0x14000 the calculator feather, staged (Stone 30:
 #           the third feather, its own card at its own
 #           head, received through the same door), its
-#           16 KiB claim ending at 0xA0000
+#           16 KiB claim ending at 0x18000
+#   0x3F000 the protected-mode stack's top (Stone 41:
+#           below the system stage — see the note below)
+#   0x40000 the system file, staged entire; the span it
+#           covers runs as far as the file itself runs
+#           (as the file stands at Stone 41, 483,936
+#           bytes, ending at 0xB6260), and nothing else
+#           may stand inside that span
 # (The modules' stages stand above the system's WHOLE
 # stage, all 256 KiB of its claim: the system's file is
 # staged entire, and any byte of it may be wanted by the
@@ -141,7 +147,37 @@
 # is no low ground left above this laying: a system
 # that outgrows the 352 KiB claim must find its
 # stages another road, and this note says so plainly
-# for whoever comes next.)
+# for whoever comes next. Stone 41 (November 20,
+# 2026) found that road, and found the laying above
+# broken in a way none of the raisings had seen: the
+# 352 KiB claim was a fiction the file itself had
+# outgrown — the system file stands at 483,936
+# bytes, so its stage runs from 0x40000 to 0xB6260
+# and swallowed both the module stages at
+# 0x98000–0xA0000 and the protected-mode stack's
+# top at 0x8F000, which none of the claim raisings
+# had ever moved. This doorman's own pushes in the
+# segment-copy loop below then landed inside the
+# staged file and overwrote the system's code, and
+# the staged settings and feather overwrote the
+# segment's tail of strings; on the running desktop
+# a pointer press derailed on the overwritten code,
+# faulted, and reset the machine, wearing the look
+# of a window closing. Found by a full-image diff
+# of the running kernel against its file, and fixed
+# by moving the stack's top to 0x3F000 — below the
+# system stage, above this loader's own data, which
+# ends below 0x10000 — and the four module stages
+# to the free low ground between that data and the
+# stage, at the addresses the map above now tells.
+# Proved on the bench the same day: a press no
+# longer resets the machine, and the running kernel
+# stands byte-identical to its file across the
+# whole segment but for one bit the CPU itself sets
+# in the GDT. And the build now checks this laying
+# on every build (build-iso.sh), by the file's own
+# size and never the claim, so the class cannot
+# return silently.)
 # and on the far side of the step into protected mode:
 #   0x300000 the four modules, laid in a row
 #
@@ -250,7 +286,7 @@ sec_known:
     mov si, offset name_settings
     call find_in_dir
     jc fail_files
-    mov edi, 0x98000
+    mov edi, 0x10000
     call stage_file
     jc fail_disc
     mov eax, [found_len]
@@ -259,7 +295,7 @@ sec_known:
     mov si, offset name_feather
     call find_in_dir
     jc fail_files
-    mov edi, 0x98800
+    mov edi, 0x10800
     call stage_file
     jc fail_disc
     mov eax, [found_len]
@@ -268,7 +304,7 @@ sec_known:
     mov si, offset name_paint
     call find_in_dir
     jc fail_files
-    mov edi, 0x9A000
+    mov edi, 0x12000
     call stage_file
     jc fail_disc
     mov eax, [found_len]
@@ -277,7 +313,7 @@ sec_known:
     mov si, offset name_calc
     call find_in_dir
     jc fail_files
-    mov edi, 0x9C000
+    mov edi, 0x14000
     call stage_file
     jc fail_disc
     mov eax, [found_len]
@@ -799,7 +835,7 @@ pm_entry:
     mov fs, ax
     mov gs, ax
     mov ss, ax
-    mov esp, 0x8F000
+    mov esp, 0x3F000
 
     # The system's segments, from its ELF header at its
     # stage (0x40000): program headers at e_phoff (+28),
@@ -838,17 +874,17 @@ ph_next:
 ph_done:
 
     # The modules, in a row at 0x300000.
-    mov esi, 0x98000
+    mov esi, 0x10000
     mov edi, 0x300000
     mov ecx, [settings_len]
     rep movsb
-    mov esi, 0x98800
+    mov esi, 0x10800
     mov ecx, [feather_len]
     rep movsb
-    mov esi, 0x9A000
+    mov esi, 0x12000
     mov ecx, [paint_len]
     rep movsb
-    mov esi, 0x9C000
+    mov esi, 0x14000
     mov ecx, [calc_len]
     rep movsb
 
