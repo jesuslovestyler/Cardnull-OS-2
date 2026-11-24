@@ -4001,6 +4001,46 @@ neighboring proofs pass with it — the feather-paint
 proof (8 of 8), the no-input witness proof (five
 boots), the ISO proof, and Stones 14, 23, and 24.
 
+## The EFI door verified (November 24, 2026)
+
+The disc has carried two doors since it was first
+laid: the BIOS doorman, whose stage fault Stone 41
+set right, and the EFI doorman
+(`boot/cardnull-efi.c` and its handover,
+`boot/cardnull-efi-hand.S`), which reads its files
+into the firmware's own buffers, lays the system's
+segments straight from them at their recorded
+addresses, lays the module row at 0x300000, and
+hands over the same multiboot-shaped table the
+BIOS door lays. The EFI door had never been
+booted on this bench — every proof drove the BIOS
+door — and Stone 41's hunt made the debt plain.
+
+It is paid now. prove-efi.sh boots the shipped
+disc under the bench's OVMF firmware (the pair
+under ~/qemu-root/usr/share/OVMF, the variables
+image copied throwaway so no boot writes anything
+that lasts) and proves in eight checks: the
+desktop rises at the EFI door; the Files icon's
+name reads; the feather window stands; the word
+`feather` brings the welcome feather through this
+door — its module read from the disc's EFI system
+partition — card-checked, painting its own panel,
+its own words read on it ("I was checked first,
+and I am whole."); the word `bible` opens the
+Bible window on its contents page; and Escape
+closes it, the feather's panel standing in the
+clear again. Nothing at this door proved broken,
+and nothing speculative was changed: the one
+correction the check carried is a comment in the
+handover that still told the stack's place as
+"where the BIOS doorman sets his (0x8F000)" — the
+BIOS stack moved to 0x3F000 in Stone 41, and the
+EFI stack at 0x8F000 is this door's own claimed
+page, which the comment now says. Bench-proved,
+as every claim here; Tyler's own witness in UTM
+stands for both doors alike, still to come.
+
 ## The kernel's files
 
 The kernel is built as several files, never one big one — Tyler's

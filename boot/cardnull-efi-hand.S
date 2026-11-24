@@ -28,10 +28,14 @@
 #      off the long-mode reach itself (CR4's PAE and
 #      the EFER's LME), as the architecture's own order
 #      prescribes.
-#   4. It lays the data gates, sets the stack where the
-#      BIOS doorman sets his (0x8F000), puts the mark in
-#      EAX and the information in EBX, and jumps to the
-#      system's entry. It never returns.
+#   4. It lays the data gates, sets the stack on the page
+#      this doorman claimed for it from the firmware
+#      (0x8F000, claimed as loader data before the boot
+#      services were left — this door's own ground; the
+#      BIOS doorman keeps his own stack at 0x3F000 since
+#      Stone 41), puts the mark in EAX and the
+#      information in EBX, and jumps to the system's
+#      entry. It never returns.
 #
 # The witness fix (November 15, 2026): this code once
 # ran where the firmware had laid the doorman's own
