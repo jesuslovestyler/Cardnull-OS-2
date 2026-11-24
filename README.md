@@ -4185,6 +4185,88 @@ here — and no real stick has booted the system yet:
 that witness, like every witness, is Tyler's in UTM
 and on his own hardware.
 
+### Stone 44 — A second screen
+
+A machine may carry more than one display adapter,
+and until this stone the system never looked: the
+doorman grants one screen, and one screen is all it
+ever raised. Now, at the rising, the running system
+walks the PCI bus for a second display adapter and,
+when one stands, raises a still companion page on
+it — a new library, twoscreen.nifla. The page is
+not a second desktop and not a mirror: no window
+stands on it and nothing moves there but the
+clock's minute. On the desktop's own deep glass
+ground, in its pale ink and the system's own
+letters, it carries the name Cardnull, the words
+"The second screen", the day and the date in plain
+words, the clock's face, and the Psalm 127 lines —
+"Unless Yahweh builds the house, they labor in vain
+who build it." The main loop paints it again when
+the minute turns, beside the bar's own drawing. The
+rising's answers name it in plain words — "A second
+screen is here." — and when no second adapter
+stands, nothing anywhere changes: the raising
+answers no, and the page is never painted.
+
+Three findings of the bench are written into the
+raising, each learned by watching the machine
+refuse a simpler shape. First, the second adapter
+commonly stands under the PCI class "display,
+other", not "VGA" — the firmware gives the VGA name
+to the first adapter alone — so the scan takes any
+display-class device whose framebuffer is not the
+granted one, and lets the adapter's own extension
+ID word be the true test of the candidate. Second,
+the raising speaks the Bochs video extension
+through the adapter's MMIO ground (its second
+memory region, the registers laid flat at 0x500):
+the screen put down, the shape laid — 1024 by 768
+at 32 bits, the granted screen's own measure — and
+the screen raised with its framebuffer standing.
+Third, the extension's mode alone raises no
+picture: the second adapter's VGA heart stands in
+text mode from its waking, no firmware ever having
+set it, and its display path goes on following the
+text registers until the attribute register's
+graphics bit is flipped through the register window
+in the same MMIO ground (at 0x400) — the bench
+proved this by contrast, the granted adapter
+following an extension mode-set at once while the
+second head stood at its power-on size until the
+bit was set. Every word the raising sets is read
+back before the standing is claimed: a screen that
+did not take its mode, or its graphics bit, is no
+screen, and the raising answers honestly.
+
+The bench proof (prove-stone44.sh, sixteen checks)
+boots the shipped disc twice. With a second adapter
+fitted (the bench's secondary VGA) and the clock
+pinned to a known morning: the main desktop stands
+untouched, and the second head — read through the
+monitor's screendump for that device, by a helper
+this stone adds to tools/pixels.py — stands at
+1024 by 768 on the glass ground, every line of the
+page decoded against the system's own letter
+shapes, the clock's face among them; and when the
+minute turns the page stands painted again with a
+new minute. With no second adapter: the desktop
+stands exactly as before, and there is no second
+head to read. The companions pass: prove-iso,
+prove-stone38, prove-stone39, prove-stone40,
+prove-stone42, prove-stone43, prove-efi,
+prove-nowitness, and prove-featherstart (three of
+them — the Shield's, the EFI door's, and
+nowitness — failed first-frame reads in the first
+loaded batch and passed whole on a quiet re-run,
+the bench's known timing flake); prove-stone41
+fails only the two start-menu checks that went
+stale at Stone 42, as it has since that stone. All
+of this is bench-proved only: no real machine's
+second monitor has carried the page yet, and that
+witness, like every witness, is Tyler's in UTM and
+on his own hardware.
+
 ## The EFI door verified (November 24, 2026)
 
 The disc has carried two doors since it was first

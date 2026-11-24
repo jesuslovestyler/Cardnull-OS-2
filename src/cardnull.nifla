@@ -834,6 +834,24 @@
 //          keyboards, and the rising's offer names the
 //          stick when the stick is the disk offered.
 //
+// Stone 44: a second screen — when the machine carries
+//          a second display adapter on the PCI bus,
+//          the running system raises a still companion
+//          page on it (twoscreen.nifla): the system's
+//          name, the day and the date, the clock's
+//          face, and a line of Psalm 127, in the
+//          desktop's own glass colors and the system's
+//          own letters. It is not a second desktop and
+//          not a mirror: no window stands on it, and
+//          nothing moves there but the clock's minute
+//          (the loop repaints it when the minute
+//          turns, beside the bar's own drawing). The
+//          rising's answers name it in plain words —
+//          "A second screen is here." — and when no
+//          second adapter stands, nothing anywhere
+//          changes: the raising answers 0 and the
+//          page is never painted.
+//
 // The arrangement of the screen (the text face's rows;
 // on the face of light the same words stand on its grid,
 // and since Stone 33 its bar stands at the foot):
@@ -1072,6 +1090,30 @@ make drawclock(offset, utcnow, pix, pixdesk) {
 // either way. On the pixel face the welcome panel is one
 // of the two windows (Stone 14), painted by paintwindows
 // below, which the main body calls after this drawing.
+
+// The second screen's painting (Stone 44): the
+// companion page's standing lines from twoscreen's
+// painter, and the two lines composed from the same
+// words the bar speaks — the date in plain words at
+// the page's 350 row, the clock's face at its 400.
+// Without a true clock reading the date line stands
+// empty and the clock shows the session's own count,
+// as the bar's face does.
+make paintsecond(twodesk: bytes, fontblock: bytes, utcnow: number, offset: number) {
+    twopaint(twodesk, fontblock)
+    if get32(twodesk, 0) == 1 {
+        if utcnow >= 0 {
+            put32(twodesk, 16, 350)
+            twoline(twodesk, fontblock, datetext(utcnow / 86400))
+            put32(twodesk, 16, 400)
+            twoline(twodesk, fontblock, clocktext(utcnow, offset))
+        } else {
+            put32(twodesk, 16, 400)
+            twoline(twodesk, fontblock, clocktext(ticks() / 100, offset))
+        }
+    }
+}
+
 make drawface(offset, utcnow, pix, pixdesk) {
     if pix == 1 {
         let cs = pget(pixdesk, 320)
@@ -4769,6 +4811,8 @@ let notecount = 0
 // alignment, as usbstick.nifla's heading tells.)
 let xdesk = makebytes(98304)
 let xup = xhinit(xdesk)
+let twodesk = makebytes(64)
+let fontblock = makebytes(0)
 
 // The USB stick in the running system (Stone 43): the
 // mass-storage device the same bus may hold, raised by
@@ -4928,7 +4972,7 @@ if pix == 1 {
     // window's standing, place, and the door's
     // reckoning at 444 to 463).
     pixdesk = makebytes(464)
-    let fontblock = makebytes(1024)
+    fontblock = makebytes(1024)
     fontload(fontblock)
     // The pointer's shapes and its save block (Stone 13):
     // the arrow's rows laid into their block, and a block
@@ -5267,6 +5311,7 @@ if pix == 1 {
     ansrow = pget(pixdesk, 128)
 }
 let lastsec = 0 - 1
+let twolastmin = 0 - 1
 drawtyping("", pix, pixdesk)
 if pix == 0 {
     ansrow = printline(ansrow, "No picture screen was granted, so this face stays in words.", pix, pixdesk)
@@ -5276,6 +5321,26 @@ if usbup == 1 {
 }
 if xup == 1 {
     ansrow = printline(ansrow, "A USB keyboard is ready on the modern USB road.", pix, pixdesk)
+}
+
+// The second screen (Stone 44): a second display
+// adapter, when the machine carries one, is raised
+// here and its companion page painted; the answer
+// names it in plain words. With none, nothing
+// anywhere changes.
+let twoup = 0
+if pix == 1 {
+    twoup = twostart(twodesk, fbaddrlo)
+    if twoup == 1 {
+        let utcfirst = 0 - 1
+        if rtcok == 1 {
+            utcfirst = rtcbase + (ticks() / 100 - bootsec)
+        }
+        paintsecond(twodesk, fontblock, utcfirst, offset)
+    }
+}
+if twoup == 1 {
+    ansrow = printline(ansrow, "A second screen is here.", pix, pixdesk)
 }
 
 if diskup == 1 {
@@ -5361,6 +5426,14 @@ while true {
     if nowsec != lastsec {
         lastsec = nowsec
         drawclock(offset, utcnow, pix, pixdesk)
+        if twoup == 1 {
+            if utcnow >= 0 {
+                if utcnow / 60 != twolastmin {
+                    twolastmin = utcnow / 60
+                    paintsecond(twodesk, fontblock, utcnow, offset)
+                }
+            }
+        }
     }
     let k = readkey()
     if k == 0 {

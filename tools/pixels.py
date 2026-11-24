@@ -10,6 +10,10 @@
 #
 # The scenario file runs with these helpers in scope:
 #   dump()            (width, height, bytes) of the screen now
+#   dump2(dev)        the same for another display device,
+#                     named as the monitor names it (Stone
+#                     44's second screen, "vga2"); None when
+#                     no such device stands
 #   pixel(d, x, y)    the (red, green, blue) at one point
 #   count(d, rgb)     how many pixels are exactly that color
 #   region(d, x0, y0, x1, y1)  how many distinct colors a
@@ -105,6 +109,26 @@ def dump():
     try:
         return _read_ppm(dump_path)
     except OSError:
+        return None
+
+
+def dump2(dev):
+    """Another display's screen now, by its monitor name
+    (e.g. "vga2"): (width, height, pixel bytes), or None
+    when the device does not stand or its dump is not a
+    picture."""
+    path = dump_path + "." + dev
+    try:
+        import os
+        if os.path.exists(path):
+            os.remove(path)
+    except OSError:
+        pass
+    _command(f"screendump {path} {dev}")
+    time.sleep(0.15)
+    try:
+        return _read_ppm(path)
+    except (OSError, IndexError, ValueError):
         return None
 
 
@@ -211,6 +235,7 @@ def done():
 scenario = open(scenario_path).read()
 exec(compile(scenario, scenario_path, "exec"), {
     "dump": dump,
+    "dump2": dump2,
     "pixel": pixel,
     "count": count,
     "region_colors": region_colors,

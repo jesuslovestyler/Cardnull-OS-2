@@ -1,0 +1,353 @@
+// Cardnull OS 2's second screen (Stone 44).
+//
+// A machine may carry more than one display adapter.
+// The doorman grants the system one screen — the first
+// adapter's framebuffer, set by the firmware's own
+// video service before the system starts. This library
+// looks for a SECOND adapter on the PCI bus and, when
+// one stands, raises a still companion page on it: the
+// system's name, the day and the date, the clock's
+// face, and a line of Psalm 127. It is not a second
+// desktop and not a mirror: no window stands on it,
+// nothing moves there but the clock's minute, and the
+// first screen's work is untouched by its standing or
+// its absence.
+//
+// The raising speaks the Bochs video extension the
+// bench's adapters carry (the QEMU standard VGA's own
+// specification): the second adapter is the legacy-free
+// kind, so its extension registers are not at the old
+// I/O ports but laid flat in its second memory region
+// (the MMIO bar) at offset 0x500, each a 16-bit word at
+// twice its index. The framebuffer is its first memory
+// region. The mode set is the first screen's own shape
+// — 1024 by 768 at 32 bits — so the companion page is
+// laid at the measure the system's face already keeps.
+// And because no firmware ever set this adapter, its
+// VGA heart still stands in text mode when the system
+// finds it: the extension's mode is laid, and then the
+// attribute register's graphics bit is flipped through
+// the register window in the same MMIO ground (at
+// 0x400), without which the display path goes on
+// following the text registers and no picture rises.
+//
+// The desk handed in wants 64 bytes; its fields stand
+// at these places, all of them dwords:
+//   0  the standing: 0 no second screen, 1 raised
+//   4  the framebuffer's address (the first region)
+//   8  the MMIO bar's address (the second region)
+//  12  the adapter's place on the bus, packed as
+//      bus * 65536 + device * 256 + function
+//  16  the line being stamped: its y in pixels
+//  20  the line being stamped: its scale
+//  24  the line being stamped: its ink
+//
+// Every word this library sets in the adapter is read
+// back before the standing is claimed: a screen that
+// did not take its mode is no screen, and the raising
+// answers 0 honestly.
+
+// One configuration word of a PCI device, read through
+// the configuration ports (0xCF8 asks, 0xCFC answers).
+// 'addr' is the whole asking: the enable bit, the bus,
+// the device, the function, and the register's place.
+make twocfgread(desk: bytes, addr: number) -> number {
+    give floor(desk, addr) {
+        mov eax, dword ptr [r10]
+        mov dx, 0xCF8
+        out dx, eax
+        mov dx, 0xCFC
+        in eax, dx
+    }
+}
+
+// One configuration word written, the same way.
+make twocfgwrite(desk: bytes, addr: number, value: number) {
+    floor(desk, addr, value) {
+        mov eax, dword ptr [r10]
+        mov dx, 0xCF8
+        out dx, eax
+        mov eax, dword ptr [r10 + 8]
+        mov dx, 0xCFC
+        out dx, eax
+    }
+}
+
+// The configuration asking for a device and register.
+make twocfgaddr(bdf: number, reg: number) -> number {
+    let bus = bdf / 65536
+    let dev = (bdf - bus * 65536) / 256
+    let fn = bdf - bus * 65536 - dev * 256
+    give 2147483648 + bus * 65536 + dev * 2048 + fn * 256 + andmask(reg, 252)
+}
+
+// One 16-bit word of the adapter's MMIO ground, read.
+make twopeek16(desk: bytes, addr: number) -> number {
+    give floor(desk, addr) {
+        mov rax, qword ptr [r10]
+        movzx eax, word ptr [rax]
+    }
+}
+
+// One 16-bit word of the adapter's MMIO ground, written.
+make twopoke16(desk: bytes, addr: number, value: number) {
+    floor(desk, addr, value) {
+        mov rax, qword ptr [r10]
+        mov cx, word ptr [r10 + 8]
+        mov word ptr [rax], cx
+    }
+}
+
+// One byte of the adapter's MMIO ground, read and
+// written — the VGA register window speaks in bytes.
+make twopeek8(desk: bytes, addr: number) -> number {
+    give floor(desk, addr) {
+        mov rax, qword ptr [r10]
+        movzx eax, byte ptr [rax]
+    }
+}
+
+make twopoke8(desk: bytes, addr: number, value: number) {
+    floor(desk, addr, value) {
+        mov rax, qword ptr [r10]
+        mov cl, byte ptr [r10 + 8]
+        mov byte ptr [rax], cl
+    }
+}
+
+// One pixel laid in the second framebuffer: a 32-bit
+// word at the address the caller reckons.
+make twoput(desk: bytes, addr: number, value: number) {
+    floor(desk, addr, value) {
+        mov rax, qword ptr [r10]
+        mov ecx, dword ptr [r10 + 8]
+        mov dword ptr [rax], ecx
+    }
+}
+
+// The whole second screen filled with one ink: the
+// framebuffer's address stands in the desk (field 4),
+// and the fill runs the shape's whole count of pixels.
+make twofill(desk: bytes, ink: number) {
+    floor(desk, ink) {
+        mov edi, dword ptr [rbx + 4]
+        mov eax, dword ptr [r10]
+        mov ecx, 786432
+        rep stosd
+    }
+}
+
+// One extension register of the second adapter: its
+// word in the MMIO ground at 0x500 + index * 2.
+make tworegread(desk: bytes, idx: number) -> number {
+    give twopeek16(desk, get32(desk, 8) + 1280 + idx * 2)
+}
+
+make tworegwrite(desk: bytes, idx: number, value: number) {
+    twopoke16(desk, get32(desk, 8) + 1280 + idx * 2, value)
+}
+
+// Looks for the second adapter and raises the screen.
+// 'firstfb' is the granted screen's framebuffer
+// address, so the granted adapter is known and passed
+// by. Any display-class device whose framebuffer is
+// not the granted one is a candidate — the second
+// adapter commonly stands under the class "display,
+// other" rather than "VGA", the firmware giving the
+// VGA name to the first adapter alone (the bench's
+// second card stands so, and a scan for VGA alone
+// finds nothing at all) — and the extension's own ID
+// word, read below, is the true test of the candidate.
+// Gives back 1 when the second screen stands with
+// its mode read back true, 0 when there is none or it
+// would not take its mode.
+make twostart(desk: bytes, firstfb: number) -> number {
+    put32(desk, 0, 0)
+    let found = 0
+    let dev = 0
+    while dev < 32 {
+        let fn = 0
+        while fn < 8 {
+            let bdf = dev * 256 + fn
+            let vendor = andmask(twocfgread(desk, twocfgaddr(bdf, 0)), 65535)
+            if vendor != 65535 {
+                let classword = twocfgread(desk, twocfgaddr(bdf, 8))
+                let baseclass = andmask(classword / 16777216, 255)
+                if baseclass == 3 {
+                    let bar0 = andmask(twocfgread(desk, twocfgaddr(bdf, 16)), 4294967280)
+                    if bar0 != 0 {
+                        if bar0 != firstfb {
+                            if found == 0 {
+                                found = 1
+                                put32(desk, 12, bdf)
+                                put32(desk, 4, bar0)
+                                put32(desk, 8, andmask(twocfgread(desk, twocfgaddr(bdf, 24)), 4294967280))
+                            }
+                        }
+                    }
+                }
+            }
+            fn = fn + 1
+        }
+        dev = dev + 1
+    }
+    if found == 0 {
+        give 0
+    }
+    if get32(desk, 8) == 0 {
+        give 0
+    }
+    // The adapter's memory door is opened: the command
+    // word's second bit lets its regions be spoken to.
+    let bdf = get32(desk, 12)
+    let cmd = twocfgread(desk, twocfgaddr(bdf, 4))
+    twocfgwrite(desk, twocfgaddr(bdf, 4), cmd + 2 - andmask(cmd, 2))
+    // The extension must name itself before it is
+    // trusted with a mode: its first word is its own
+    // mark, 0xB0C0 or one of its near kin.
+    let id = tworegread(desk, 0)
+    if id < 45248 {
+        give 0
+    }
+    if id > 45263 {
+        give 0
+    }
+    // The mode is set the extension's own way: the
+    // screen put down first, the shape laid, then the
+    // screen raised with its framebuffer standing.
+    tworegwrite(desk, 4, 0)
+    tworegwrite(desk, 1, 1024)
+    tworegwrite(desk, 2, 768)
+    tworegwrite(desk, 3, 32)
+    tworegwrite(desk, 6, 1024)
+    tworegwrite(desk, 7, 768)
+    tworegwrite(desk, 8, 0)
+    tworegwrite(desk, 9, 0)
+    tworegwrite(desk, 4, 65)
+    // The extension's mode alone does not raise the
+    // picture: the adapter's VGA heart stands in text
+    // mode from its waking — no firmware ever set it,
+    // the firmware's care being all for the first
+    // screen — and its display path follows the text
+    // registers until the attribute register's first
+    // bit says graphics. That bit is flipped here,
+    // through the register window in the same MMIO
+    // ground (at 0x400; the ports stand at their
+    // legacy numbers less 0x3C0): the input status
+    // read stills the index flip-flop, the index is
+    // laid with the screen's pass bit standing, the
+    // standing value read, and the bit set into it.
+    // (The status reads' own values are nothing; the
+    // reading is the stilling.)
+    let win = get32(desk, 8) + 1024
+    let still = twopeek8(desk, win + 26)
+    twopoke8(desk, win, 48)
+    let ar = twopeek8(desk, win + 1)
+    twopoke8(desk, win, ar + 1 - andmask(ar, 1))
+    still = twopeek8(desk, win + 26)
+    twopoke8(desk, win, 48)
+    let arback = twopeek8(desk, win + 1)
+    still = twopeek8(desk, win + 26)
+    // And read back before any claim is made.
+    if tworegread(desk, 1) != 1024 {
+        give 0
+    }
+    if tworegread(desk, 2) != 768 {
+        give 0
+    }
+    if andmask(tworegread(desk, 4), 1) != 1 {
+        give 0
+    }
+    if andmask(arback, 1) != 1 {
+        give 0
+    }
+    put32(desk, 0, 1)
+    give 1
+}
+
+// Stamps one line of text on the second screen,
+// centered. The line's place and measure travel in
+// the desk, the call bound being what it is: field
+// 16 the y in pixels from the top, field 20 the
+// scale (each letter so many times the font's own
+// size), field 24 the ink. The font block is the
+// system's own (font.nifla's keeping: a letter's
+// shape at (its code - 32) * 8, eight row-bytes, the
+// leftmost pixel the row's high bit), and the ink is
+// the letters' color as the framebuffer keeps it.
+make twoline(desk: bytes, fontblock: bytes, text: text) {
+    let fb = get32(desk, 4)
+    let y = get32(desk, 16)
+    let sc = get32(desk, 20)
+    let ink = get32(desk, 24)
+    let n = length(text)
+    let wide = n * 8 * sc
+    let x0 = (1024 - wide) / 2
+    let i = 0
+    while i < n {
+        let code = textbyte(text, i)
+        if code < 32 {
+            code = 32
+        }
+        if code > 126 {
+            code = 32
+        }
+        let g = (code - 32) * 8
+        let row = 0
+        while row < 8 {
+            let bits = fontblock[g + row]
+            let col = 0
+            while col < 8 {
+                if andmask(bits, 128) == 128 {
+                    let px = x0 + (i * 8 + col) * sc
+                    let py = y + row * sc
+                    let sy = 0
+                    while sy < sc {
+                        let sx = 0
+                        while sx < sc {
+                            twoput(desk, fb + ((py + sy) * 1024 + px + sx) * 4, ink)
+                            sx = sx + 1
+                        }
+                        sy = sy + 1
+                    }
+                }
+                bits = bits * 2
+                col = col + 1
+            }
+            row = row + 1
+        }
+        i = i + 1
+    }
+}
+
+// Paints the companion page's standing lines: the
+// ground filled with the desktop's own deep glass
+// color, and the lines stamped in its pale ink — the
+// name large, the rest at the words' usual doubled
+// size. The date and clock lines are the caller's to
+// stamp with twoline at fields 16 = 350 and 400, in
+// the same words the bar speaks; this painting leaves
+// the scale and ink standing in the desk for them.
+// The inks are laid as the color words themselves,
+// which is the framebuffer's own keeping for the
+// 32-bit shape this library sets (red at the third
+// byte, green at the second, blue at the first, as
+// the granted screen's mode lays them too).
+make twopaint(desk: bytes, fontblock: bytes) {
+    if get32(desk, 0) == 1 {
+        twofill(desk, glassbase())
+        put32(desk, 24, glasspale())
+        put32(desk, 16, 150)
+        put32(desk, 20, 3)
+        twoline(desk, fontblock, "Cardnull")
+        put32(desk, 20, 2)
+        put32(desk, 16, 260)
+        twoline(desk, fontblock, "The second screen")
+        put32(desk, 16, 520)
+        twoline(desk, fontblock, "Unless Yahweh builds the house,")
+        put32(desk, 16, 570)
+        twoline(desk, fontblock, "they labor in vain who build it.")
+        put32(desk, 16, 620)
+        twoline(desk, fontblock, "Psalm 127:1")
+    }
+}

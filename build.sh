@@ -69,7 +69,12 @@ mkdir -p build
 #              bus, its sectors read and written by the
 #              bulk-only transport, and the keeping's
 #              layout kept on it (Stone 43)
-LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/featherdoor.nifla src/commands.nifla src/usbkey.nifla src/xhcikey.nifla src/rtclock.nifla src/diskkeep.nifla src/font.nifla src/pixface.nifla src/mouse.nifla src/speaker.nifla src/rest.nifla src/verses.nifla src/helpwords.nifla src/bibletext.nifla src/usbstick.nifla"
+#   twoscreen  the second screen: a second display
+#              adapter found on the PCI bus and raised
+#              through the Bochs video extension in its
+#              MMIO ground, carrying a still companion
+#              page (Stone 44)
+LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/featherdoor.nifla src/commands.nifla src/usbkey.nifla src/xhcikey.nifla src/rtclock.nifla src/diskkeep.nifla src/font.nifla src/pixface.nifla src/mouse.nifla src/speaker.nifla src/rest.nifla src/verses.nifla src/helpwords.nifla src/bibletext.nifla src/usbstick.nifla src/twoscreen.nifla"
 PRELUDE=""
 for lib in $LIBRARIES; do
     # Word splitting is intended: one --prelude pair per file.
