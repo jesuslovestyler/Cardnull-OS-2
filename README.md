@@ -3291,6 +3291,175 @@ proved, as every stone here; the witness that
 counts is Tyler's own in UTM, still to come.
 
 
+### Stone 40 — Names in the files window
+
+The files window could list what the disk keeps
+and, since Stone 27, let a note go — but a kept
+thing could not be given a name, and a note could
+not be copied. Both stand now, in plain words on
+the window itself. With this stone the files
+window's keeping work stands whole — rename,
+copy, and delete together, the first line of the
+ARM gate's reckoning for Files.
+
+**Names, kept where the things are kept.** A
+note's name lives in its own slot's tail — the
+bytes after the words' forty-three-letter
+measure, which nothing before this stone ever
+wrote: the name's length at the slot's
+forty-fifth byte, its letters after it, nineteen
+letters at most. The picture's name lives in its
+header's spare bytes the same way (the length at
+the sixth byte, forty-three letters at most).
+Nothing already kept moves: a slot or header laid
+before this stone reads as carrying no name, and
+the thing then stands under what it always stood
+under — a note under its own words, the picture
+under "A picture you painted". The files list
+shows the name where one stands; a picked note's
+words still stand at the window's foot, so what a
+rename leaves alone is always in sight. A note's
+name rides its slot whole through `notesave` and
+`notesload`, which have always carried the slot's
+sixty-four bytes entire; the picture's name is
+kept by the main body in the notes block's
+eleventh slot, read back at boot by the new
+`picnameload` and handed to every `picsave`, so
+a keeping never rubs it out — and a canvas
+cleared clear through, which lets the picture's
+keeping go, lets its name go with it.
+
+**The naming way.** While a note stands picked,
+"Rename" and "Copy" stand at the window's foot
+in white, left of Stone 27's "Let this note go"
+(which does not move); while the picture stands
+picked, "Rename" stands where the letting-go
+words stand for a note. A press on one opens the
+naming way in the list's place: the thing being
+named shown whole — a note under the name it
+stands under, with "Its words:" and its words
+below, so a rename's leaving-alone stands in
+sight; the picture under its name, with the word
+that the picture itself will not change — the
+keeper types the new name into the window (the
+desktop's own typing, resolved under the same
+shifts and Caps Lock as the editor's draft, and
+stopped at the name's measure, which the window
+says plainly), and Enter keeps it. The pick
+cannot move while a naming stands, as it cannot
+while the letting-go asking stands; Escape puts
+the naming away and leaves everything as it was.
+Every change the naming makes — opening,
+typing, a keeping, a refusal — repaints by
+Stones 34 and 35's region road over the files
+window alone (`layroadwins` over window 3, then
+`paintregion`), as the feather visits already
+widen that road to this window when a keeping
+changes its list.
+
+**The refusals, in plain words in the window.**
+Enter on an empty name is refused: "Write the
+new name first." A name that already stands on
+the list is refused: "That name already stands.
+Pick another name." — the reckoning is over the
+name each listed thing stands under (its given
+name, or its words, or the picture's plain
+words), the thing being renamed excepted, so no
+name is ever given twice and nothing is silently
+overwritten. A copy asked of a full page is
+refused with the page's own words. A refusal
+changes nothing: the naming stands open with the
+name as typed, and the keeper may type another
+or put the naming away.
+
+**A copy is a real second keeping.** Copying
+lays the note's whole slot into the page's next
+free place under the new name and writes the
+page through by the same `notesave`, so the copy
+stands on its own sector with the first note's
+words whole: letting the first go leaves the
+copy whole (proved), and changing either one —
+the editor writes a note's words in its own
+slot — never touches the other. A rename is
+written through the same store paths, so a name
+stays across a restart as the things themselves
+do (proved).
+
+**One honest limit.** The picture can be renamed
+but not copied: the disk's picture store holds
+one picture (sectors 80 to 83, one header), and
+a copy would need a second picture's place that
+does not stand there. The window offers the
+picture no "Copy", and this stone does not
+invent the store a bigger shape; a multi-picture
+store is a stone of its own, for Tyler's word.
+
+**The doorman's claim, raised once more.** This
+stone's growth carried the kernel's staged
+segment end to **336,715 bytes**, past the BIOS
+doorman's 320 KiB claim — the measure Stones 26,
+29, and 32 met the same way. The claim stands at
+352 KiB now, and the module stages stand above
+the whole of it in the last 32 KiB of low ground:
+settings at 0x98000 (2 KiB), the feather at
+0x98800 (6 KiB), the paint feather at 0x9A000
+(8 KiB), and the calculator feather at 0x9C000,
+its 16 KiB claim ending at 0xA0000 exactly, where
+the firmware's reserved ground begins — as its
+claim ended there in Stone 30's first laying.
+No stage stands inside another's claim, as
+always; the doorman's own map (in
+`boot/cardnull-boot.asm`) tells it in full, and
+says plainly what this laying leaves: no low
+ground above it, so a system that outgrows
+352 KiB must find its stages another road. The
+EFI doorman, which claims its pages from the
+firmware, needed no move.
+
+Proven by `prove-stone40.sh`, in two boots and
+sixty-two checks, with the disk's own bytes
+checked between the boots: the naming words at
+the files window's foot; the naming way opening
+on the picked note with its words whole; an
+empty name and a name that already stands each
+refused in plain words in the window, with
+nothing changed, and Escape putting the naming
+away; the first note renamed to "garden notes",
+standing under its new name with its words whole
+at the foot; a copy laid under "garden copy",
+standing picked with the first note's words
+whole; the first note let go through Stone 27's
+asking, and the copy still opening whole after
+it; the kept picture renamed to "garden
+picture"; and, after a restart, the copy and the
+picture standing under their given names, the
+copy's words whole in the files window and in
+the editor — the stores' bytes between the boots
+carrying the copy on its own sector with its
+name in its slot's tail, the wiped fourth
+sector, the let-go note's name nowhere left
+behind, and the picture's name in its header
+with the picture's own bytes untouched. The
+proofs for Stones 39, 38, 33, 27, 26, 30, 24,
+19, 15, 9, 22, 23, 25, 28, 29, 31, and 17 pass
+with it, and the disc proof, the no-witness
+proof, and the feather-start proof with them.
+Two proofs fail one check each on this build
+and on the pristine Stone 39 baseline alike —
+Stone 20's, that the typed word "eastern" is
+answered in plain words, and Stone 21's, that
+the word "notes" answers the notes are kept
+until the machine is turned off — so they are
+not this stone's doing, and they are recorded
+here as Stone 39 recorded the faults it found.
+Stone 28's proof failed one check once on this
+bench and passed on the re-run, on this build
+and on the baseline alike — the same family as
+Stone 33's known pointer flake. Bench-proved,
+as every stone here; the witness that counts is
+Tyler's own in UTM, still to come.
+
+
 ### The feather's card moves onto the feather — Nifla Stone 20, adopted (November 15, 2026)
 
 This is not one of this system's own stones; it is the

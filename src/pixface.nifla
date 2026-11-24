@@ -181,7 +181,23 @@
 //       pair, laid at the face's rising and written by
 //       dragging, like the pairs at 236 to 352.
 //       (180's forward reckoning grows again: 9 is the
-//       help window.) 376 to 383 stand unused.
+//       help window.)
+//  376  the files window's naming way (Stone 40):
+//       whether a naming stands open in the files
+//       window (376: 0 none, 1 renaming the picked
+//       note, 2 copying the picked note under a new
+//       name, 3 renaming the kept picture), and the
+//       word the naming last spoke in the window
+//       (380: 0 none, 1 that name already stands,
+//       2 no name written yet, 3 the notes page is
+//       full). The picked entry the naming is about
+//       is the files window's own pick at 192, which
+//       cannot move while the naming stands, as the
+//       letting-go asking's pick cannot. The name
+//       being typed lives in the notes block's tenth
+//       slot and the kept picture's name in its
+//       eleventh — the main body's keeping, in the
+//       notes block's own shape.
 //  384  the region repaint's road (Stone 34): the
 //       stretch of the desktop, in letter cells, that
 //       the next region repaint serves — its left

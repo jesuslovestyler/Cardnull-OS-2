@@ -47,6 +47,21 @@
 // all — the main body asks for a saving only when the
 // disk already stands as the system's own.
 //
+// Since Stone 40 a note may also carry a NAME, kept in
+// the same slot's own tail — the bytes after the words'
+// forty-three-letter measure, which nothing before this
+// stone ever wrote: the name's length at the slot's
+// forty-fifth byte (its place 44), its letters after it,
+// nineteen letters at most. A slot whose forty-fifth
+// byte stands 0 carries no name — every page laid before
+// this stone reads so — and the note then stands under
+// its own words, as it always has. The name rides the
+// slot whole through notesave and notesload below, which
+// have always carried the slot's sixty-four bytes entire,
+// so a name is kept exactly where its note is kept, and
+// a copy of a note (Stone 40) is a second slot entire —
+// its own sector on the disk, as every note's is.
+//
 // The kept picture (Stone 26) lives further out still,
 // beyond the notes page, in the same style: a header on
 // sector 80 — the letters C, N, P, one byte saying
@@ -62,6 +77,18 @@
 // The host keeps the picture; the feather never touches
 // the disk, as the compiler's guest discipline has
 // always refused it — see picload and picsave below.
+//
+// Since Stone 40 the picture may also carry a NAME, kept
+// in its header's own spare bytes, which nothing before
+// this stone ever wrote: the name's length at the
+// header's sixth byte (its place 5), its letters after
+// it, forty-three at most. A header whose sixth byte
+// stands 0 carries no name — every header laid before
+// this stone reads so — and the picture then stands
+// under its plain words, "A picture you painted", as it
+// always has. The picture store still holds ONE picture:
+// there is no second picture's place on the disk, and
+// this stone does not invent one.
 
 // Selects the disk drive (the master on the first
 // channel), so the drive is awake and answering before the
@@ -292,16 +319,63 @@ make picload(block: bytes) -> number {
     give 0
 }
 
+// Reads the kept picture's name (Stone 40) into the
+// given block at the given place, in the notes block's
+// own shape — the length at that place, the letters
+// after it — from the picture header's spare bytes.
+// Gives back the name's length: 0 when there is no
+// disk, or no picture stands kept, or the picture
+// carries no name (every header laid before Stone 40
+// reads so), and the block's place is left at 0 then.
+make picnameload(block: bytes, off: number) -> number {
+    block[off] = 0
+    selectdrive()
+    if disksectors() > 0 {
+        let head = makebytes(512)
+        let n = diskread(80, head)
+        if head[0] == 67 {
+            if head[1] == 78 {
+                if head[2] == 80 {
+                    if head[3] == 1 {
+                        let len = head[5]
+                        if len > 43 {
+                            len = 43
+                        }
+                        let i = 0
+                        while i < len {
+                            block[off + 1 + i] = head[6 + i]
+                            i = i + 1
+                        }
+                        block[off] = len
+                        give len
+                    }
+                }
+            }
+        }
+    }
+    give 0
+}
+
 // Writes the picture block's painted region to the
 // disk: the header first (its kept byte saying whether
 // a picture stands kept at all), then — when one does —
 // the three picture sectors, each holding its stretch
 // of the block. 'sel' is the chosen-color figure the
 // feather keeps, carried in the header so the restored
-// picture's keeping stands whole. Gives back 1 when the
-// header was written, 0 when there is no disk to keep
-// the picture on.
-make picsave(block: bytes, present: number, sel: number) -> number {
+// picture's keeping stands whole. The picture's name
+// (Stone 40) is carried in the header too, from the
+// given name block — the main body's notes block,
+// whose eleventh slot (at its place 640) is the
+// picture name's one keeping place in that body, in
+// that block's own shape (its length, then its
+// letters) — so a keeping never rubs a name out: the
+// main body keeps the name standing there and hands
+// the block over at every saving. (The name's place
+// travels in the telling, not as a fifth word: a call
+// can carry only six words, and two blocks take
+// four.) Gives back 1 when the header was written, 0
+// when there is no disk to keep the picture on.
+make picsave(block: bytes, present: number, sel: number, nameblock: bytes) -> number {
     selectdrive()
     if disksectors() > 0 {
         let head = makebytes(512)
@@ -310,6 +384,18 @@ make picsave(block: bytes, present: number, sel: number) -> number {
         head[2] = 80
         head[3] = present
         head[4] = sel
+        if present == 1 {
+            let nlen = nameblock[640]
+            if nlen > 43 {
+                nlen = 43
+            }
+            head[5] = nlen
+            let ni = 0
+            while ni < nlen {
+                head[6 + ni] = nameblock[640 + 1 + ni]
+                ni = ni + 1
+            }
+        }
         let w = diskwrite(80, head)
         if present == 1 {
             let s = 0

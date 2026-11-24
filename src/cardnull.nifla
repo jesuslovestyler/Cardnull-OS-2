@@ -653,6 +653,72 @@
 //          keep no chip — they are the desktop's own
 //          first furniture, standing open from the
 //          rising under their title bars.
+// Stone 40: names in the files window — a kept note
+//          or the kept picture can be given a name
+//          now, and a kept note can be copied under a
+//          new name, in plain words on the files
+//          window itself, beside Stone 27's letting
+//          go. A note's name is kept in its own slot's
+//          tail (diskkeep.nifla's heading tells the
+//          shape: the length at the slot's forty-fifth
+//          byte, nineteen letters at most), and the
+//          picture's in its header's spare bytes
+//          (forty-three at most); a thing with no name
+//          stands under what it always stood under —
+//          a note under its own words, the picture
+//          under "A picture you painted" — and the
+//          files window's list shows the name where
+//          one stands. While a note stands picked,
+//          "Rename" and "Copy" stand at the window's
+//          foot beside "Let this note go"; while the
+//          picture stands picked, "Rename" stands
+//          there. A press on one opens the naming way
+//          in the list's place: the thing named is
+//          shown whole — a note with its words under
+//          the naming, so what a rename leaves alone
+//          stands in sight — the keeper types the new
+//          name into the window (the desktop's own
+//          typing, as the editor's draft is typed),
+//          and Enter keeps it. A name that already
+//          stands on the list is refused in plain
+//          words in the window, and nothing is
+//          changed; an empty name is refused the
+//          same way; Escape puts the naming away and
+//          leaves everything as it was. A copy is a
+//          real second keeping: the note's whole slot
+//          is laid into the page's next free place
+//          under the new name and written through by
+//          the same notesave, so it stands on its own
+//          sector — letting the first go leaves the
+//          copy whole, and changing one never touches
+//          the other. A rename is written through the
+//          same store paths (notesave for a note,
+//          picsave for the picture), so a name stays
+//          across a restart as the things themselves
+//          do. The naming's standings live in the
+//          desk at 376 and 380 (pixface.nifla's
+//          ledger); the name being typed lives in
+//          the notes block's tenth slot, and the
+//          picture's name in its eleventh, beside the
+//          editor's draft in the ninth. Every change
+//          the naming makes repaints by Stones 34 and
+//          35's region road over the files window
+//          alone, as the feather visits widen it to
+//          this window when a keeping changes its
+//          list. The stone's growth carried the
+//          kernel's staged segment end past the BIOS
+//          doorman's 320 KiB claim, so the claim
+//          stands at 352 KiB now and the module stages
+//          stand above the whole of it in the last
+//          32 KiB of low ground (boot/cardnull-boot
+//          .asm's map tells it in full, in the line of
+//          Stones 26, 29, and 32). One honest limit:
+//          the picture cannot
+//          be copied — the disk's picture store holds
+//          one picture, and a copy would need a
+//          second picture's place that does not stand
+//          there; the window offers the picture no
+//          "Copy", and says nothing it cannot do.
 //
 // The arrangement of the screen (the text face's rows;
 // on the face of light the same words stand on its grid,
@@ -1323,6 +1389,110 @@ make filenotetext(desk, block, place, attr) {
     }
 }
 
+// Draws one kept note's NAME at a letter cell, letter
+// by letter from the name bytes in its slot's tail —
+// the name's length at the slot's forty-fifth byte,
+// its letters after (Stone 40). The place is packed
+// as filenotetext packs it. A note whose tail stands
+// empty has no name to draw; the callers show its
+// words instead, by filenotetext.
+make filenametext(desk, block, place, attr) {
+    let cs = pget(desk, 320)
+    let slot = place / 65536
+    let cell = place - slot * 65536
+    let row = cell / 256
+    let col = cell - row * 256
+    let fg = attr - (attr / 16) * 16
+    let bg = (attr / 16) - (attr / 128) * 8
+    let n = cellbyte(block, slot * 64 + 44)
+    let i = 0
+    while i < n {
+        let code = cellbyte(block, slot * 64 + 45 + i)
+        pset(desk, 56, pget(desk, 64 + bg * 4))
+        pixfill(desk, (col + i) * cs, row * cs, cs, cs)
+        if code != 32 {
+            pset(desk, 56, pget(desk, 64 + fg * 4))
+            pixglyph(desk, (col + i) * cs, row * cs, code, cs / 8)
+        }
+        i = i + 1
+    }
+}
+
+// The name a kept note stands under (Stone 40): its
+// given name's length when one stands in its slot's
+// tail, else its own words' length — the words are
+// the name of a note that was never given one.
+make effnamelen(block, slot) -> number {
+    if cellbyte(block, slot * 64 + 44) > 0 {
+        give cellbyte(block, slot * 64 + 44)
+    }
+    give cellbyte(block, slot * 64)
+}
+
+// One letter of the name a kept note stands under,
+// by the same reckoning as effnamelen.
+make effnamebyte(block, slot, i) -> number {
+    if cellbyte(block, slot * 64 + 44) > 0 {
+        give cellbyte(block, slot * 64 + 45 + i)
+    }
+    give cellbyte(block, slot * 64 + 1 + i)
+}
+
+// Whether the name being typed (the notes block's
+// tenth slot, at 576, in the block's own shape) is
+// letter for letter the name the given kept note
+// stands under (Stone 40) — the naming way's refusal
+// reckoning: a name that already stands is not given
+// twice.
+make draftisname(block, slot) -> number {
+    let dn = cellbyte(block, 576)
+    if dn != effnamelen(block, slot) {
+        give 0
+    }
+    let i = 0
+    while i < dn {
+        if cellbyte(block, 576 + 1 + i) != effnamebyte(block, slot, i) {
+            give 0
+        }
+        i = i + 1
+    }
+    give 1
+}
+
+// Whether the name being typed is letter for letter
+// the name the kept picture stands under (Stone 40):
+// its given name in the block's eleventh slot (at
+// 640) when one stands there, else its plain words,
+// "A picture you painted".
+make draftispicname(block) -> number {
+    let dn = cellbyte(block, 576)
+    if cellbyte(block, 640) > 0 {
+        if dn != cellbyte(block, 640) {
+            give 0
+        }
+        let i = 0
+        while i < dn {
+            if cellbyte(block, 576 + 1 + i) != cellbyte(block, 640 + 1 + i) {
+                give 0
+            }
+            i = i + 1
+        }
+        give 1
+    }
+    let lit = "A picture you painted"
+    if dn != length(lit) {
+        give 0
+    }
+    let i = 0
+    while i < dn {
+        if cellbyte(block, 576 + 1 + i) != textbyte(lit, i) {
+            give 0
+        }
+        i = i + 1
+    }
+    give 1
+}
+
 // Paints the files window from the desk's standing:
 // closed, the plain desktop; open, its frame and title
 // bar and the list of the kept notes, the picked one
@@ -1337,7 +1507,15 @@ make filenotetext(desk, block, place, attr) {
 // so they can be picked and let go here; with no notes
 // at all, the window says in plain words where notes
 // would live, as it always has, and no entry is ever
-// shown that is not kept.
+// shown that is not kept. Since Stone 40 the list
+// shows a note's given name where one stands (its
+// words still stand at the foot when it is picked),
+// the foot carries "Rename" and "Copy" beside the
+// letting-go words while a note stands picked and
+// "Rename" while the picture stands picked, and the
+// naming way those words open stands in the list's
+// place while it stands, in onefiles' own telling
+// below.
 make onefiles(desk, notes) {
     let cs = pget(desk, 320)
     let gx = fileft(desk)
@@ -1359,6 +1537,79 @@ make onefiles(desk, notes) {
         let keeping = pget(desk, 200)
         let count = pget(desk, 196)
         let haspic = pget(desk, 296)
+        if pget(desk, 376) > 0 {
+            // The naming way (Stone 40): stands in the
+            // list's place while it stands — the thing
+            // being named shown whole (a note under the
+            // name it stands under, with its words below,
+            // so what a rename leaves alone stands in
+            // sight; the picture under its name, with the
+            // word that the picture itself will not
+            // change), the name being typed standing as
+            // it is typed (the notes block's tenth slot,
+            // drawn by filenotetext as any slot is), the
+            // measure said plainly, and the naming's own
+            // word (the desk's 380) at the foot when it
+            // has spoken: a refusal stands there in plain
+            // words, and nothing has been changed.
+            let nmway = pget(desk, 376)
+            let nmsel = pget(desk, 192)
+            if nmway == 3 {
+                pixline(desk, (gy + 2) * 256 + (gx + 2), "Give this picture a new name:", 7)
+                if cellbyte(notes, 640) > 0 {
+                    filenotetext(desk, notes, 10 * 65536 + (gy + 3) * 256 + (gx + 2), 15)
+                } else {
+                    pixline(desk, (gy + 3) * 256 + (gx + 2), "A picture you painted", 15)
+                }
+                pixline(desk, (gy + 5) * 256 + (gx + 2), "The picture itself will not change.", 7)
+            } else {
+                if nmway == 2 {
+                    pixline(desk, (gy + 2) * 256 + (gx + 2), "Make a copy of this note:", 7)
+                } else {
+                    pixline(desk, (gy + 2) * 256 + (gx + 2), "Give this note a new name:", 7)
+                }
+                if cellbyte(notes, nmsel * 64 + 44) > 0 {
+                    filenametext(desk, notes, nmsel * 65536 + (gy + 3) * 256 + (gx + 2), 15)
+                } else {
+                    filenotetext(desk, notes, nmsel * 65536 + (gy + 3) * 256 + (gx + 2), 15)
+                }
+                pixline(desk, (gy + 5) * 256 + (gx + 2), "Its words:", 7)
+                filenotetext(desk, notes, nmsel * 65536 + (gy + 6) * 256 + (gx + 2), 15)
+            }
+            if nmway == 2 {
+                pixline(desk, (gy + 8) * 256 + (gx + 2), "Type the copy's name, then press Enter:", 7)
+            } else {
+                pixline(desk, (gy + 8) * 256 + (gx + 2), "Type the new name, then press Enter:", 7)
+            }
+            filenotetext(desk, notes, 9 * 65536 + (gy + 9) * 256 + (gx + 2), 15)
+            if nmway == 3 {
+                pixline(desk, (gy + 11) * 256 + (gx + 2), "A name can hold 43 letters at most.", 7)
+            } else {
+                pixline(desk, (gy + 11) * 256 + (gx + 2), "A name can hold 19 letters at most.", 7)
+            }
+            let nmword = pget(desk, 380)
+            if nmword == 1 {
+                pixline(desk, (gy + 12) * 256 + (gx + 2), "That name already stands. Pick another name.", 15)
+            } else {
+                if nmword == 2 {
+                    if nmway == 2 {
+                        pixline(desk, (gy + 12) * 256 + (gx + 2), "Write the copy's name first.", 15)
+                    } else {
+                        pixline(desk, (gy + 12) * 256 + (gx + 2), "Write the new name first.", 15)
+                    }
+                } else {
+                    if nmword == 3 {
+                        pixline(desk, (gy + 12) * 256 + (gx + 2), "The notes page is full. Eight notes are kept there.", 15)
+                    } else {
+                        if nmway == 2 {
+                            pixline(desk, (gy + 12) * 256 + (gx + 2), "Press Escape to make no copy.", 7)
+                        } else {
+                            pixline(desk, (gy + 12) * 256 + (gx + 2), "Press Escape to keep the name it has.", 7)
+                        }
+                    }
+                }
+            }
+        } else {
         if pget(desk, 300) == 1 {
             // The asking (Stone 27): the window asks
             // before anything is let go — the plain
@@ -1437,19 +1688,38 @@ make onefiles(desk, notes) {
                 let i = 0
                 while i < count {
                     let row = gy + 3 + i
+                    // A note with a given name stands
+                    // under its name (Stone 40); a note
+                    // with none stands under its words,
+                    // as it always has.
                     if i == sel {
                         pixink(desk, 1)
                         pixfill(desk, gx * cs + 2, row * cs, gw * cs - 4, cs)
                         pixline(desk, row * 256 + (gx + 2), ">", 31)
-                        filenotetext(desk, notes, i * 65536 + row * 256 + (gx + 4), 31)
+                        if cellbyte(notes, i * 64 + 44) > 0 {
+                            filenametext(desk, notes, i * 65536 + row * 256 + (gx + 4), 31)
+                        } else {
+                            filenotetext(desk, notes, i * 65536 + row * 256 + (gx + 4), 31)
+                        }
                     } else {
                         pixline(desk, row * 256 + (gx + 2), " ", 7)
-                        filenotetext(desk, notes, i * 65536 + row * 256 + (gx + 4), 7)
+                        if cellbyte(notes, i * 64 + 44) > 0 {
+                            filenametext(desk, notes, i * 65536 + row * 256 + (gx + 4), 7)
+                        } else {
+                            filenotetext(desk, notes, i * 65536 + row * 256 + (gx + 4), 7)
+                        }
                     }
                     i = i + 1
                 }
                 if sel < count {
                     pixline(desk, (gy + 11) * 256 + (gx + 2), "The note you picked:", 7)
+                    // Naming the picked note (Stone 40):
+                    // "Rename" and "Copy" stand at the
+                    // foot, in white, left of the letting-
+                    // go words; a press on one opens the
+                    // naming way, above.
+                    pixline(desk, (gy + 11) * 256 + (gx + 24), "Rename", 15)
+                    pixline(desk, (gy + 11) * 256 + (gx + 31), "Copy", 15)
                     // Letting the picked note go (Stone
                     // 27): the words stand at the foot's
                     // right, in white; a press on them —
@@ -1459,21 +1729,43 @@ make onefiles(desk, notes) {
                     filenotetext(desk, notes, sel * 65536 + (gy + 12) * 256 + (gx + 2), 15)
                 } else {
                     pixline(desk, (gy + 11) * 256 + (gx + 2), "The picture you picked:", 7)
+                    // Naming the kept picture (Stone 40):
+                    // "Rename" stands at the foot, in
+                    // white, where the note's letting-go
+                    // words stand; a press on it opens
+                    // the naming way, above. The picture
+                    // is offered no "Copy" — the disk
+                    // keeps one picture, and a copy would
+                    // need a second picture's place.
+                    pixline(desk, (gy + 11) * 256 + (gx + 36), "Rename", 15)
                     pixline(desk, (gy + 12) * 256 + (gx + 2), "Press Enter or click it to open it in Paint.", 15)
                 }
                 if haspic == 1 {
                     let prow = gy + 13
+                    // The picture stands under its given
+                    // name where one stands (Stone 40),
+                    // in the block's eleventh slot; else
+                    // under its plain words, as always.
                     if sel == count {
                         pixink(desk, 1)
                         pixfill(desk, gx * cs + 2, prow * cs, gw * cs - 4, cs)
                         pixline(desk, prow * 256 + (gx + 2), ">", 31)
-                        pixline(desk, prow * 256 + (gx + 4), "A picture you painted", 31)
+                        if cellbyte(notes, 640) > 0 {
+                            filenotetext(desk, notes, 10 * 65536 + prow * 256 + (gx + 4), 31)
+                        } else {
+                            pixline(desk, prow * 256 + (gx + 4), "A picture you painted", 31)
+                        }
                     } else {
                         pixline(desk, prow * 256 + (gx + 2), " ", 7)
-                        pixline(desk, prow * 256 + (gx + 4), "A picture you painted", 7)
+                        if cellbyte(notes, 640) > 0 {
+                            filenotetext(desk, notes, 10 * 65536 + prow * 256 + (gx + 4), 7)
+                        } else {
+                            pixline(desk, prow * 256 + (gx + 4), "A picture you painted", 7)
+                        }
                     }
                 }
             }
+        }
         }
     }
 }
@@ -3674,8 +3966,19 @@ while mi2 < nmods {
 // itself through the same store path. The ninth slot is
 // never the disk's: notesave and notesload carry the
 // eight kept slots and no more, by the count they are
-// handed.
-let notesblock = makebytes(576)
+// handed. Since Stone 40 the block carries two more
+// slots in the same shape, neither of them a note: the
+// tenth, at 576, holds the name being typed in the
+// files window's naming way, and the eleventh, at 640,
+// holds the kept picture's name as the main body keeps
+// it — read back at boot by picnameload and handed to
+// every picsave, so the picture's name stands in this
+// body's keeping as the picture itself does. A kept
+// note's own name needs no slot of theirs: it lives in
+// the note's own slot's tail (diskkeep.nifla's
+// heading), and rides the page through notesave and
+// notesload with the note.
+let notesblock = makebytes(704)
 let notecount = 0
 
 let diskup = diskhere()
@@ -3744,6 +4047,10 @@ if diskset == 1 {
     if picret != 0 {
         pichas = 1
         picsel = picret
+        // The picture's name (Stone 40), read back with
+        // the picture into the notes block's eleventh
+        // slot, where this body keeps it.
+        let pnm = picnameload(notesblock, 640)
     }
 }
 
@@ -3864,6 +4171,11 @@ if pix == 1 {
     pset(pixdesk, 308, 0)
     pset(pixdesk, 312, 1)
     pset(pixdesk, 316, 0)
+    // The naming standings (Stone 40), at 376 and 380:
+    // no naming stands open in the files window, and it
+    // has spoken no word.
+    pset(pixdesk, 376, 0)
+    pset(pixdesk, 380, 0)
     // The verse window's standing (Stone 29), at 324 to
     // 336: it starts closed — the word 'verse' opens it —
     // and the first verse stands in it until an opening
@@ -4270,13 +4582,17 @@ while true {
             if k == 72 {
                 if pix == 1 {
                     if pget(pixdesk, 180) == 3 {
-                        if pget(pixdesk, 300) == 1 {
+                        if pget(pixdesk, 300) + pget(pixdesk, 376) > 0 {
                             // The files window's asking
                             // (Stone 27): the arrows move
                             // the asking's pick — up to
                             // "Yes, let it go" — and the
                             // note's pick cannot move while
-                            // the asking stands.
+                            // the asking stands. A naming
+                            // standing in the window (Stone
+                            // 40) swallows the arrows the
+                            // same way: the pick it names
+                            // cannot move under it.
                             if pget(pixdesk, 304) == 1 {
                                 pset(pixdesk, 304, 0)
                                 paintwindows(pixdesk, cellblock, notesblock)
@@ -4331,9 +4647,13 @@ while true {
             if k == 80 {
                 if pix == 1 {
                     if pget(pixdesk, 180) == 3 {
-                        if pget(pixdesk, 300) == 1 {
+                        if pget(pixdesk, 300) + pget(pixdesk, 376) > 0 {
                             // The files window's asking
                             // (Stone 27): down to "Keep it".
+                            // A naming standing (Stone 40)
+                            // swallows the arrow the same
+                            // way, as the up arrow's telling
+                            // above says.
                             if pget(pixdesk, 304) == 0 {
                                 pset(pixdesk, 304, 1)
                                 paintwindows(pixdesk, cellblock, notesblock)
@@ -4439,6 +4759,175 @@ while true {
                         if pix == 1 {
                             if pget(pixdesk, 180) == 3 {
                                 if pget(pixdesk, 188) == 1 {
+                                    if pget(pixdesk, 376) > 0 {
+                                        // The naming way's own Enter
+                                        // (Stone 40): the name typed
+                                        // into the block's tenth slot
+                                        // is kept — or refused in
+                                        // plain words in the window
+                                        // (the desk's 380 carries the
+                                        // word for the window to
+                                        // show), with nothing
+                                        // changed. A keeping closes
+                                        // the naming, repaints the
+                                        // files window by the region
+                                        // road over that window
+                                        // alone, and answers in the
+                                        // terminal like the window's
+                                        // other doings.
+                                        fileused = 1
+                                        let nmway = pget(pixdesk, 376)
+                                        let nmsub = pget(pixdesk, 192)
+                                        let nmdn = notesblock[576]
+                                        if nmdn == 0 {
+                                            pset(pixdesk, 380, 2)
+                                            layroadwins(pixdesk, 3, 0)
+                                            paintregion(pixdesk, cellblock, notesblock)
+                                        } else {
+                                            let nmfull = 0
+                                            if nmway == 2 {
+                                                if notecount >= 8 {
+                                                    nmfull = 1
+                                                }
+                                            }
+                                            if nmfull == 1 {
+                                                pset(pixdesk, 380, 3)
+                                                layroadwins(pixdesk, 3, 0)
+                                                paintregion(pixdesk, cellblock, notesblock)
+                                            } else {
+                                                let nmdup = 0
+                                                let nmj = 0
+                                                while nmj < notecount {
+                                                    let nmskip = 0
+                                                    if nmway == 1 {
+                                                        if nmj == nmsub {
+                                                            nmskip = 1
+                                                        }
+                                                    }
+                                                    if nmskip == 0 {
+                                                        if draftisname(notesblock, nmj) == 1 {
+                                                            nmdup = 1
+                                                        }
+                                                    }
+                                                    nmj = nmj + 1
+                                                }
+                                                if nmway != 3 {
+                                                    if pichas == 1 {
+                                                        if draftispicname(notesblock) == 1 {
+                                                            nmdup = 1
+                                                        }
+                                                    }
+                                                }
+                                                if nmdup == 1 {
+                                                    pset(pixdesk, 380, 1)
+                                                    layroadwins(pixdesk, 3, 0)
+                                                    paintregion(pixdesk, cellblock, notesblock)
+                                                } else {
+                                                    if nmway == 1 {
+                                                        let nmt = 0
+                                                        while nmt < 20 {
+                                                            notesblock[nmsub * 64 + 44 + nmt] = 0
+                                                            nmt = nmt + 1
+                                                        }
+                                                        notesblock[nmsub * 64 + 44] = nmdn
+                                                        let nmi = 0
+                                                        while nmi < nmdn {
+                                                            notesblock[nmsub * 64 + 45 + nmi] = notesblock[576 + 1 + nmi]
+                                                            nmi = nmi + 1
+                                                        }
+                                                        let nmwrote = 0
+                                                        if diskset == 1 {
+                                                            if notesave(notesblock, notecount) == 1 {
+                                                                nmwrote = 1
+                                                            }
+                                                        }
+                                                        notesblock[576] = 0
+                                                        pset(pixdesk, 380, 0)
+                                                        pset(pixdesk, 376, 0)
+                                                        layroadwins(pixdesk, 3, 0)
+                                                        paintregion(pixdesk, cellblock, notesblock)
+                                                        if diskset == 1 {
+                                                            if nmwrote == 1 {
+                                                                ansrow = printline(ansrow, "Your note is renamed, and its new name is kept on the disk.", pix, pixdesk)
+                                                            } else {
+                                                                ansrow = printline(ansrow, "The disk would not take the new name, so it stands only for now.", pix, pixdesk)
+                                                            }
+                                                        } else {
+                                                            ansrow = printline(ansrow, "Your note is renamed.", pix, pixdesk)
+                                                        }
+                                                    }
+                                                    if nmway == 2 {
+                                                        let nmcj = 0
+                                                        while nmcj < 64 {
+                                                            notesblock[notecount * 64 + nmcj] = notesblock[nmsub * 64 + nmcj]
+                                                            nmcj = nmcj + 1
+                                                        }
+                                                        let nmt2 = 0
+                                                        while nmt2 < 20 {
+                                                            notesblock[notecount * 64 + 44 + nmt2] = 0
+                                                            nmt2 = nmt2 + 1
+                                                        }
+                                                        notesblock[notecount * 64 + 44] = nmdn
+                                                        let nmi2 = 0
+                                                        while nmi2 < nmdn {
+                                                            notesblock[notecount * 64 + 45 + nmi2] = notesblock[576 + 1 + nmi2]
+                                                            nmi2 = nmi2 + 1
+                                                        }
+                                                        notecount = notecount + 1
+                                                        pset(pixdesk, 196, notecount)
+                                                        pset(pixdesk, 192, notecount - 1)
+                                                        let nmwrote2 = 0
+                                                        if diskset == 1 {
+                                                            if notesave(notesblock, notecount) == 1 {
+                                                                nmwrote2 = 1
+                                                            }
+                                                        }
+                                                        notesblock[576] = 0
+                                                        pset(pixdesk, 380, 0)
+                                                        pset(pixdesk, 376, 0)
+                                                        layroadwins(pixdesk, 3, 0)
+                                                        paintregion(pixdesk, cellblock, notesblock)
+                                                        if diskset == 1 {
+                                                            if nmwrote2 == 1 {
+                                                                ansrow = printline(ansrow, "Your copy is kept on the disk, under its new name.", pix, pixdesk)
+                                                            } else {
+                                                                ansrow = printline(ansrow, "The disk would not take the copy, so it is kept only for now.", pix, pixdesk)
+                                                            }
+                                                        } else {
+                                                            ansrow = printline(ansrow, "Your copy is kept for this sitting, under its new name.", pix, pixdesk)
+                                                        }
+                                                    }
+                                                    if nmway == 3 {
+                                                        let nmp = 0
+                                                        while nmp < 44 {
+                                                            notesblock[640 + nmp] = 0
+                                                            nmp = nmp + 1
+                                                        }
+                                                        notesblock[640] = nmdn
+                                                        let nmi3 = 0
+                                                        while nmi3 < nmdn {
+                                                            notesblock[640 + 1 + nmi3] = notesblock[576 + 1 + nmi3]
+                                                            nmi3 = nmi3 + 1
+                                                        }
+                                                        let nmwrote3 = 0
+                                                        if picsave(picblock, 1, picsel, notesblock) == 1 {
+                                                            nmwrote3 = 1
+                                                        }
+                                                        notesblock[576] = 0
+                                                        pset(pixdesk, 380, 0)
+                                                        pset(pixdesk, 376, 0)
+                                                        layroadwins(pixdesk, 3, 0)
+                                                        paintregion(pixdesk, cellblock, notesblock)
+                                                        if nmwrote3 == 1 {
+                                                            ansrow = printline(ansrow, "Your picture is renamed, and its new name is kept on the disk.", pix, pixdesk)
+                                                        } else {
+                                                            ansrow = printline(ansrow, "The disk would not take the new name, so it stands only for now.", pix, pixdesk)
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } else {
                                     if pget(pixdesk, 300) == 1 {
                                         // The asking's own Enter
                                         // (Stone 27): the picked
@@ -4521,6 +5010,7 @@ while true {
                                                 }
                                             }
                                         }
+                                    }
                                     }
                                 }
                             }
@@ -4969,6 +5459,8 @@ while true {
                     if pix == 1 {
                         pset(pixdesk, 188, 1)
                         pset(pixdesk, 300, 0)
+                        pset(pixdesk, 376, 0)
+                        pset(pixdesk, 380, 0)
                         pset(pixdesk, 180, 3)
                         paintwindows(pixdesk, cellblock, notesblock)
                     } else {
@@ -5266,6 +5758,24 @@ while true {
                             // and closes no window — the
                             // note is left exactly as it
                             // was, as "Keep it" leaves it.
+                            // A naming standing in the files
+                            // window stands in Escape's way
+                            // the same way (Stone 40): while
+                            // it stands, Escape puts the
+                            // naming away — the name being
+                            // typed is forgotten — and closes
+                            // no window; the thing named is
+                            // left exactly as it was.
+                            if fr == 3 {
+                                if pget(pixdesk, 376) > 0 {
+                                    pset(pixdesk, 376, 0)
+                                    pset(pixdesk, 380, 0)
+                                    notesblock[576] = 0
+                                    layroadwins(pixdesk, 3, 0)
+                                    paintregion(pixdesk, cellblock, notesblock)
+                                    fr = 0 - 1
+                                }
+                            }
                             if fr == 3 {
                                 if pget(pixdesk, 300) == 1 {
                                     pset(pixdesk, 300, 0)
@@ -5677,6 +6187,28 @@ while true {
                             }
                         }
                     }
+                    // While the files window stands forward
+                    // with a naming standing in it (Stone
+                    // 40), the key forgets the name's last
+                    // letter instead, the same way — and
+                    // the naming's spoken word is put away,
+                    // for the name it spoke of is changing.
+                    let nmwrite = 0
+                    if pix == 1 {
+                        if pget(pixdesk, 180) == 3 {
+                            if pget(pixdesk, 376) > 0 {
+                                nmwrite = 1
+                            }
+                        }
+                    }
+                    if nmwrite == 1 {
+                        if notesblock[576] > 0 {
+                            notesblock[576] = notesblock[576] - 1
+                            pset(pixdesk, 380, 0)
+                            layroadwins(pixdesk, 3, 0)
+                            paintregion(pixdesk, cellblock, notesblock)
+                        }
+                    } else {
                     if edwrite == 1 {
                         if notesblock[512] > 0 {
                             notesblock[512] = notesblock[512] - 1
@@ -5687,6 +6219,7 @@ while true {
                             klen = klen - 1
                         }
                         drawtyping(buildline(keys, keymod, 0, klen), pix, pixdesk)
+                    }
                     }
                 } else {
                     // A letter or a mark: resolve its shift
@@ -5729,6 +6262,40 @@ while true {
                                 }
                             }
                         }
+                        // While the files window stands
+                        // forward with a naming standing in
+                        // it (Stone 40), the letter goes
+                        // into the name being typed (the
+                        // block's tenth slot) instead —
+                        // resolved under the same shifts
+                        // and Caps Lock, and stopped at the
+                        // name's measure: nineteen letters
+                        // for a note's name, forty-three
+                        // for the picture's, the measures
+                        // the window itself names. The
+                        // naming's spoken word is put away
+                        // as the name changes.
+                        let nmwrite = 0
+                        if pix == 1 {
+                            if pget(pixdesk, 180) == 3 {
+                                if pget(pixdesk, 376) > 0 {
+                                    nmwrite = 1
+                                }
+                            }
+                        }
+                        if nmwrite == 1 {
+                            let nmcap = 19
+                            if pget(pixdesk, 376) == 3 {
+                                nmcap = 43
+                            }
+                            if notesblock[576] < nmcap {
+                                notesblock[576 + notesblock[576] + 1] = textbyte(ch, 0)
+                                notesblock[576] = notesblock[576] + 1
+                                pset(pixdesk, 380, 0)
+                                layroadwins(pixdesk, 3, 0)
+                                paintregion(pixdesk, cellblock, notesblock)
+                            }
+                        } else {
                         if edwrite == 1 {
                             if notesblock[512] < 43 {
                                 notesblock[512 + notesblock[512] + 1] = textbyte(ch, 0)
@@ -5754,6 +6321,7 @@ while true {
                                 klen = klen + 1
                             }
                             drawtyping(buildline(keys, keymod, 0, klen), pix, pixdesk)
+                        }
                         }
                     }
                 }
@@ -6398,6 +6966,8 @@ while true {
                                                     if cyp < (fy + 1) * cellpx {
                                                         pset(pixdesk, 188, 0)
                                                         pset(pixdesk, 300, 0)
+                                                        pset(pixdesk, 376, 0)
+                                                        pset(pixdesk, 380, 0)
                                                         if pget(pixdesk, 180) == 3 {
                                                             if pget(pixdesk, 172) == 1 {
                                                                 pset(pixdesk, 180, 1)
@@ -6993,7 +7563,7 @@ while true {
                                     // foot, and the window
                                     // comes forward.
                                     if pget(pixdesk, 188) == 1 {
-                                        if pget(pixdesk, 300) == 0 {
+                                        if pget(pixdesk, 300) + pget(pixdesk, 376) == 0 {
                                             if pget(pixdesk, 196) > 0 {
                                                 if cxp >= fx * cellpx {
                                                     if cxp < (fx + fw) * cellpx {
@@ -7033,7 +7603,7 @@ while true {
                                     // 'paint' opening does.
                                     if pget(pixdesk, 188) == 1 {
                                         if pget(pixdesk, 200) == 1 {
-                                            if pget(pixdesk, 300) == 0 {
+                                            if pget(pixdesk, 300) + pget(pixdesk, 376) == 0 {
                                                 if pichas == 1 {
                                                 if cxp >= fx * cellpx {
                                                     if cxp < (fx + fw) * cellpx {
@@ -7063,7 +7633,7 @@ while true {
                                     // the asking — nothing is
                                     // let go by this press.
                                     if pget(pixdesk, 188) == 1 {
-                                        if pget(pixdesk, 300) == 0 {
+                                        if pget(pixdesk, 300) + pget(pixdesk, 376) == 0 {
                                             if pget(pixdesk, 180) == 3 {
                                                 if pget(pixdesk, 192) < notecount {
                                                     if cyp / cellpx == fy + 11 {
@@ -7074,6 +7644,125 @@ while true {
                                                                 pset(pixdesk, 180, 3)
                                                                 paintwindows(pixdesk, cellblock, notesblock)
                                                                 acted = 1
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    // A press on "Rename" at
+                                    // the files window's foot
+                                    // (Stone 40): the word
+                                    // stands left of "Copy"
+                                    // while a note stands
+                                    // picked and the window
+                                    // stands forward; the press
+                                    // opens the naming way on
+                                    // that note — the name
+                                    // being typed starts empty
+                                    // and the window is
+                                    // repainted by the region
+                                    // road over the files
+                                    // window alone. Nothing is
+                                    // renamed by this press.
+                                    if pget(pixdesk, 188) == 1 {
+                                        if pget(pixdesk, 300) + pget(pixdesk, 376) == 0 {
+                                            if pget(pixdesk, 180) == 3 {
+                                                if pget(pixdesk, 192) < notecount {
+                                                    if cyp / cellpx == fy + 11 {
+                                                        if cxp >= (fx + 24) * cellpx {
+                                                            if cxp < (fx + 30) * cellpx {
+                                                                notesblock[576] = 0
+                                                                pset(pixdesk, 380, 0)
+                                                                pset(pixdesk, 376, 1)
+                                                                pset(pixdesk, 180, 3)
+                                                                layroadwins(pixdesk, 3, 0)
+                                                                paintregion(pixdesk, cellblock, notesblock)
+                                                                acted = 1
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    // A press on "Copy" at the
+                                    // files window's foot
+                                    // (Stone 40): the word
+                                    // stands between "Rename"
+                                    // and the letting-go words
+                                    // while a note stands
+                                    // picked; the press opens
+                                    // the naming way for a copy
+                                    // of that note, the same
+                                    // opening. When the notes
+                                    // page already stands
+                                    // full, no naming opens:
+                                    // the press is answered in
+                                    // plain words, as the
+                                    // editor answers it.
+                                    if pget(pixdesk, 188) == 1 {
+                                        if pget(pixdesk, 300) + pget(pixdesk, 376) == 0 {
+                                            if pget(pixdesk, 180) == 3 {
+                                                if pget(pixdesk, 192) < notecount {
+                                                    if cyp / cellpx == fy + 11 {
+                                                        if cxp >= (fx + 31) * cellpx {
+                                                            if cxp < (fx + 35) * cellpx {
+                                                                if notecount >= 8 {
+                                                                    ansrow = printline(ansrow, "The notes page is full. Eight notes are kept there.", pix, pixdesk)
+                                                                } else {
+                                                                    notesblock[576] = 0
+                                                                    pset(pixdesk, 380, 0)
+                                                                    pset(pixdesk, 376, 2)
+                                                                    pset(pixdesk, 180, 3)
+                                                                    layroadwins(pixdesk, 3, 0)
+                                                                    paintregion(pixdesk, cellblock, notesblock)
+                                                                }
+                                                                acted = 1
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    // A press on "Rename" at
+                                    // the files window's foot
+                                    // while the kept picture
+                                    // stands picked (Stone
+                                    // 40): the word stands
+                                    // where the note's
+                                    // letting-go words stand;
+                                    // the press opens the
+                                    // naming way on the
+                                    // picture, the same
+                                    // opening. The picture is
+                                    // offered no "Copy" —
+                                    // the disk keeps one
+                                    // picture.
+                                    if pget(pixdesk, 188) == 1 {
+                                        if pget(pixdesk, 300) + pget(pixdesk, 376) == 0 {
+                                            if pget(pixdesk, 180) == 3 {
+                                                if pichas == 1 {
+                                                    if pget(pixdesk, 192) == notecount {
+                                                        if cyp / cellpx == fy + 11 {
+                                                            if cxp >= (fx + 36) * cellpx {
+                                                                if cxp < (fx + 42) * cellpx {
+                                                                    notesblock[576] = 0
+                                                                    pset(pixdesk, 380, 0)
+                                                                    pset(pixdesk, 376, 3)
+                                                                    pset(pixdesk, 180, 3)
+                                                                    layroadwins(pixdesk, 3, 0)
+                                                                    paintregion(pixdesk, cellblock, notesblock)
+                                                                    acted = 1
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -7921,7 +8610,18 @@ while true {
                         if sl > 53 {
                             sl = 48
                         }
-                        if picsave(picblock, anypaint, sl) == 1 {
+                        // A canvas cleared clear through
+                        // lets the keeping go (above), and
+                        // the picture's name goes with it
+                        // (Stone 40): the name this body
+                        // keeps is forgotten before the
+                        // saving, so the header laid down
+                        // carries no name for a picture
+                        // that no longer stands.
+                        if anypaint == 0 {
+                            notesblock[640] = 0
+                        }
+                        if picsave(picblock, anypaint, sl, notesblock) == 1 {
                             pichas = anypaint
                             if anypaint == 1 {
                                 picsel = sl
