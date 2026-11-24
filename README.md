@@ -4060,6 +4060,131 @@ neighboring proofs pass with it — the feather-paint
 proof (8 of 8), the no-input witness proof (five
 boots), the ISO proof, and Stones 14, 23, and 24.
 
+### Stone 43 — The USB stick in the running system
+
+Until this stone a USB stick could only be a door:
+the system booted from one (Stone 17) and never spoke
+to it again. Now a mass-storage stick standing on the
+xHCI bus is raised by the running system itself, and
+its sectors are read and written while the system
+runs — a new library, usbstick.nifla, carrying a
+bulk-only-transport driver on the controller the
+keyboard road set walking, with the SCSI words the
+carriage speaks (test-unit-ready, read-capacity,
+read, write, synchronize-cache), one sector at a
+time.
+
+The stick can carry the keeping. Its library holds a
+twin of the keeping's whole layout — the settings
+card at sector 8, the notes page at sectors 64 and
+after, the kept picture at sectors 80 and after, in
+diskkeep.nifla's very shapes — and the choice of
+which disk keeps is made once, at the rising: a
+fitted hard disk keeps its place, as it always has,
+and the stick keeps when no hard disk stands fitted.
+Every keeping call in the main body goes through a
+row of wrappers that hand the call to the rising's
+keeping disk, so no call site knows which disk it
+speaks to. The word 'usb' reports the stick beside
+the keyboards ("A USB stick is here. It holds 16384
+sectors." for the bench's stick), and when the stick
+is the disk offered, the rising's offer names it:
+"A USB stick is here. Type setup to let it remember
+your choices." Behind the setup gate's yes the stick
+is carded and cleared exactly as a hard disk is, and
+notes and the picture live on it across reboots.
+
+The stone exposed three faults that were already in
+the house, and fixed them where they stood; each is
+told in its code where it lives.
+
+First, a second device on the xHCI bus broke the
+first road's waking. The control ring is shared by
+every waking, and the controller reads ahead on a
+ring while the reckoning bit matches — so a former
+device's leavings, still wearing the first cycle,
+were carried out as the new device's own askings,
+and the new device's true askings, laid behind the
+reading, were never heard. With a stick woken before
+the keyboard, the keyboard's waking was answered by
+the stick's leftover askings and the keyboard never
+woke; a lone device was never harmed, its ring being
+clean from the making. The addressing now scrubs the
+ring clean and stands the laying hand at its head
+before each device is addressed on it (xlayaddress,
+and the stick road's ulayaddress alike), so a fresh
+chain always meets a dead reckoning after it.
+
+Second, a device the keyboard walk woke to ask its
+kind and set aside stood still addressed, and
+refused a second addressing outright — the keeping
+road's raising of the stick failed at its address
+command for exactly that reason. The walk now sets
+down every device it does not keep (the Disable Slot
+command), giving its claim back, and the keeping
+road does the same for a candidate it cannot keep.
+
+Third, the keeping road's waits scan the shared
+event ring, and a keyboard completion met there was
+passed by — and the poll re-arms the keyboard's
+interrupt door only when it sees that completion
+itself, so one passed by left the keyboard silent
+for good: after the setup gate (whose sixty-six
+writings to the stick scan the ring many times) no
+word typed was ever answered. A waiter that meets
+the keyboard's completion now keeps the keyboard's
+service on its behalf — the keys read into the
+queue, the door armed again — exactly as the poll
+would (xkbkeep, called from the command wait and
+the stick's transfer wait).
+
+And the stone outgrew the doorman's stage. The
+system's segment, staged at 0x40000, crossed
+0xA0000 — where the firmware's reserved ground
+begins — and its tail bytes were lost into that
+ground: the desktop wore the loss as small
+wrongnesses (an icon's name read blank, a feather's
+visit failing) while every direct-loaded proof stood
+green, the loss living only in the doorman's road.
+The stage could not be raised, the firmware's disc
+service addressing no higher than its first
+megabyte, so it came down the hill to 0x20000, the
+segment ending at 0x839D7 with the reserved ground
+untouched above it, and the protected-mode stack
+tucked from 0x3F000 into the free ground at 0x1F000
+between the module stages and the stage. The build
+check (build-iso.sh) now measures the segment's own
+end from the file's program headers and holds it
+below 0xA0000, loudly. The doorman's own note tells
+the whole laying, as it always has.
+
+Proof: prove-stone43.sh, four boots, 36 checks. A
+blank stick and no hard disk: the stick is offered,
+'usb' reports it, the keyboard on the same bus
+stands ready, the gate's yes gives the stick the
+keeping, and two notes are kept on it — the stick
+image's own bytes then prove the card and the notes
+stand on the stick, in the disk's layout. The same
+stick booted again: the notes are read back, a third
+is kept, and the bytes prove the page grew. No
+stick: nothing is offered and 'usb' names none. A
+blank stick and a blank hard disk together: the hard
+disk keeps its place, is offered and carded, and the
+stick's image stands byte-identical after, never
+written. The companions pass: prove-iso,
+prove-stone6, prove-stone8, prove-stone15,
+prove-stone32, prove-stone38, prove-stone39,
+prove-stone40, prove-stone42, prove-efi,
+prove-nowitness, and prove-featherstart;
+prove-stone41 fails only the two start-menu checks
+that went stale at Stone 42, as it did there.
+prove-stone17 (the USB-disc boot) fails on this
+bench today on the Stone 42 tree as on this one —
+its emulated USB boot has always been intermittent
+here — and no real stick has booted the system yet:
+that witness, like every witness, is Tyler's in UTM
+and on his own hardware.
+
 ## The EFI door verified (November 24, 2026)
 
 The disc has carried two doors since it was first

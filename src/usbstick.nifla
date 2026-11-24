@@ -1,0 +1,1216 @@
+// Cardnull OS 2 — the USB stick in the running system
+// (Stone 43).
+//
+// Every other USB road in this system is ears: the two
+// keyboard drivers (usbkey.nifla on the UHCI road,
+// xhcikey.nifla on the xHCI road) listen, and the
+// firmware's own road (Stone 17) boots the system off a
+// stick but hands the running system nothing. This
+// library is the running system's own hands on a USB
+// stick: it raises a mass-storage device standing on
+// the xHCI bus, speaks the bulk-only transport the
+// sticks of the world speak (a command wrapper out,
+// the data, a status wrapper back), and reads and
+// writes the stick's sectors with the SCSI words the
+// transport carries (READ(10), WRITE(10), READ
+// CAPACITY, TEST UNIT READY, SYNCHRONIZE CACHE).
+//
+// The controller is shared with the xHCI keyboard
+// road, and shared honestly: the command ring, the
+// event ring, and the device-place list are the
+// controller's own, kept in that road's desk, and this
+// library uses them through that road's own hands
+// (xcmd, xbell, xnextevt) exactly as the keyboard's
+// waking does. The stick's own estate — its ledger,
+// its contexts, its three rings (control, bulk out,
+// bulk in), its data ground — lives in that same desk,
+// on ground the keyboard road never touches: above
+// every field its building lays (its scratch pages
+// included, whose count its ledger keeps), page-lined,
+// with the ground's place kept at the one ledger place
+// its road left free (252). Every word below therefore
+// takes the one desk, as the keyboard road's words do,
+// and reads the stick's ledger through the two small
+// hands sg and sp, which reckon from the ground. The
+// main body takes the desk larger for this stone
+// (98304 bytes) so the ground stands clear at every
+// alignment. The raising walks the ports the
+// keyboard's raising left alone: the keyboard's own
+// port is skipped by its number, and the keyboard
+// road's ledger places this walk borrows (its port
+// and speed) are handed back as they were found, so
+// the keyboard stands exactly as it stood.
+//
+// The stick, once raised, can carry the system's
+// keeping — the settings card, the notes page, the
+// kept picture — in the very layout diskkeep.nifla
+// lays on a hard disk (its heading tells the layout
+// whole): this library's second half is that layout's
+// twin on the stick, word for word, so the main body
+// chooses at its rising which disk keeps its memory
+// and the keeping itself never knows the difference.
+// The choice is the main body's, and its rule is
+// plain: a fitted hard disk keeps its place, as it
+// always has; the stick keeps the memory when no hard
+// disk stands fitted. The setup gate's discipline is
+// the twins' too: nothing is written to a stick the
+// gate has not given over, and the giving-over
+// (udisksetup) clears and cards the stick exactly as
+// disksetup does a hard disk.
+//
+// Honest bounds, said once here: transfers are whole
+// sectors of 512 bytes, one at a time, and a stick
+// whose sector is not 512 bytes is refused at the
+// raising. A transfer is short — the reckonings here
+// are done in the asking, not in a background — but
+// while one runs, this library reads the controller's
+// event ring, and a keyboard report landing in that
+// same moment may be set aside unread: a key pressed
+// in the very instant of a keeping write may ask a
+// second press. The stick is raised once, at the
+// rising; a stick plugged in later is not seen until
+// the next rising, as no road in this system yet
+// watches for arrivals.
+
+// ---- the stick's ledger ----
+//
+// The ledger stands at the ground's head (the ground
+// itself is reckoned by ubuild and kept at the desk's
+// place 252); its places, reckoned from the ground:
+//
+//   0   the stick's standing: 0 untouched, 1 raised
+//       and ready, 2 no stick stands on the bus,
+//       255 a stick answered but could not be raised
+//   4   the port the stick stands on
+//   8   the stick's place (its slot) with the
+//       controller
+//   12  the stick's speed, in the controller's own
+//       reckoning (1 full, 2 low, 3 high, 4 super)
+//   16  the control door's packet bound
+//   20  the bulk-in door's number (its place in the
+//       device, without the direction bit)
+//   24  the bulk-in door's packet bound
+//   28  the bulk-in door's place in the controller's
+//       reckoning (its DCI: door * 2 + 1)
+//   32  the bulk-out door's number
+//   36  the bulk-out door's packet bound
+//   40  the bulk-out door's place (its DCI: door * 2)
+//   44  how many sectors the stick holds
+//   48  the command wrapper's mark, growing by one
+//       with every command carried
+//   52  the control ring's standing, 56 its cycle
+//   60  the bulk-out ring's standing, 64 its cycle
+//   68  the bulk-in ring's standing, 72 its cycle
+//   76  the input context's place in the desk
+//   80  the output context's place
+//   84  the control ring's place
+//   88  the bulk-out ring's place
+//   92  the bulk-in ring's place
+//   96  the data ground's place: 4096 bytes of
+//       transfer ground, then the command wrapper's
+//       room at +4096, the status wrapper's room at
+//       +4608, and the command's own room at +5120
+//   100 the setup packet's room's place
+//   104 the last transfer event's unbrought remainder
+//   220 the transfer block staging (four words), the
+//       same shape the xHCI road stages at its own
+//       220 — kept here because the ring hand reads
+//       the staging from the desk it is handed, and
+//       the stick's rings are laid from this ledger's
+//       reckoning of their places
+//
+// The regions stand from the ground's +256: the input
+// context (4224 bytes), the output context (4224),
+// the control ring (1024), the bulk-out ring (1024),
+// the bulk-in ring (1024), the data ground (8192),
+// and the setup room (64) — the estate ends at the
+// ground's +20032.
+
+// Reads one of the stick's ledger words, reckoned
+// from the ground kept at the desk's place 252.
+make sg(desk: bytes, off: number) -> number {
+    give get32(desk, get32(desk, 252) + off)
+}
+
+// Lays one of the stick's ledger words.
+make sp(desk: bytes, off: number, value: number) {
+    put32(desk, get32(desk, 252) + off, value)
+}
+
+// Lays the stick's estate: the ground reckoned from
+// the keyboard road's own building — above its fields
+// (whose last, its scratch pages, end at its base +
+// 29632 + its scratch count's pages, the count kept
+// at its 240) — and lined to a page; the ground's
+// place kept at the desk's 252; the regions' places
+// laid in the ledger; and the rings' standings at
+// their openings.
+make ubuild(desk: bytes) {
+    let b = get32(desk, 32)
+    let end = b + 29632 + get32(desk, 240) * 4096
+    let g = end - (end / 4096) * 4096
+    if g != 0 {
+        g = 4096 - g
+    }
+    let ground = end + g
+    put32(desk, 252, ground)
+    sp(desk, 76, ground + 256)
+    sp(desk, 80, ground + 4480)
+    sp(desk, 84, ground + 8704)
+    sp(desk, 88, ground + 9728)
+    sp(desk, 92, ground + 10752)
+    sp(desk, 96, ground + 11776)
+    sp(desk, 100, ground + 19968)
+    sp(desk, 52, 0)
+    sp(desk, 56, 1)
+    sp(desk, 60, 0)
+    sp(desk, 64, 1)
+    sp(desk, 68, 0)
+    sp(desk, 72, 1)
+    sp(desk, 48, 0)
+}
+
+// Stages one transfer block's four words in the
+// stick's ledger (at its 220), for the ring hand
+// below (uenq) to lay into one of the stick's rings.
+make ustage(desk: bytes, d0: number, d1: number, d2: number, d3: number) {
+    sp(desk, 220, d0)
+    sp(desk, 224, d1)
+    sp(desk, 228, d2)
+    sp(desk, 232, d3)
+}
+
+// Lays the staged block into one of the stick's
+// rings, doing the xHCI road's ring hand's (xenq's)
+// own work in the stick's reckoning — the staging and
+// the standings read from the stick's ledger, the
+// ring laid in the desk where it stands: the block
+// at the standing's place with the ring's cycle in
+// its fourth word, and at the ring's last usable
+// place (62 of 64) a link block laid behind it —
+// pointing home, its toggle raised — and the
+// standing wrapped home with its cycle turned,
+// exactly as xenq lays for the keyboard's rings.
+make uenq(desk: bytes, ring: number, idxoff: number, cycoff: number) {
+    let idx = sg(desk, idxoff)
+    let cyc = sg(desk, cycoff)
+    let at = ring + idx * 16
+    put32(desk, at, sg(desk, 220))
+    put32(desk, at + 4, sg(desk, 224))
+    put32(desk, at + 8, sg(desk, 228))
+    put32(desk, at + 12, sg(desk, 232) + cyc)
+    if idx == 62 {
+        let lat = ring + 63 * 16
+        put32(desk, lat, xphys(desk, ring))
+        put32(desk, lat + 4, 0)
+        put32(desk, lat + 8, 0)
+        put32(desk, lat + 12, cyc + 2 + 6 * 1024)
+        sp(desk, idxoff, 0)
+        sp(desk, cycoff, 1 - cyc)
+    } else {
+        sp(desk, idxoff, idx + 1)
+    }
+}
+
+// Waits for the answering event of the transfer now
+// outstanding on one of the stick's doors — the
+// transfer kind (32) for the stick's place and that
+// door — setting every other event aside, the
+// keyboard's own included (see the heading's honest
+// bounds). Gives back the completion code, or -1 when
+// none came in five seconds; the event's unbrought
+// remainder is kept at the stick ledger's 104.
+make uwaitep(desk: bytes, dci: number) -> number {
+    let deadline = ticks() + 500
+    while ticks() < deadline {
+        if xnextevt(desk) == 1 {
+            if xevtype(desk) == 32 {
+                if andmask(get32(desk, 196) / 16777216, 255) == sg(desk, 8) {
+                    if andmask(get32(desk, 196) / 65536, 31) == dci {
+                        sp(desk, 104, andmask(get32(desk, 192), 16777215))
+                        give xevcode(desk)
+                    }
+                }
+            }
+            // The keyboard's completions share this ring;
+            // meeting one here, keep the keyboard's
+            // service on its behalf (see xkbkeep in the
+            // keyboard's library), never pass it by.
+            xkbkeep(desk)
+        } else {
+            waittick()
+        }
+    }
+    give 0 - 1
+}
+
+// ---- the control road, the stick's own ----
+
+// Stages a control conversation's opening packet in
+// the stick's own setup room, in two calls, as the
+// xHCI road's staging does for the keyboard.
+make ustagesetup1(desk: bytes, rt: number, req: number, value: number) {
+    let o = sg(desk, 100)
+    desk[o] = rt
+    desk[o + 1] = req
+    desk[o + 2] = lobyte(value)
+    desk[o + 3] = hibyte(value)
+}
+
+make ustagesetup2(desk: bytes, index: number, length: number) {
+    let o = sg(desk, 100)
+    desk[o + 4] = lobyte(index)
+    desk[o + 5] = hibyte(index)
+    desk[o + 6] = lobyte(length)
+    desk[o + 7] = hibyte(length)
+}
+
+// One control conversation, whole, on the stick's
+// control ring — the xHCI road's xcontrol reckoned
+// again for this estate: a setup block carrying its
+// packet in itself, the data block when there is one
+// (its ground the data ground's head), and the status
+// block closing it, its direction the opposite of the
+// data's. Comes home with the data's true count, or
+// -1 when the conversation did not complete in
+// success or in an honest short answer.
+make ucontrol(desk: bytes, hasdata: number, inward: number, datalen: number) -> number {
+    let s = sg(desk, 100)
+    let trt = 0
+    if hasdata == 1 {
+        trt = 2
+        if inward == 1 {
+            trt = 3
+        }
+    }
+    ustage(desk, get32(desk, s), get32(desk, s + 4), 8, 2 * 1024 + 64 + trt * 65536)
+    uenq(desk, sg(desk, 84), 52, 56)
+    if hasdata == 1 {
+        let dd3 = 3 * 1024 + 16
+        if inward == 1 {
+            dd3 = dd3 + 4 + 65536
+        }
+        ustage(desk, xphys(desk, sg(desk, 96)), 0, datalen, dd3)
+        uenq(desk, sg(desk, 84), 52, 56)
+    }
+    let sdir = 1
+    if hasdata == 1 {
+        sdir = 1 - inward
+    }
+    ustage(desk, 0, 0, 0, 4 * 1024 + 32 + sdir * 65536)
+    uenq(desk, sg(desk, 84), 52, 56)
+    xbell(desk, sg(desk, 8), 1)
+    let code = uwaitep(desk, 1)
+    if code == 1 {
+        if hasdata == 1 {
+            give datalen - sg(desk, 104)
+        }
+        give 0
+    }
+    if code == 13 {
+        if hasdata == 1 {
+            if inward == 1 {
+                give datalen - sg(desk, 104)
+            }
+        }
+    }
+    give 0 - 1
+}
+
+// Asks for a description at the stick's place: the
+// standard asking (number 6), with the kind in the
+// value's high byte. The bytes land at the data
+// ground's head; the true count comes home.
+make ugetdesc(desk: bytes, kind: number, len: number) -> number {
+    ustagesetup1(desk, 128, 6, kind * 256)
+    ustagesetup2(desk, 0, len)
+    give ucontrol(desk, 1, 1, len)
+}
+
+// ---- the raising ----
+
+// Lays the input context for addressing the stick:
+// its place's context (its speed and its root port,
+// one door reckoned so far) and the control door's
+// context (its error allowance, its kind, its packet
+// bound, and its ring, whose reading opens at the
+// first cycle) — the xHCI road's xlayaddress reckoned
+// for this estate, with the controller's place list
+// told where the stick's output context stands.
+make ulayaddress(desk: bytes) {
+    // The stick's control ring is shared by every
+    // waking this library makes (a device of another
+    // kind may be woken and set aside before the stick
+    // is found), and the door laid below is told the
+    // ring from its head at the first cycle — so the
+    // ring is scrubbed clean and the laying hand stood
+    // at the head too, first cycle, before the laying:
+    // the same law the keyboard road keeps (see
+    // xlayaddress there), and for the same reason: the
+    // controller reads ahead while the reckoning bit
+    // matches, and a former waking's leavings would be
+    // carried out as this device's own askings.
+    xzero(desk, sg(desk, 84), 1024)
+    sp(desk, 52, 0)
+    sp(desk, 56, 1)
+    let inp = sg(desk, 76)
+    let cs = get32(desk, 208)
+    xzero(desk, inp, 4224)
+    xzero(desk, sg(desk, 80), 4224)
+    put32(desk, inp + 4, 3)
+    put32(desk, inp + cs, sg(desk, 12) * 1048576 + 268435456)
+    put32(desk, inp + cs + 4, sg(desk, 4) * 65536)
+    put32(desk, inp + cs * 2 + 4, 6 + 32 + sg(desk, 16) * 65536)
+    put32(desk, inp + cs * 2 + 8, xphys(desk, sg(desk, 84)) + 1)
+    put32(desk, inp + cs * 2 + 16, 8)
+    let dcbaa = get32(desk, 156)
+    let slot = sg(desk, 8)
+    put32(desk, dcbaa + slot * 8, xphys(desk, sg(desk, 80)))
+    put32(desk, dcbaa + slot * 8 + 4, 0)
+}
+
+// Raises the stick standing on one port whose reset
+// has already been made and whose speed stands in
+// this ledger: a place from the controller, the
+// device addressed, its description read and its
+// control door's true bound learned, its whole
+// arrangement read and searched for the mass-storage
+// face (class 8, the SCSI words, the bulk-only
+// carriage) with its two bulk doors, those doors
+// arranged with the controller, and the arrangement
+// set. Comes home with the verdict: 2 — it did not
+// answer its waking; 3 — it answered, and declared
+// another kind; 4 — a stick, arranged and ready for
+// the transport below.
+make uwake(desk: bytes) -> number {
+    let d = sg(desk, 96)
+    if xcmd(desk, 9, 0, 0, 0) != 1 {
+        give 2
+    }
+    sp(desk, 8, get32(desk, 200))
+    if sg(desk, 8) < 1 {
+        give 2
+    }
+    let guess = 64
+    if sg(desk, 12) == 2 {
+        guess = 8
+    }
+    if sg(desk, 12) == 4 {
+        guess = 512
+    }
+    sp(desk, 16, guess)
+    ulayaddress(desk)
+    if xcmd(desk, 11, xphys(desk, sg(desk, 76)), 0, sg(desk, 8)) != 1 {
+        give 2
+    }
+    usbwait(1)
+    if ugetdesc(desk, 1, 8) < 8 {
+        give 2
+    }
+    let real = desk[d + 7]
+    if real != guess {
+        if real >= 8 {
+            sp(desk, 16, real)
+            let inp = sg(desk, 76)
+            let cs = get32(desk, 208)
+            xzero(desk, inp, 4224)
+            put32(desk, inp + 4, 2)
+            put32(desk, inp + cs * 2 + 4, 6 + 32 + real * 65536)
+            put32(desk, inp + cs * 2 + 8, xphys(desk, sg(desk, 84)) + 1)
+            put32(desk, inp + cs * 2 + 16, 8)
+            if xcmd(desk, 13, xphys(desk, inp), 0, sg(desk, 8)) != 1 {
+                give 2
+            }
+        }
+    }
+    if ugetdesc(desk, 1, 18) < 18 {
+        give 2
+    }
+    if ugetdesc(desk, 2, 9) < 9 {
+        give 2
+    }
+    let total = desk[d + 2] + desk[d + 3] * 256
+    if total < 9 {
+        give 2
+    }
+    if total > 2048 {
+        give 2
+    }
+    if ugetdesc(desk, 2, total) < total {
+        give 2
+    }
+    let cfgval = desk[d + 5]
+    // The arrangement's walk: a mass-storage face and
+    // its two bulk doors, as the keyboard's waking
+    // walks for its one door.
+    let off = 0
+    let instick = 0
+    let ifnum = 0
+    let epin = 0
+    let epinmax = 0
+    let epout = 0
+    let epoutmax = 0
+    while off + 2 <= total {
+        let len = desk[d + off]
+        let kind = desk[d + off + 1]
+        if len < 2 {
+            off = total + 1
+        } else {
+            if kind == 4 {
+                if len >= 9 {
+                    let match = 0
+                    if desk[d + off + 5] == 8 {
+                        if desk[d + off + 6] == 6 {
+                            if desk[d + off + 7] == 80 {
+                                match = 1
+                            }
+                        }
+                    }
+                    instick = match
+                    if match == 1 {
+                        ifnum = desk[d + off + 2]
+                    }
+                }
+            }
+            if kind == 5 {
+                if instick == 1 {
+                    if len >= 7 {
+                        let attr = desk[d + off + 3]
+                        if attr - (attr / 4) * 4 == 2 {
+                            let door = desk[d + off + 2]
+                            let bound = desk[d + off + 4] + desk[d + off + 5] * 256
+                            if door >= 128 {
+                                epin = door - (door / 16) * 16
+                                epinmax = bound
+                            } else {
+                                epout = door - (door / 16) * 16
+                                epoutmax = bound
+                            }
+                        }
+                    }
+                }
+            }
+            off = off + len
+        }
+    }
+    if epin == 0 {
+        give 3
+    }
+    if epout == 0 {
+        give 3
+    }
+    sp(desk, 20, epin)
+    sp(desk, 24, epinmax)
+    sp(desk, 28, epin * 2 + 1)
+    sp(desk, 32, epout)
+    sp(desk, 36, epoutmax)
+    sp(desk, 40, epout * 2)
+    // Arrange the two bulk doors with the controller:
+    // the input carries the place's context copied
+    // from the output the addressing laid, its door
+    // count grown to the greater door's place, and
+    // each door's own context — the out door's kind
+    // reckoned 2, the in door's 6, in the controller's
+    // reckoning of kinds (the +4 word: the error
+    // allowance's 6, the kind at eight times itself,
+    // the packet bound high).
+    let inp = sg(desk, 76)
+    let outp = sg(desk, 80)
+    let cs = get32(desk, 208)
+    let dciin = sg(desk, 28)
+    let dciout = sg(desk, 40)
+    let dcimax = dciin
+    if dciout > dcimax {
+        dcimax = dciout
+    }
+    xzero(desk, inp, 4224)
+    let ci = 0
+    while ci < 32 {
+        desk[inp + cs + ci] = desk[outp + ci]
+        ci = ci + 1
+    }
+    let dw0 = get32(desk, inp + cs)
+    put32(desk, inp + cs, dw0 - (dw0 / 268435456) * 268435456 + dcimax * 268435456)
+    let addflags = 1
+    let bit = 1
+    let bi = 0
+    while bi < dciout {
+        bit = bit * 2
+        bi = bi + 1
+    }
+    addflags = addflags + bit
+    bit = 1
+    bi = 0
+    while bi < dciin {
+        bit = bit * 2
+        bi = bi + 1
+    }
+    addflags = addflags + bit
+    put32(desk, inp + 4, addflags)
+    let ooff = inp + cs * (1 + dciout)
+    put32(desk, ooff, 0)
+    put32(desk, ooff + 4, 6 + 16 + epoutmax * 65536)
+    put32(desk, ooff + 8, xphys(desk, sg(desk, 88)) + 1)
+    put32(desk, ooff + 16, 512)
+    let ioff = inp + cs * (1 + dciin)
+    put32(desk, ioff, 0)
+    put32(desk, ioff + 4, 6 + 48 + epinmax * 65536)
+    put32(desk, ioff + 8, xphys(desk, sg(desk, 92)) + 1)
+    put32(desk, ioff + 16, 512)
+    if xcmd(desk, 12, xphys(desk, inp), 0, sg(desk, 8)) != 1 {
+        give 2
+    }
+    ustagesetup1(desk, 0, 9, cfgval)
+    ustagesetup2(desk, 0, 0)
+    if ucontrol(desk, 0, 1, 0) < 0 {
+        give 2
+    }
+    usbwait(1)
+    give 4
+}
+
+// ---- the bulk-only transport ----
+
+// Carries one command the transport's way: the
+// command's own bytes stand staged by the caller in
+// the command's room (the data ground's +5120), with
+// its length; the wrapper goes out on the bulk-out
+// ring (its mark growing, its direction and length
+// told), the data crosses on its own door when there
+// is data, and the status wrapper comes back on the
+// bulk-in ring and is read — its signature checked
+// and its standing given back: 0 the command passed,
+// 1 it failed (the device answered and refused), -1
+// the carriage itself did not complete.
+make ubotgo(desk: bytes, inward: number, datalen: number, cdblen: number) -> number {
+    let d = sg(desk, 96)
+    let cbw = d + 4096
+    let csw = d + 4608
+    let cdb = d + 5120
+    let tag = sg(desk, 48) + 1
+    sp(desk, 48, tag)
+    put32(desk, cbw, 1128420181)
+    put32(desk, cbw + 4, tag)
+    put32(desk, cbw + 8, datalen)
+    if inward == 1 {
+        desk[cbw + 12] = 128
+    } else {
+        desk[cbw + 12] = 0
+    }
+    desk[cbw + 13] = 0
+    desk[cbw + 14] = cdblen
+    let ci = 0
+    while ci < 16 {
+        desk[cbw + 15 + ci] = desk[cdb + ci]
+        ci = ci + 1
+    }
+    ustage(desk, xphys(desk, cbw), 0, 31, 1024 + 32)
+    uenq(desk, sg(desk, 88), 60, 64)
+    xbell(desk, sg(desk, 8), sg(desk, 40))
+    if uwaitep(desk, sg(desk, 40)) != 1 {
+        give 0 - 1
+    }
+    if datalen > 0 {
+        if inward == 1 {
+            ustage(desk, xphys(desk, d), 0, datalen, 1024 + 32)
+            uenq(desk, sg(desk, 92), 68, 72)
+            xbell(desk, sg(desk, 8), sg(desk, 28))
+            if uwaitep(desk, sg(desk, 28)) != 1 {
+                give 0 - 1
+            }
+        } else {
+            ustage(desk, xphys(desk, d), 0, datalen, 1024 + 32)
+            uenq(desk, sg(desk, 88), 60, 64)
+            xbell(desk, sg(desk, 8), sg(desk, 40))
+            if uwaitep(desk, sg(desk, 40)) != 1 {
+                give 0 - 1
+            }
+        }
+    }
+    ustage(desk, xphys(desk, csw), 0, 13, 1024 + 32)
+    uenq(desk, sg(desk, 92), 68, 72)
+    xbell(desk, sg(desk, 8), sg(desk, 28))
+    if uwaitep(desk, sg(desk, 28)) != 1 {
+        give 0 - 1
+    }
+    if get32(desk, csw) != 1396855637 {
+        give 0 - 1
+    }
+    give desk[csw + 12]
+}
+
+// Zeroes the command's room: each command below then
+// lays its own bytes there by hand, the big-endian
+// way the SCSI words ask, each in its own making so
+// the laying stands plain to read.
+make ucbdzero(desk: bytes) {
+    let cdb = sg(desk, 96) + 5120
+    let i = 0
+    while i < 16 {
+        desk[cdb + i] = 0
+        i = i + 1
+    }
+}
+
+// Asks whether the stick stands ready (TEST UNIT
+// READY), hearing a refusal the device's own way:
+// when the command fails, its sense is asked for
+// (REQUEST SENSE) and the asking made once more, as
+// the transport prescribes for a device still
+// settling. Gives back 1 when the stick stands
+// ready, 0 when it does not.
+make utestready(desk: bytes) -> number {
+    let cdb = sg(desk, 96) + 5120
+    ucbdzero(desk)
+    desk[cdb] = 0
+    let st = ubotgo(desk, 0, 0, 6)
+    if st == 0 {
+        give 1
+    }
+    if st != 1 {
+        give 0
+    }
+    ucbdzero(desk)
+    desk[cdb] = 3
+    desk[cdb + 4] = 18
+    if ubotgo(desk, 1, 18, 6) != 0 {
+        give 0
+    }
+    ucbdzero(desk)
+    desk[cdb] = 0
+    if ubotgo(desk, 0, 0, 6) == 0 {
+        give 1
+    }
+    give 0
+}
+
+// Reads the stick's measure (READ CAPACITY): its
+// last sector's number and its sector's length, the
+// big-endian way. A stick whose sector is not 512
+// bytes cannot carry this system's keeping, and the
+// raising refuses it. Gives back the sector count,
+// or 0 when the asking failed.
+make ucapacity(desk: bytes) -> number {
+    let d = sg(desk, 96)
+    let cdb = d + 5120
+    ucbdzero(desk)
+    desk[cdb] = 37
+    if ubotgo(desk, 1, 8, 10) != 0 {
+        give 0
+    }
+    let last = desk[d] * 16777216 + desk[d + 1] * 65536 + desk[d + 2] * 256 + desk[d + 3]
+    let size = desk[d + 4] * 16777216 + desk[d + 5] * 65536 + desk[d + 6] * 256 + desk[d + 7]
+    if size != 512 {
+        give 0
+    }
+    give last + 1
+}
+
+// Reads one sector of the stick into the given block
+// (READ(10), one sector, the sector's number laid
+// big-endian in the command). Gives back 1 when the
+// sector truly came, 0 when it did not.
+make uread(desk: bytes, sector: number, block: bytes) -> number {
+    let d = sg(desk, 96)
+    let cdb = d + 5120
+    ucbdzero(desk)
+    desk[cdb] = 40
+    desk[cdb + 2] = andmask(sector / 16777216, 255)
+    desk[cdb + 3] = andmask(sector / 65536, 255)
+    desk[cdb + 4] = andmask(sector / 256, 255)
+    desk[cdb + 5] = andmask(sector, 255)
+    desk[cdb + 8] = 1
+    if ubotgo(desk, 1, 512, 10) != 0 {
+        give 0
+    }
+    let i = 0
+    while i < 512 {
+        block[i] = desk[d + i]
+        i = i + 1
+    }
+    give 1
+}
+
+// Writes one sector of the stick from the given block
+// (WRITE(10), one sector). Gives back 1 when the
+// sector was truly written, 0 when it was not.
+make uwrite(desk: bytes, sector: number, block: bytes) -> number {
+    let d = sg(desk, 96)
+    let cdb = d + 5120
+    let i = 0
+    while i < 512 {
+        desk[d + i] = block[i]
+        i = i + 1
+    }
+    ucbdzero(desk)
+    desk[cdb] = 42
+    desk[cdb + 2] = andmask(sector / 16777216, 255)
+    desk[cdb + 3] = andmask(sector / 65536, 255)
+    desk[cdb + 4] = andmask(sector / 256, 255)
+    desk[cdb + 5] = andmask(sector, 255)
+    desk[cdb + 8] = 1
+    if ubotgo(desk, 0, 512, 10) != 0 {
+        give 0
+    }
+    give 1
+}
+
+// How many sectors the stick holds, once raised: the
+// ledger's own reckoning, 0 before any raising.
+make usectors(desk: bytes) -> number {
+    if get32(desk, 252) != 0 {
+        if sg(desk, 0) == 1 {
+            give sg(desk, 44)
+        }
+    }
+    give 0
+}
+
+// Commits what the stick itself may still hold
+// (SYNCHRONIZE CACHE), as ataflush commits a hard
+// disk's cache before the resting. Gives back 1 when
+// the word was carried to a raised stick, 0 when
+// there is none.
+make uflush(desk: bytes) -> number {
+    if usectors(desk) > 0 {
+        let cdb = sg(desk, 96) + 5120
+        ucbdzero(desk)
+        desk[cdb] = 53
+        if ubotgo(desk, 0, 0, 10) == 0 {
+            give 1
+        }
+    }
+    give 0
+}
+
+// Raises the stick, whole: when the xHCI controller
+// stands walking (its road's ledger says so), the
+// ports are walked as its own raising walked them —
+// a device standing on a port is reset and woken —
+// with the keyboard's own port skipped by number, and
+// the two ledger places the walk borrows from the
+// keyboard road (its port, its speed) handed back as
+// they were found. The first device that wakes as a
+// stick is asked its readiness and its measure, and
+// the walk ends. Gives back the stick's sector count,
+// or 0 when no stick stands raised: no controller, no
+// device, a device of another kind on every port, or
+// a stick that would not answer — each told apart in
+// the stick ledger's standing (2 when the bus simply
+// holds no stick, 255 when one answered and failed).
+make ustart(desk: bytes) -> number {
+    if get32(desk, 252) != 0 {
+        if sg(desk, 0) == 1 {
+            give sg(desk, 44)
+        }
+    }
+    let xst = get32(desk, 4)
+    if xst != 1 {
+        if xst != 2 {
+            give 0
+        }
+    }
+    ubuild(desk)
+    sp(desk, 0, 2)
+    let saveport = get32(desk, 8)
+    let savespeed = get32(desk, 12)
+    let kbport = 0
+    if xst == 2 {
+        kbport = saveport
+    }
+    let op = get32(desk, 104)
+    let p = 1
+    let answer = 0
+    while p <= get32(desk, 116) {
+        if answer == 0 {
+            if p != kbport {
+                let poff = op + 1024 + (p - 1) * 16
+                if andmask(xmread(desk, poff), 1) != 0 {
+                    sp(desk, 4, p)
+                    if xresetport(desk, p) == 1 {
+                        sp(desk, 12, get32(desk, 12))
+                        let woke = uwake(desk)
+                        if woke == 4 {
+                            if utestready(desk) == 1 {
+                                let cap = ucapacity(desk)
+                                if cap > 0 {
+                                    sp(desk, 44, cap)
+                                    sp(desk, 0, 1)
+                                    answer = cap
+                                } else {
+                                    sp(desk, 0, 255)
+                                }
+                            } else {
+                                sp(desk, 0, 255)
+                            }
+                        }
+                        if woke == 2 {
+                            sp(desk, 0, 255)
+                        }
+                        if woke != 4 {
+                            // A candidate this road woke but
+                            // cannot keep is set down again,
+                            // its claim given back (the
+                            // Disable Slot command, number
+                            // 10), so the device stands as it
+                            // stood before the asking.
+                            if sg(desk, 8) >= 1 {
+                                let freed = xcmd(desk, 10, 0, 0, sg(desk, 8))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        p = p + 1
+    }
+    put32(desk, 8, saveport)
+    put32(desk, 12, savespeed)
+    give answer
+}
+
+// ---- the keeping, on the stick ----
+//
+// The second half of this library: diskkeep.nifla's
+// layout kept on the stick, word for word — the card
+// at sector 8, the notes page's header at sector 64
+// and its notes from sector 65, the picture's header
+// at sector 80 and its three sectors after — with the
+// one difference the transport asks: every reading
+// and writing rides uread and uwrite above, and a
+// reading that does not come is the twin of a disk
+// that is not there. Each making mirrors its
+// diskkeep fellow's words, so the two tellings can be
+// read against each other.
+
+// The card's stored byte, from the stick (the offset
+// with 64 added), or 0 when there is no card — or no
+// stick — to read.
+make usavedoffset(desk: bytes) -> number {
+    if usectors(desk) > 0 {
+        let block = makebytes(512)
+        if uread(desk, 8, block) == 1 {
+            if block[0] == 67 {
+                if block[1] == 78 {
+                    give block[2]
+                }
+            }
+        }
+    }
+    give 0
+}
+
+// The card's chime byte, from the stick: 1 on, 2 off,
+// 0 no card to read (diskkeep's savedchime tells the
+// standing whole).
+make usavedchime(desk: bytes) -> number {
+    if usectors(desk) > 0 {
+        let block = makebytes(512)
+        if uread(desk, 8, block) == 1 {
+            if block[0] == 67 {
+                if block[1] == 78 {
+                    give block[3]
+                }
+            }
+        }
+    }
+    give 0
+}
+
+// The card's size byte, from the stick: 1 usual, 2
+// large, 0 no card to read.
+make usavedsize(desk: bytes) -> number {
+    if usectors(desk) > 0 {
+        let block = makebytes(512)
+        if uread(desk, 8, block) == 1 {
+            if block[0] == 67 {
+                if block[1] == 78 {
+                    give block[4]
+                }
+            }
+        }
+    }
+    give 0
+}
+
+// Writes the card whole to the stick: the given
+// offset, chime byte, and size byte. Gives back 1
+// when the choices were truly written, 0 when there
+// is no stick to remember them on, or the writing
+// did not stand.
+make urememberall(desk: bytes, offset: number, chime: number, size: number) -> number {
+    if usectors(desk) > 0 {
+        let block = makebytes(512)
+        block[0] = 67
+        block[1] = 78
+        block[2] = offset + 64
+        block[3] = chime
+        block[4] = size
+        give uwrite(desk, 8, block)
+    }
+    give 0
+}
+
+// Writes the card for the given offset to the stick,
+// keeping whatever chime and size choices the card
+// already carries.
+make uremember(desk: bytes, offset: number) -> number {
+    give urememberall(desk, offset, usavedchime(desk), usavedsize(desk))
+}
+
+// Reads the kept notes from the stick into the main
+// body's notes block, as notesload reads them from a
+// hard disk. Gives back how many notes stand kept.
+make unotesload(desk: bytes, block: bytes) -> number {
+    if usectors(desk) > 0 {
+        let head = makebytes(512)
+        if uread(desk, 64, head) == 1 {
+            if head[0] == 67 {
+                if head[1] == 78 {
+                    if head[2] == 78 {
+                        let count = head[3]
+                        if count > 8 {
+                            count = 8
+                        }
+                        let sector = makebytes(512)
+                        let i = 0
+                        let whole = 1
+                        while i < count {
+                            if uread(desk, 65 + i, sector) == 1 {
+                                let j = 0
+                                while j < 64 {
+                                    block[i * 64 + j] = sector[j]
+                                    j = j + 1
+                                }
+                            } else {
+                                whole = 0
+                            }
+                            i = i + 1
+                        }
+                        if whole == 1 {
+                            give count
+                        }
+                    }
+                }
+            }
+        }
+    }
+    give 0
+}
+
+// Writes the notes block's kept notes to the stick:
+// the header first, then one sector to a note. Gives
+// back 1 when the page was written whole, 0 when it
+// was not.
+make unotesave(desk: bytes, block: bytes, count: number) -> number {
+    if usectors(desk) > 0 {
+        let head = makebytes(512)
+        head[0] = 67
+        head[1] = 78
+        head[2] = 78
+        head[3] = count
+        if uwrite(desk, 64, head) != 1 {
+            give 0
+        }
+        let i = 0
+        while i < count {
+            let sector = makebytes(512)
+            let j = 0
+            while j < 64 {
+                sector[j] = block[i * 64 + j]
+                j = j + 1
+            }
+            if uwrite(desk, 65 + i, sector) != 1 {
+                give 0
+            }
+            i = i + 1
+        }
+        give 1
+    }
+    give 0
+}
+
+// Reads the kept picture from the stick into the
+// main body's picture block, as picload reads it from
+// a hard disk. Gives back the kept chosen-color
+// figure when a picture stands kept, 0 when none
+// does, or there is no stick to read.
+make upicload(desk: bytes, block: bytes) -> number {
+    if usectors(desk) > 0 {
+        let head = makebytes(512)
+        if uread(desk, 80, head) == 1 {
+            if head[0] == 67 {
+                if head[1] == 78 {
+                    if head[2] == 80 {
+                        if head[3] == 1 {
+                            let sector = makebytes(512)
+                            let s = 0
+                            let whole = 1
+                            while s < 3 {
+                                if uread(desk, 81 + s, sector) == 1 {
+                                    let j = 0
+                                    while j < 512 {
+                                        let at = s * 512 + j
+                                        if at < 1144 {
+                                            block[at] = sector[j]
+                                        }
+                                        j = j + 1
+                                    }
+                                } else {
+                                    whole = 0
+                                }
+                                s = s + 1
+                            }
+                            if whole == 1 {
+                                let sel = head[4]
+                                if sel < 48 {
+                                    sel = 48
+                                }
+                                if sel > 53 {
+                                    sel = 48
+                                }
+                                give sel
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    give 0
+}
+
+// Reads the kept picture's name from the stick into
+// the given block at the given place, as picnameload
+// reads it from a hard disk. Gives back the name's
+// length.
+make upicnameload(desk: bytes, block: bytes, off: number) -> number {
+    block[off] = 0
+    if usectors(desk) > 0 {
+        let head = makebytes(512)
+        if uread(desk, 80, head) == 1 {
+            if head[0] == 67 {
+                if head[1] == 78 {
+                    if head[2] == 80 {
+                        if head[3] == 1 {
+                            let len = head[5]
+                            if len > 43 {
+                                len = 43
+                            }
+                            let i = 0
+                            while i < len {
+                                block[off + 1 + i] = head[6 + i]
+                                i = i + 1
+                            }
+                            block[off] = len
+                            give len
+                        }
+                    }
+                }
+            }
+        }
+    }
+    give 0
+}
+
+// Writes the picture's header to the stick, as
+// picsave's first writing does to a hard disk: the
+// kept byte, the chosen-color figure, and — when a
+// picture stands kept — the name carried from the
+// given name block's place 640. (The twin stands in
+// two makings, header and body, where picsave stands
+// in one: a call can carry six words, and the desk
+// and the two blocks and the two figures would make
+// eight.) Gives back 1 when the header was written,
+// 0 when it was not.
+make upichead(desk: bytes, present: number, sel: number, nameblock: bytes) -> number {
+    if usectors(desk) > 0 {
+        let head = makebytes(512)
+        head[0] = 67
+        head[1] = 78
+        head[2] = 80
+        head[3] = present
+        head[4] = sel
+        if present == 1 {
+            let nlen = nameblock[640]
+            if nlen > 43 {
+                nlen = 43
+            }
+            head[5] = nlen
+            let ni = 0
+            while ni < nlen {
+                head[6 + ni] = nameblock[640 + 1 + ni]
+                ni = ni + 1
+            }
+        }
+        give uwrite(desk, 80, head)
+    }
+    give 0
+}
+
+// Writes the picture block's painted region to the
+// stick: the three picture sectors, each holding its
+// stretch of the block, as picsave's second writing
+// lays them on a hard disk. Gives back 1 when all
+// three were written, 0 when any was not.
+make upicbody(desk: bytes, block: bytes) -> number {
+    if usectors(desk) > 0 {
+        let s = 0
+        while s < 3 {
+            let sector = makebytes(512)
+            let j = 0
+            while j < 512 {
+                let at = s * 512 + j
+                if at < 1144 {
+                    sector[j] = block[at]
+                }
+                j = j + 1
+            }
+            if uwrite(desk, 81 + s, sector) != 1 {
+                give 0
+            }
+            s = s + 1
+        }
+        give 1
+    }
+    give 0
+}
+
+// Gives the stick over to the system's keeping, as
+// disksetup gives a hard disk: the stick's first
+// sixty-four sectors wiped to zeros, the card written
+// last of all, and the card read back — only a card
+// that truly stands earns a 1.
+make udisksetup(desk: bytes, offset: number, chime: number, size: number) -> number {
+    if usectors(desk) > 0 {
+        let block = makebytes(512)
+        let sector = 0
+        let whole = 1
+        while sector < 64 {
+            if uwrite(desk, sector, block) != 1 {
+                whole = 0
+            }
+            sector = sector + 1
+        }
+        if whole == 1 {
+            block[0] = 67
+            block[1] = 78
+            block[2] = offset + 64
+            block[3] = chime
+            block[4] = size
+            if uwrite(desk, 8, block) == 1 {
+                let back = makebytes(512)
+                if uread(desk, 8, back) == 1 {
+                    if back[0] == 67 {
+                        if back[1] == 78 {
+                            if back[2] == offset + 64 {
+                                give 1
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    give 0
+}

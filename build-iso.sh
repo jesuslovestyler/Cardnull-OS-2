@@ -78,23 +78,33 @@ PAINT_FILE="${PAINT_FILE:-build/paint.feather}"
 CALC_FILE="${CALC_FILE:-build/calculator.feather}"
 
 # The stage check (Stone 41): the BIOS doorman stages the
-# system file entire at 0x40000, the four modules on the
-# low ground below it, and works in protected mode on a
-# stack whose top stands at 0x3F000 (boot/cardnull-boot
-# .asm's own map tells the laying). Stone 41's growth
+# system file entire at 0x20000 (Stone 43's laying), the
+# four modules on the low ground below it, and works in
+# protected mode on a stack whose top stands at 0x1F000
+# (boot/cardnull-boot.asm's own map tells the laying).
+# Stone 41's growth
 # carried the staged file's span across the old stages
 # and the old stack silently — the file outgrew the
 # header's claim while the claim went on being believed
 # — and the running machine reset on a pointer press.
 # So the laying is checked here, on every build, by the
 # files' ACTUAL sizes and never any claim: the system
-# span [0x40000, 0x40000 + its size) must meet no module
-# stage and not the stack's top, every module's stage
-# span must meet neither the system span nor another
-# stage, and every module file must fit its stage. A
-# build that breaks the law stops here and says so.
-SYS_BASE=262144        # 0x40000
-STACK_TOP=258048       # 0x3F000
+# span [0x20000, 0x20000 + its size) must meet no
+# module stage and not the stack's top, every module's
+# stage span must meet neither the system span nor
+# another stage, and every module file must fit its
+# stage. Stone 43 added the segment's own wall to the
+# law: the staged segment's end — measured from the
+# file's own program headers, never a claim — must
+# stay below 0xA0000, where the firmware's reserved
+# ground begins; the segment's tail was lost into that
+# ground when its span crossed the line from the old
+# stage at 0x40000, and the stage stands at 0x20000
+# now, with the stack's top tucked at 0x1F000 between
+# the module stages and it. A build that breaks the
+# law stops here and says so.
+SYS_BASE=131072        # 0x20000
+STACK_TOP=126976       # 0x1F000
 SET_BASE=65536;  SET_SPAN=2048    # 0x10000, 2 KiB
 FEA_BASE=67584;  FEA_SPAN=6144    # 0x10800, 6 KiB
 PNT_BASE=73728;  PNT_SPAN=8192    # 0x12000, 8 KiB
@@ -103,13 +113,40 @@ SYS_SIZE=$(wc -c < "$KERNEL_FILE")
 SYS_END=$(( SYS_BASE + SYS_SIZE ))
 stage_fail() {
     echo "FAIL: the doorman's stage laying is broken — $1" >&2
-    echo "The system file stands at $SYS_SIZE bytes, staged at 0x40000 (span to $SYS_END)." >&2
+    echo "The system file stands at $SYS_SIZE bytes, staged at 0x20000 (span to $SYS_END)." >&2
     echo "Move the stages in boot/cardnull-boot.asm and this check together, as the map there tells." >&2
     exit 1
 }
+# The segment's own wall (Stone 43): the end of the
+# last byte the doorman carries home, measured from
+# the file's program headers — each PT_LOAD's offset
+# plus its file size, the greatest of them — must
+# stay below the firmware's reserved ground.
+PHOFF=$(od -An -tu4 -j 28 -N 4 "$KERNEL_FILE" | tr -d ' ')
+PHENT=$(od -An -tu2 -j 42 -N 2 "$KERNEL_FILE" | tr -d ' ')
+PHNUM=$(od -An -tu2 -j 44 -N 2 "$KERNEL_FILE" | tr -d ' ')
+SEG_TAIL=0
+_i=0
+while [ "$_i" -lt "$PHNUM" ]; do
+    _ph=$(( PHOFF + _i * PHENT ))
+    _ptype=$(od -An -tu4 -j "$_ph" -N 4 "$KERNEL_FILE" | tr -d ' ')
+    if [ "$_ptype" = "1" ]; then
+        _poff=$(od -An -tu4 -j $(( _ph + 4 )) -N 4 "$KERNEL_FILE" | tr -d ' ')
+        _pfsz=$(od -An -tu4 -j $(( _ph + 16 )) -N 4 "$KERNEL_FILE" | tr -d ' ')
+        _pend=$(( _poff + _pfsz ))
+        if [ "$_pend" -gt "$SEG_TAIL" ]; then
+            SEG_TAIL=$_pend
+        fi
+    fi
+    _i=$(( _i + 1 ))
+done
+SEG_END=$(( SYS_BASE + SEG_TAIL ))
+if [ "$SEG_END" -gt 655360 ]; then
+    stage_fail "the staged segment's end ($SEG_END) crosses 0xA0000, the firmware's reserved ground"
+fi
 # The stack's top must stand outside the system span.
 if [ "$STACK_TOP" -ge "$SYS_BASE" ] && [ "$STACK_TOP" -lt "$SYS_END" ]; then
-    stage_fail "the protected-mode stack's top (0x3F000) stands inside the staged system's span"
+    stage_fail "the protected-mode stack's top (0x1F000) stands inside the staged system's span"
 fi
 # Each stage: its file fits it, and its span meets neither
 # the system span nor (checked pairwise below) another's.

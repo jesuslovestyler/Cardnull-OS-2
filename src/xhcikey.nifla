@@ -76,6 +76,10 @@
 // 240  how many scratch pages the controller asks for
 // 244  the last port word read (kept for the telling)
 // 248  the interrupt door's reckoned interval
+// 252  the USB stick's ground (Stone 43): the place
+//      in this desk where usbstick.nifla's estate
+//      begins, reckoned and kept by that library —
+//      this road never reads or writes it
 //
 // The controller spoken is an xHCI — the eXtensible Host
 // Controller of the USB 3 years: the class the PCI bus
@@ -487,6 +491,7 @@ make xwaitcmd(desk: bytes) -> number {
                 put32(desk, 200, andmask(get32(desk, 196) / 16777216, 255))
                 give xevcode(desk)
             }
+            xkbkeep(desk)
         } else {
             waittick()
         }
@@ -655,6 +660,28 @@ make xinterval(speed: number, declared: number) -> number {
 // opens at the first cycle). The context size the
 // controller declared is honored in every place.
 make xlayaddress(desk: bytes) {
+    // The control ring is shared by every waking on
+    // this bus, and the door laid below is told the
+    // ring from its head at the first cycle — so the
+    // ring is scrubbed clean and the laying hand stood
+    // at the head, first cycle, before the laying.
+    // Scrubbing is the load-bearing half: the controller
+    // reads ahead on a ring while the reckoning bit
+    // matches, so a former device's leavings — still
+    // wearing the first cycle — would be carried out
+    // as the new device's own askings, and the new
+    // device's true askings, laid behind the reading,
+    // would never be heard. With the ring clean, a
+    // fresh chain always meets a dead reckoning after
+    // it and the reading parks there. (Found by Stone
+    // 43's bench: with a mass-storage device woken
+    // first, the keyboard's waking was answered by the
+    // stick's leftover askings and the keyboard never
+    // woke; a lone device was never harmed, its ring
+    // being clean from the making.)
+    xzero(desk, get32(desk, 172), 1024)
+    put32(desk, 52, 0)
+    put32(desk, 56, 1)
     let inp = get32(desk, 148)
     let cs = get32(desk, 208)
     xzero(desk, inp, 4224)
@@ -1090,8 +1117,37 @@ make xhinit(desk: bytes) -> number {
             if andmask(xmread(desk, poff), 1) != 0 {
                 put32(desk, 8, p)
                 if xresetport(desk, p) == 1 {
-                    if xwake(desk) == 4 {
+                    // The waking itself keeps the shared
+                    // control ring's law (see xlayaddress):
+                    // the ring is scrubbed and the laying
+                    // hand stood at its head before each
+                    // device is addressed on it.
+                    let wv = xwake(desk)
+                    if wv == 4 {
                         ready = 1
+                    } else {
+                        // A device this walk woke but does
+                        // not keep is set down again: its
+                        // claim is given back (the Disable
+                        // Slot command, number 10), so the
+                        // device stands free for another
+                        // road to wake — the keeping road
+                        // wakes the stick on its own claim,
+                        // and a device still holding this
+                        // walk's claim refuses a second
+                        // addressing outright. The claim
+                        // this waking took stands in field
+                        // 200, the command answer's home;
+                        // a waking that never got a claim
+                        // (200 still 0) has nothing to set
+                        // down. (Found by Stone 43's bench:
+                        // the stick, woken here to be asked
+                        // its kind and set aside still
+                        // addressed, refused the keeping
+                        // road's addressing after.)
+                        if get32(desk, 200) >= 1 {
+                            let freed = xcmd(desk, 10, 0, 0, get32(desk, 200))
+                        }
                     }
                 }
             }
@@ -1227,4 +1283,40 @@ make xhready(desk: bytes) -> number {
 // How many keys the modern road has brought since boot.
 make xhcount(desk: bytes) -> number {
     give get32(desk, 68)
+}
+
+// The keyboard's service, taken on its behalf by any
+// other waiter that meets the keyboard's interrupt
+// completion while scanning the shared event ring for
+// its own answer. The poll (xhpoll) reads the new keys
+// and re-arms the interrupt door when it sees that
+// completion; a waiter that simply passed it by would
+// leave the door unarmed and the keyboard silent for
+// good — its keys still on the bus, its road still
+// standing, but no transfer ever laid again. So a
+// waiter that meets the completion does the poll's
+// own work with it, exactly as the poll would: the
+// keys are read into the queue, and the door is armed
+// again. (Found by Stone 43's bench: the keeping
+// road's waits, scanning for the stick's answers,
+// passed the keyboard's completions by — a key's
+// release during the setup gate among them — and
+// after the gate no word typed was ever answered.)
+make xkbkeep(desk: bytes) {
+    if get32(desk, 4) == 2 {
+        if xevtype(desk) == 32 {
+            if andmask(get32(desk, 196) / 16777216, 255) == get32(desk, 16) {
+                if andmask(get32(desk, 196) / 65536, 31) == get32(desk, 28) {
+                    let code = xevcode(desk)
+                    if code == 1 {
+                        xnewkeys(desk)
+                    }
+                    if code == 13 {
+                        xnewkeys(desk)
+                    }
+                    xarm(desk)
+                }
+            }
+        }
+    }
 }

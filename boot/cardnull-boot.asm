@@ -71,13 +71,19 @@
 #           the third feather, its own card at its own
 #           head, received through the same door), its
 #           16 KiB claim ending at 0x18000
-#   0x3F000 the protected-mode stack's top (Stone 41:
-#           below the system stage — see the note below)
-#   0x40000 the system file, staged entire; the span it
-#           covers runs as far as the file itself runs
-#           (as the file stands at Stone 41, 483,936
-#           bytes, ending at 0xB6260), and nothing else
-#           may stand inside that span
+#   0x1F000 the protected-mode stack's top (Stone 43:
+#           tucked into the free ground between the
+#           module stages and the system stage — see the
+#           note below)
+#   0x20000 the system file, staged entire (Stone 43:
+#           brought down the hill from 0x40000 — see the
+#           note below); the span it covers runs as far
+#           as the file itself runs (as the file stands
+#           at Stone 43, 540,576 bytes, ending at
+#           0xA3FA0), and nothing else may stand inside
+#           that span; the segment it carries home ends
+#           at 0x839D7, below the firmware's reserved
+#           ground at 0xA0000, and must never cross it
 # (The modules' stages stand above the system's WHOLE
 # stage, all 256 KiB of its claim: the system's file is
 # staged entire, and any byte of it may be wanted by the
@@ -178,6 +184,49 @@
 # on every build (build-iso.sh), by the file's own
 # size and never the claim, so the class cannot
 # return silently.)
+# Stone 43 (November 24, 2026) outgrew the low ground
+# from the other side: the USB stick's library carried
+# the system's segment — the part of the staged file
+# the copy loop below actually carries home — past
+# the line every raising had stopped short of. Its
+# span in the stage, running from 0x40000, crossed
+# 0xA0000, where the firmware's reserved ground
+# begins: the segment's tail bytes were lost into
+# that ground as they were staged, and the running
+# system wore the loss as small wrongnesses on the
+# desktop — an icon's name read blank, a window's
+# reckoning astray, a feather's visit failing — while
+# the text face, which another road loads, stood
+# whole, and every direct-loaded proof stood green.
+# The Stone 41 check watched the span against the
+# stages and the stack but never against the reserved
+# ground, so the class returned silently in this new
+# dress; it is pinned now by the bench's own measure
+# (a segment ending at 0x9F338 in the stage stands
+# whole, one ending at 0xA06C0 is corrupt). The stage
+# could not simply be raised: this loader stages
+# through the firmware's own disc service, whose
+# addressing is a segment and an offset and cannot
+# reach past its first megabyte's end. So the stage
+# came DOWN the hill instead, to 0x20000 — the
+# segment's span ends at 0x839D7 there, with the
+# whole reserved ground above it untouched — and the
+# protected-mode stack, which Stone 41 had set at
+# 0x3F000 inside what is now the staged span, tucked
+# itself into the free ground between the module
+# stages and the stage, its top at 0x1F000. The build
+# check now measures the segment's own end from the
+# file's header and holds it below 0xA0000, so this
+# class too stops the build loudly if it ever
+# returns. The low ground is full again, as the note
+# above always said it would be: the segment has
+# 116,265 bytes of room left under the wall, and a
+# system that outgrows that must stage by a road
+# this loader does not yet have — a bounce through
+# protected mode, most likely — and whoever builds
+# it should expect to prove it the way this stone
+# proved its own road: by the running kernel standing
+# byte-identical to its file.
 # and on the far side of the step into protected mode:
 #   0x300000 the four modules, laid in a row
 #
@@ -277,7 +326,7 @@ sec_known:
     mov si, offset name_kernel
     call find_in_dir
     jc fail_files
-    mov edi, 0x40000
+    mov edi, 0x20000
     call stage_file
     jc fail_disc
     mov eax, [found_len]
@@ -361,7 +410,7 @@ mmap_fig_done:
     # third flag (4) is the video request, and the asked
     # shape stands at +32/+36/+40 from the mark.
     mov dword ptr [want_video], 0
-    mov ax, 0x4000
+    mov ax, 0x2000
     mov es, ax
     xor di, di
     mov ecx, 8192
@@ -568,8 +617,8 @@ scan_fail:
 # ----------------------------------------------------------------
 # stage_file: EAX = the file's extent LBA, [found_len] its
 # length, EDI = the flat staging address (a multiple of
-# 64 KiB in segment terms: 0x40000, 0x70000, ...). Reads
-# the file a sector at a time into its stage.
+# 64 KiB in segment terms). Reads the file a sector at
+# a time into its stage.
 stage_file:
     mov [stage_lba], eax
     mov eax, edi
@@ -701,7 +750,7 @@ video_mode_loop:
     # header, read through its own segment, at the
     # offset the mark was found):
     push es
-    mov ax, 0x4000
+    mov ax, 0x2000
     mov es, ax
     mov di, [mb_off]
     mov dx, word ptr es:[di + 36]
@@ -835,15 +884,15 @@ pm_entry:
     mov fs, ax
     mov gs, ax
     mov ss, ax
-    mov esp, 0x3F000
+    mov esp, 0x1F000
 
     # The system's segments, from its ELF header at its
-    # stage (0x40000): program headers at e_phoff (+28),
+    # stage (0x20000): program headers at e_phoff (+28),
     # of e_phentsize (+42) bytes, e_phnum (+44) of them.
     # Each PT_LOAD (type 1): copy p_filesz (+16) bytes
     # from stage + p_offset (+4) to p_paddr (+12), and
     # wipe the rest of p_memsz (+20).
-    mov esi, 0x40000
+    mov esi, 0x20000
     movzx ecx, word ptr [esi + 44]
     movzx eax, word ptr [esi + 42]
     mov edx, dword ptr [esi + 28]
@@ -855,7 +904,7 @@ ph_loop:
     jne ph_next
     push ecx
     push edx
-    mov esi, 0x40000
+    mov esi, 0x20000
     add esi, dword ptr [edx + 4]
     mov edi, dword ptr [edx + 12]
     mov ecx, dword ptr [edx + 16]
@@ -867,7 +916,7 @@ ph_loop:
     pop edx
     pop ecx
 ph_next:
-    movzx eax, word ptr [0x40000 + 42]
+    movzx eax, word ptr [0x20000 + 42]
     add edx, eax
     dec ecx
     jmp ph_loop
@@ -889,7 +938,7 @@ ph_done:
     rep movsb
 
     # Hand over.
-    mov eax, dword ptr [0x40000 + 24]   # the entry
+    mov eax, dword ptr [0x20000 + 24]   # the entry
     mov ebx, 0x4000
     mov ecx, 0x2BADB002
     xchg eax, ecx

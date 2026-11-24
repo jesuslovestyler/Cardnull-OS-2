@@ -806,6 +806,34 @@
 //          (pixface.nifla's ledger), and the desk
 //          stands 464 bytes now.
 //
+// Stone 43: the USB stick in the running system — a
+//          mass-storage device standing on the xHCI
+//          bus is raised by the running system itself
+//          (usbstick.nifla), on the controller the
+//          keyboard road set walking, and its sectors
+//          are read and written through the bulk-only
+//          transport and the SCSI words it carries.
+//          The stick can carry the keeping — the card,
+//          the notes page, the kept picture — in
+//          diskkeep.nifla's very layout, kept by that
+//          library's twin in the new one; and the
+//          choice of which disk keeps is made once, at
+//          the rising: a fitted hard disk keeps its
+//          place, as it always has, and the stick
+//          keeps when no hard disk stands fitted.
+//          Every keeping call in this body goes
+//          through the k— wrappers (they stand just
+//          above the notes block's taking), which hand
+//          the call to the keeping disk of the rising;
+//          picsave's two call sites branch by hand,
+//          its words being one too many for a wrapper.
+//          The xHCI raising stands ahead of the
+//          keeping's reading now, so the stick's
+//          standing is known before the card is read.
+//          The word 'usb' reports the stick beside the
+//          keyboards, and the rising's offer names the
+//          stick when the stick is the disk offered.
+//
 // The arrangement of the screen (the text face's rows;
 // on the face of light the same words stand on its grid,
 // and since Stone 33 its bar stands at the foot):
@@ -4625,13 +4653,153 @@ while mi2 < nmods {
 // the note's own slot's tail (diskkeep.nifla's
 // heading), and rides the page through notesave and
 // notesload with the note.
+
+// The keeping's two hands (Stone 43): every keeping
+// call in this body goes through one of these, and
+// each hands the call to the disk that keeps — the
+// hard disk's library (diskkeep.nifla) when 'keepusb'
+// stands 0, the stick's twin of it (usbstick.nifla)
+// when it stands 1. The two libraries keep one layout
+// in two carriages, and the callers below neither know
+// nor need to know which carriage carried a call; the
+// choice is made once, at the rising, where the desks
+// are taken. (picsave alone has no wrapper: its own
+// words already fill a call's six, and the desk and
+// the choice would overflow it, so its two call
+// sites branch by hand, saying the same choice —
+// and on the stick's side the saving stands in two
+// makings, upichead and upicbody, for the same
+// bound, as usbstick.nifla tells.)
+make ksavedoffset(xdesk: bytes, keepusb: number) -> number {
+    if keepusb == 1 {
+        give usavedoffset(xdesk)
+    }
+    give savedoffset()
+}
+
+make ksavedchime(xdesk: bytes, keepusb: number) -> number {
+    if keepusb == 1 {
+        give usavedchime(xdesk)
+    }
+    give savedchime()
+}
+
+make ksavedsize(xdesk: bytes, keepusb: number) -> number {
+    if keepusb == 1 {
+        give usavedsize(xdesk)
+    }
+    give savedsize()
+}
+
+make krememberall(xdesk: bytes, keepusb: number, offset: number, chime: number, size: number) -> number {
+    if keepusb == 1 {
+        give urememberall(xdesk, offset, chime, size)
+    }
+    give rememberall(offset, chime, size)
+}
+
+make kremember(xdesk: bytes, keepusb: number, offset: number) -> number {
+    if keepusb == 1 {
+        give uremember(xdesk, offset)
+    }
+    give remember(offset)
+}
+
+make knotesload(xdesk: bytes, keepusb: number, block: bytes) -> number {
+    if keepusb == 1 {
+        give unotesload(xdesk, block)
+    }
+    give notesload(block)
+}
+
+make knotesave(xdesk: bytes, keepusb: number, block: bytes, count: number) -> number {
+    if keepusb == 1 {
+        give unotesave(xdesk, block, count)
+    }
+    give notesave(block, count)
+}
+
+make kpicload(xdesk: bytes, keepusb: number, block: bytes) -> number {
+    if keepusb == 1 {
+        give upicload(xdesk, block)
+    }
+    give picload(block)
+}
+
+make kpicnameload(xdesk: bytes, keepusb: number, block: bytes, off: number) -> number {
+    if keepusb == 1 {
+        give upicnameload(xdesk, block, off)
+    }
+    give picnameload(block, off)
+}
+
+make kdisksetup(xdesk: bytes, keepusb: number, offset: number, chime: number, size: number) -> number {
+    if keepusb == 1 {
+        give udisksetup(xdesk, offset, chime, size)
+    }
+    give disksetup(offset, chime, size)
+}
+
+make kflush(xdesk: bytes, keepusb: number) -> number {
+    if keepusb == 1 {
+        give uflush(xdesk)
+    }
+    give ataflush()
+}
+
 let notesblock = makebytes(704)
 let notecount = 0
 
+// Ears on the modern USB road (Stone 32): a second USB
+// driver's whole estate, in the same pattern — one desk
+// of bytes taken here and handed to its library
+// (xhcikey.nifla) at every asking. The raising walks the
+// bus for an xHCI controller, and wakes a keyboard if one
+// stands on a port. When no such controller stands in
+// the machine, or no keyboard is plugged into it, the
+// road is simply quiet and the other roads carry the
+// typing, exactly as before; neither USB road disables
+// the other, and neither disables the PS/2 road. (The
+// raising stands here, ahead of the keeping's reading
+// below, because Stone 43's stick is raised on the same
+// controller and the keeping must know its standing
+// before it reads; and the desk is taken at 98304
+// bytes, larger than Stone 32's taking, so the stick's
+// estate stands clear of this road's fields at every
+// alignment, as usbstick.nifla's heading tells.)
+let xdesk = makebytes(98304)
+let xup = xhinit(xdesk)
+
+// The USB stick in the running system (Stone 43): the
+// mass-storage device the same bus may hold, raised by
+// usbstick.nifla on the controller the raising above
+// set walking — its estate laid in the same desk, on
+// ground that road never touches (the desk is taken
+// larger for it, above). It comes home with the
+// stick's sector count, or 0 when the bus holds no
+// stick the running system can carry.
+let ustick = ustart(xdesk)
+
+// The keeping's disk (Stone 8, and Stone 43): a hard
+// disk fitted in the machine keeps its place, as it
+// always has; when none stands fitted and a stick
+// stands raised, the stick is the keeping's disk, and
+// 'keepusb' says so to every keeping call below (the
+// k— wrappers just above the notes block's taking hand
+// each call to the disk that keeps). 'diskup' keeps
+// its meaning through both: a disk stands fitted for
+// the keeping, of whichever kind stands.
 let diskup = diskhere()
+let keepusb = 0
+if diskup == 0 {
+    if ustick > 0 {
+        keepusb = 1
+        diskup = 1
+    }
+}
 let diskset = 0
 if diskup == 1 {
-    let stored = savedoffset()
+    let stored = ksavedoffset(xdesk, keepusb)
     if stored != 0 {
         offset = stored - 64
         diskset = 1
@@ -4645,7 +4813,7 @@ if diskup == 1 {
 // chime stands on, as it always has.
 let chimeon = 1
 if diskset == 1 {
-    if savedchime() == 2 {
+    if ksavedchime(xdesk, keepusb) == 2 {
         chimeon = 0
     }
 }
@@ -4663,14 +4831,14 @@ if diskset == 1 {
 // it from there.
 let wordsize = 0
 if diskset == 1 {
-    if savedsize() == 2 {
+    if ksavedsize(xdesk, keepusb) == 2 {
         wordsize = 1
     }
 }
 if diskset == 1 {
     // A keeping disk's notes are read back at boot, so
     // they stay (Stone 15).
-    notecount = notesload(notesblock)
+    notecount = knotesload(xdesk, keepusb, notesblock)
 }
 
 // The kept picture (Stone 26): the paint feather's
@@ -4690,14 +4858,14 @@ let picblock = makebytes(1536)
 let pichas = 0
 let picsel = 48
 if diskset == 1 {
-    let picret = picload(picblock)
+    let picret = kpicload(xdesk, keepusb, picblock)
     if picret != 0 {
         pichas = 1
         picsel = picret
         // The picture's name (Stone 40), read back with
         // the picture into the notes block's eleventh
         // slot, where this body keeps it.
-        let pnm = picnameload(notesblock, 640)
+        let pnm = kpicnameload(xdesk, keepusb, notesblock, 640)
     }
 }
 
@@ -4996,19 +5164,6 @@ if pix == 1 {
 let usbdesk = makebytes(16384)
 let usbup = usbinit(usbdesk)
 
-// Ears on the modern USB road (Stone 32): a second USB
-// driver's whole estate, in the same pattern — one desk
-// of bytes taken here and handed to its library
-// (xhcikey.nifla) at every asking. The raising walks the
-// bus for an xHCI controller, and wakes a keyboard if one
-// stands on a port. When no such controller stands in
-// the machine, or no keyboard is plugged into it, the
-// road is simply quiet and the other roads carry the
-// typing, exactly as before; neither USB road disables
-// the other, and neither disables the PS/2 road.
-let xdesk = makebytes(65536)
-let xup = xhinit(xdesk)
-
 // The pointer (Stone 13): a PS/2 mouse, woken only on
 // the face of light — the text face has no pointer, as
 // it never has. Its packet desk, its standing, the
@@ -5125,7 +5280,11 @@ if xup == 1 {
 
 if diskup == 1 {
     if diskset == 0 {
-        ansrow = printline(ansrow, "A hard disk is here. Type setup to let it remember your choices.", pix, pixdesk)
+        if keepusb == 1 {
+            ansrow = printline(ansrow, "A USB stick is here. Type setup to let it remember your choices.", pix, pixdesk)
+        } else {
+            ansrow = printline(ansrow, "A hard disk is here. Type setup to let it remember your choices.", pix, pixdesk)
+        }
     }
 }
 
@@ -5565,7 +5724,7 @@ while true {
                                                         }
                                                         let nmwrote = 0
                                                         if diskset == 1 {
-                                                            if notesave(notesblock, notecount) == 1 {
+                                                            if knotesave(xdesk, keepusb, notesblock, notecount) == 1 {
                                                                 nmwrote = 1
                                                             }
                                                         }
@@ -5606,7 +5765,7 @@ while true {
                                                         pset(pixdesk, 192, notecount - 1)
                                                         let nmwrote2 = 0
                                                         if diskset == 1 {
-                                                            if notesave(notesblock, notecount) == 1 {
+                                                            if knotesave(xdesk, keepusb, notesblock, notecount) == 1 {
                                                                 nmwrote2 = 1
                                                             }
                                                         }
@@ -5638,8 +5797,15 @@ while true {
                                                             nmi3 = nmi3 + 1
                                                         }
                                                         let nmwrote3 = 0
-                                                        if picsave(picblock, 1, picsel, notesblock) == 1 {
-                                                            nmwrote3 = 1
+                                                        if keepusb == 1 {
+                                                            if upichead(xdesk, 1, picsel, notesblock) == 1 {
+                                                                let nmbody = upicbody(xdesk, picblock)
+                                                                nmwrote3 = 1
+                                                            }
+                                                        } else {
+                                                            if picsave(picblock, 1, picsel, notesblock) == 1 {
+                                                                nmwrote3 = 1
+                                                            }
                                                         }
                                                         notesblock[576] = 0
                                                         pset(pixdesk, 380, 0)
@@ -5684,12 +5850,12 @@ while true {
                                                 fz = fz + 1
                                             }
                                             if diskset == 1 {
-                                                let fw1 = notesave(notesblock, notecount)
+                                                let fw1 = knotesave(xdesk, keepusb, notesblock, notecount)
                                             }
                                             notecount = notecount - 1
                                             let fwrote = 0
                                             if diskset == 1 {
-                                                if notesave(notesblock, notecount) == 1 {
+                                                if knotesave(xdesk, keepusb, notesblock, notecount) == 1 {
                                                     fwrote = 1
                                                 }
                                             }
@@ -5818,12 +5984,12 @@ while true {
                                             ez = ez + 1
                                         }
                                         if diskset == 1 {
-                                            let ew1 = notesave(notesblock, notecount)
+                                            let ew1 = knotesave(xdesk, keepusb, notesblock, notecount)
                                         }
                                         notecount = notecount - 1
                                         let ewrote = 0
                                         if diskset == 1 {
-                                            if notesave(notesblock, notecount) == 1 {
+                                            if knotesave(xdesk, keepusb, notesblock, notecount) == 1 {
                                                 ewrote = 1
                                             }
                                         }
@@ -5878,7 +6044,7 @@ while true {
                                         pset(pixdesk, 224, 0)
                                         paintwindows(pixdesk, cellblock, notesblock)
                                         if diskset == 1 {
-                                            if notesave(notesblock, notecount) == 1 {
+                                            if knotesave(xdesk, keepusb, notesblock, notecount) == 1 {
                                                 ansrow = printline(ansrow, "Your note is kept on the disk.", pix, pixdesk)
                                             } else {
                                                 ansrow = printline(ansrow, "The disk would not take the note, so it is kept only for now.", pix, pixdesk)
@@ -5982,7 +6148,7 @@ while true {
                         if chimeon == 1 {
                             chbyte = 1
                         }
-                        if disksetup(offset, chbyte, wordsize + 1) == 1 {
+                        if kdisksetup(xdesk, keepusb, offset, chbyte, wordsize + 1) == 1 {
                             diskset = 1
                             if pix == 1 {
                                 // The files window's copy of
@@ -5995,7 +6161,7 @@ while true {
                                 // that it keeps things (Stone
                                 // 15) — after the gate's yes,
                                 // as the card was.
-                                let keptnotes = notesave(notesblock, notecount)
+                                let keptnotes = knotesave(xdesk, keepusb, notesblock, notecount)
                             }
                             ansrow = printline(ansrow, "The disk will remember your choices now.", pix, pixdesk)
                         } else {
@@ -6072,6 +6238,14 @@ while true {
                             ansrow = printline(ansrow, "No USB keyboard is plugged in.", pix, pixdesk)
                         }
                     }
+                    // The stick (Stone 43) reports itself
+                    // on the same word: raised at the
+                    // rising on the modern road, holding
+                    // its sectors for the system's
+                    // keeping.
+                    if ustick > 0 {
+                        ansrow = printline(ansrow, "A USB stick is here. It holds " + ustick + " sectors.", pix, pixdesk)
+                    }
                 }
                 if kind == 5 {
                     // 'time': the world's time in words —
@@ -6126,7 +6300,7 @@ while true {
                         }
                     }
                     if diskset == 1 {
-                        let kept = remember(offset)
+                        let kept = kremember(xdesk, keepusb, offset)
                         if cmd == "eastern" {
                             ansrow = printline(ansrow, "The clock now shows Eastern time. The disk will remember it.", pix, pixdesk)
                         } else {
@@ -6181,7 +6355,7 @@ while true {
                                 }
                             }
                             if diskset == 1 {
-                                if notesave(notesblock, notecount) == 1 {
+                                if knotesave(xdesk, keepusb, notesblock, notecount) == 1 {
                                     ansrow = printline(ansrow, "Your note is kept on the disk.", pix, pixdesk)
                                 } else {
                                     ansrow = printline(ansrow, "The disk would not take the note, so it is kept only for now.", pix, pixdesk)
@@ -8586,12 +8760,12 @@ while true {
                                                                 pfz = pfz + 1
                                                             }
                                                             if diskset == 1 {
-                                                                let pfw1 = notesave(notesblock, notecount)
+                                                                let pfw1 = knotesave(xdesk, keepusb, notesblock, notecount)
                                                             }
                                                             notecount = notecount - 1
                                                             let pfwrote = 0
                                                             if diskset == 1 {
-                                                                if notesave(notesblock, notecount) == 1 {
+                                                                if knotesave(xdesk, keepusb, notesblock, notecount) == 1 {
                                                                     pfwrote = 1
                                                                 }
                                                             }
@@ -8667,12 +8841,12 @@ while true {
                                                                 pez = pez + 1
                                                             }
                                                             if diskset == 1 {
-                                                                let pew1 = notesave(notesblock, notecount)
+                                                                let pew1 = knotesave(xdesk, keepusb, notesblock, notecount)
                                                             }
                                                             notecount = notecount - 1
                                                             let pewrote = 0
                                                             if diskset == 1 {
-                                                                if notesave(notesblock, notecount) == 1 {
+                                                                if knotesave(xdesk, keepusb, notesblock, notecount) == 1 {
                                                                     pewrote = 1
                                                                 }
                                                             }
@@ -8992,7 +9166,7 @@ while true {
                                                         if chimeon == 1 {
                                                             chbyte = 1
                                                         }
-                                                        let kept = rememberall(offset, chbyte, wordsize + 1)
+                                                        let kept = krememberall(xdesk, keepusb, offset, chbyte, wordsize + 1)
                                                     }
                                                     pset(pixdesk, 180, 4)
                                                     if sizechose == 1 {
@@ -9122,7 +9296,7 @@ while true {
                                                             pset(pixdesk, 228, eslot + 1)
                                                             pset(pixdesk, 224, 0)
                                                             if diskset == 1 {
-                                                                if notesave(notesblock, notecount) == 1 {
+                                                                if knotesave(xdesk, keepusb, notesblock, notecount) == 1 {
                                                                     ansrow = printline(ansrow, "Your note is kept on the disk.", pix, pixdesk)
                                                                 } else {
                                                                     ansrow = printline(ansrow, "The disk would not take the note, so it is kept only for now.", pix, pixdesk)
@@ -9836,7 +10010,18 @@ while true {
                         if anypaint == 0 {
                             notesblock[640] = 0
                         }
-                        if picsave(picblock, anypaint, sl, notesblock) == 1 {
+                        let picsaved = 0
+                        if keepusb == 1 {
+                            picsaved = upichead(xdesk, anypaint, sl, notesblock)
+                            if picsaved == 1 {
+                                if anypaint == 1 {
+                                    let picbody = upicbody(xdesk, picblock)
+                                }
+                            }
+                        } else {
+                            picsaved = picsave(picblock, anypaint, sl, notesblock)
+                        }
+                        if picsaved == 1 {
                             pichas = anypaint
                             if anypaint == 1 {
                                 picsel = sl
@@ -9970,11 +10155,11 @@ while true {
             if chimeon == 1 {
                 chbyte = 1
             }
-            let keptcard = rememberall(offset, chbyte, wordsize + 1)
-            let keptnotes = notesave(notesblock, notecount)
+            let keptcard = krememberall(xdesk, keepusb, offset, chbyte, wordsize + 1)
+            let keptnotes = knotesave(xdesk, keepusb, notesblock, notecount)
         }
         if diskup == 1 {
-            let flushed = ataflush()
+            let flushed = kflush(xdesk, keepusb)
         }
         if resting == 1 {
             // Shut down: a short, kind goodbye in plain

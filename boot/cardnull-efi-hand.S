@@ -32,8 +32,8 @@
 #      this doorman claimed for it from the firmware
 #      (0x8F000, claimed as loader data before the boot
 #      services were left — this door's own ground; the
-#      BIOS doorman keeps his own stack at 0x3F000 since
-#      Stone 41), puts the mark in EAX and the
+#      BIOS doorman keeps his own stack at 0x1F000 since
+#      Stone 43), puts the mark in EAX and the
 #      information in EBX, and jumps to the system's
 #      entry. It never returns.
 #

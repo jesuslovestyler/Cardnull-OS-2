@@ -64,7 +64,12 @@ mkdir -p build
 #   bibletext  the book of Jonah, whole, in the World
 #              English Bible's wording, as the Bible
 #              reading window shows it (Stone 41)
-LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/featherdoor.nifla src/commands.nifla src/usbkey.nifla src/xhcikey.nifla src/rtclock.nifla src/diskkeep.nifla src/font.nifla src/pixface.nifla src/mouse.nifla src/speaker.nifla src/rest.nifla src/verses.nifla src/helpwords.nifla src/bibletext.nifla"
+#   usbstick   the USB stick in the running system:
+#              a mass-storage device raised on the xHCI
+#              bus, its sectors read and written by the
+#              bulk-only transport, and the keeping's
+#              layout kept on it (Stone 43)
+LIBRARIES="src/screenlib.nifla src/clock.nifla src/bootmods.nifla src/featherdoor.nifla src/commands.nifla src/usbkey.nifla src/xhcikey.nifla src/rtclock.nifla src/diskkeep.nifla src/font.nifla src/pixface.nifla src/mouse.nifla src/speaker.nifla src/rest.nifla src/verses.nifla src/helpwords.nifla src/bibletext.nifla src/usbstick.nifla"
 PRELUDE=""
 for lib in $LIBRARIES; do
     # Word splitting is intended: one --prelude pair per file.
