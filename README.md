@@ -3659,6 +3659,65 @@ feather as laid visits and goes home, and a copy with
 one byte flipped in its program is refused in plain
 words and never appears.
 
+### Stone 42 — The Shield shows itself
+
+The feather door's guard has stood since Stone 5:
+every feather that would visit is checked at the door
+before it may — its card is read, its bytes are
+reckoned against the card, and only a feather whose
+reckoning matches is let in; one that does not reckon
+true is turned away in plain words and never runs.
+Until this stone the guard worked invisibly. Now it
+shows itself, in a twelfth window named Shield.
+
+The word 'shield' opens it, a tenth desktop icon
+stands for it (a blue shield with a gold cross, in the
+icons' own palette gold), the start menu carries it
+as its tenth choice of eleven, and the bar shows its
+chip when it stands open, like every window's. The
+window itself is one still page in plain words: what
+the guard does at the door, and two reckonings the
+desk now keeps — how many feathers have been let in
+since this rising, and how many turned away. The
+reckoning is kept at every receiving of a feather —
+the welcome feather at the rising and every visit,
+opening or carried-press alike — because the door
+re-reckons the card on every visit, and the Shield
+counts what the door does. A disc carrying no feather
+counts as neither. The desk grew twenty bytes for the
+window and its reckonings (places 444 to 463; the
+desk stands 464 bytes).
+
+Two truths stand on the page, and they are the
+standing design, not settings: the Shield has no
+switch — it cannot be turned off, and there is no off
+switch anywhere for it — and it sends nothing
+anywhere: the reckonings live in the desk's own bytes
+and leave the machine never (the system has no
+network at all). The guard itself is unchanged by
+being seen: same card, same reckoning, same refusal.
+
+Proof: prove-stone42.sh, two boots, 43 checks. The
+first boot walks every road in (the word, the icon,
+the menu's choice, the bar's chip), reads the page's
+twelve lines whole, watches the let-in reckoning rise
+when a feather visits, and closes the window by its
+mark and by Escape. The second boot carries a
+tampered feather — one program byte flipped after its
+card — and the Shield's page shows it turned away,
+one, with none let in, and no visit standing. The
+companions pass: prove-iso, prove-stone38,
+prove-stone39, prove-stone40, prove-featherstart,
+prove-efi, and prove-nowitness (one check on its EFI
+boot flickered once under a throttled bench and passed
+whole on the re-run). Stone 41's own proof now fails
+its start-menu checks, as Stone 31's did at Stone 41:
+the menu grew a choice and stands a row higher, and a
+stone's proof speaks for its own stone's world — the
+new menu is read whole in this stone's proof instead.
+Bench-proved on the QEMU bench; Tyler's own witness
+in UTM still stands ahead of it, with the batch.
+
 ## The witness fix (November 15, 2026)
 
 The adopted build was delivered to Tyler's Mac and
