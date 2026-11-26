@@ -4580,6 +4580,155 @@ whether the drag is healed is not the bench's to
 say. Tyler's witness in UTM decides, as it decided
 for the stone before.
 
+### Stone 48 — The Picture Window
+
+The kept picture — the one Paint keeps to the
+disk, standing in the Files window's list since
+Stone 26 — could be opened only back inside Paint
+itself, at the paint window's own measure. This
+stone gives it a window of its own, the desktop's
+thirteenth, where it stands open big: every cell
+of the kept canvas sixteen pixels wide and
+thirty-two tall, the whole canvas 768 by 224
+pixels, drawn cell by cell from the picture
+block's own keeping — the real kept data, read
+through the block's address laid in the desk —
+never a placeholder. Its place is reckoned the
+way every window's is: fifty cells wide when the
+grid leaves room, two short of the grid's whole
+width at the large print, sixteen high, first
+standing centered at the face's middle height;
+painter and pointer read the same place cells, at
+both word sizes, as every window's do. The desk
+grew for it, 476 to 492: its standing at 476, the
+kept picture block's address at 480, its place at
+484 and 488, all entered in the desk ledger in
+pixface.nifla in the established style. The
+forward reckoning grew honestly with it — 13 is
+the picture window — through the whole-face
+repaint's passes, the region road's closure, the
+window mover (which knows its place pair, so the
+title bar drags it by Stone 47's healed roads, no
+drag arithmetic changed), the Tab cycle, the
+Escape closing, the close mark, and the bar's
+chips, where it stands eleventh in the icons'
+order. No state reckoning changed beyond the new
+window's own standing; Stone 47's six parts and
+the Shield's truths stand untouched.
+
+It opens three ways. In the Files window, while
+the picture stands picked, the foot carries a new
+word, "Look at it", beside "Rename", and the
+foot's line now names both doors plainly: "Enter
+opens it in Paint. Look at it sees it big." Stone
+26's own door stands exactly as it stood — a
+press on the picture's row, or Enter while it is
+picked, opens it in Paint, and Stone 26's proofs
+stand on that — so the new window's Files door is
+the foot word, the house's own pattern for a
+second way into a picked thing ("Let this note
+go", "Rename", "Copy" are its kin). The typed
+word 'picture' opens it too, and the start menu
+gained its choice in the icons' order discipline
+of Stone 46: fourteen choices now, Picture
+thirteenth after Shield and Rest last, the menu
+risen one row higher to stand them (its top row
+is 32 now). Chosen with no picture kept, the
+window still opens, and its body says so plainly:
+"No picture stands kept yet. Paint one in the
+paint window and keep it, and it will stand here,
+big, to look at." It has no desktop icon, and the
+reason is plain: the icon column already stands
+full — on the short grid of the large print a
+eleventh icon's box would reach past the bar, the
+tenth already reaching the bar's top row. Its
+doors are the Files word, the menu, the typed
+word, and its chip.
+
+One fault of this stone's own making is recorded
+because the bench found it: the painter's first
+cell reader took the block's address from the
+desk as a whole eight-byte word, whose upper half
+is the window's own left place standing in the
+next cell — a wild address, from which the cells
+read as whatever lay there, and the window would
+not stand. The desk's cells are four-byte words
+and are written so; the reader now reads its
+address as one, and the picture stands exact.
+(The paint window's older reader of the same
+shape stands as it always stood: the cell after
+its address has only ever held nothing, and its
+readings have been true on every stone.)
+
+The stone's proof (prove-stone48) stands in three
+boots. Boot 1 keeps a picture the bench's way —
+Paint draws a Red cell and a Blue cell, as Stone
+26's proof draws them — and the Files window
+lists it; the down arrow picks it, the foot's new
+word and its line decode, a press on "Look at it"
+opens the picture window forward, and the picture
+stands in it in its big measure: the Red cell's
+block whole to its corner, the Blue cell's block,
+an untouched cell on the canvas ground (17 checks,
+whole). Boot 2, with no disk fitted, opens the
+window by its word and decodes the empty window's
+three plain lines exactly; the menu's fourteen
+choices all decode, Picture thirteenth and Rest
+last; a press on the Picture choice opens the
+window; and with the Files window forward, a press
+on the picture window's chip raises it, its bar
+blue again (26 checks, whole). Boot 3 boots again
+on boot 1's disk, and the word 'picture' shows the
+kept picture from the disk's keeping alone — the
+Red and Blue cells standing in the window with no
+painting done this sitting — and a press on the
+close mark at the window's standing place closes
+it (5 of 6 checks). The sixth is the drag: the
+window was to be dragged three cells right and
+two rows up and its picture read whole at the new
+place, and the bench's emulated mouse would not
+carry the held drag, exactly as Stones 45 and 47
+recorded of this bench — the window stood at its
+first place through every taking. Its place pair
+stands in the window mover as the source shows;
+whether the drag carries it is not the bench's to
+say, and Tyler's witness in UTM decides, as it
+decided for the stones before.
+
+The companions stand whole at their counts: the
+disc (14), the EFI door (8), Stone 26 (27), Stone
+38 (19), Stone 39 (77), Stone 40 (64), Stone 41
+(113), Stone 42 (46), Stone 43 (36), Stone 44
+(16), Stone 46 (23), the no-witness proof (40),
+the feather's start (4), and the feather's paint
+(9). Four companion proofs were mended where this
+stone's intended changes staled them, no check
+weakened: Stone 26's second boot reads the foot's
+new line in the old line's place; Stone 41's
+second boot, Stone 42's first, and Stone 46's
+first read the menu as it now stands — fourteen
+choices from row 32, each loop gaining the new
+choice's own decode, which is why Stone 41, 42,
+and 46 each count one more check than the stone
+before recorded. Stone 34 and Stone 47 fail on
+this tree only where they fail on any tree this
+bench is given: Stone 34's drags (7 of 19 — every
+failure a drag's carriage or a reading downstream
+of a drag that never landed, the family Stone 47
+recorded), and Stone 47's boots as its own record
+leaves them — the labels keep their paper (6 of
+7, the seventh the drag itself), the press band
+stands at eighteen of twenty with the same two
+readings its own stone recorded, and the
+drag-census and Files-owing boots unproven as
+they stood. Stone 47's third boot was run also on
+the unmodified Stone 47 tree as a control, and
+the two runs agree check for check, its two
+failures the drag and a word typed into the
+drag's garbled aftermath; the invitation itself
+stands whole in both. Bench proof is bench proof:
+nothing here is claimed as witnessed.
+
 ## The EFI door verified (November 24, 2026)
 
 The disc has carried two doors since it was first

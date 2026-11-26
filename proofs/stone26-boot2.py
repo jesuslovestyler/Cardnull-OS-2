@@ -99,8 +99,8 @@ if d:
     said = decode(d, GY + 13, GX + 4, "A picture you painted", WHITE)
     expect(said == "A picture you painted",
            f"the picture's entry now stands picked, white on blue (read: {said!r})")
-    said = decode(d, GY + 12, GX + 2, "Press Enter or click it to open it in Paint.", WHITE)
-    expect(said == "Press Enter or click it to open it in Paint.",
+    said = decode(d, GY + 12, GX + 2, "Enter opens it in Paint. Look at it sees it big.", WHITE)
+    expect(said == "Enter opens it in Paint. Look at it sees it big.",
            f"the foot says in plain words how the picture opens (read: {said!r})")
 
 # Enter opens the picked picture in the paint window.

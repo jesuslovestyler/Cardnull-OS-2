@@ -19,13 +19,13 @@
 # so the mark's cell is 5 + 54 - 2 = 57, pixels 912
 # to 928, center 920; its top row is 28, the window
 # clamped whole above the bar — closes it. The bar's
-# menu — its thirteen choices decoded (Stone 46: the
+# menu — its fourteen choices decoded (Stone 46: the
 # menu grew by the Paint and Terminal choices, rose
 # two rows higher, and its choices stand in the
-# icons' order; Shield stands twelfth and Rest
-# last, on the very row Shield stood on before, the
-# menu having risen as far as the choice moved
-# down) — opens it by a press on the Shield choice. Its chip stands on the bar:
+# icons' order; Stone 48: the Picture choice joined
+# it and it rose one row higher again; Shield stands
+# twelfth, Picture thirteenth, and Rest last) —
+# opens it by a press on the Shield choice. Its chip stands on the bar:
 # with the files window forward the Shield's title
 # bar stands in its behind gray, and a press on the
 # Shield's chip raises it, its bar blue again. And
@@ -179,28 +179,29 @@ d = waitdump(lambda d: d is not None
 expect(d is not None, "a press on the Shield window's close mark closed it")
 
 # The menu: a press on the start button opens it, its
-# thirteen choices decoded — the twelve windows'
-# names in the icons' order (Stone 46), with Shield
-# the twelfth choice, and Rest last. The menu rises
-# from the bar at the screen's foot: thirteen rows
-# from row 33.
+# fourteen choices decoded — the thirteen windows'
+# names in the icons' order (Stone 46; Stone 48 added
+# the Picture window's choice), with Shield the
+# twelfth choice, Picture the thirteenth, and Rest
+# last. The menu rises from the bar at the screen's
+# foot: fourteen rows from row 32.
 click(16, 752)
 d = waitdump(lambda d: d is not None
-             and decode(d, 44, 1, "Shield", WHITE) == "Shield", 25)
+             and decode(d, 43, 1, "Shield", WHITE) == "Shield", 25)
 expect(d is not None, "a press on the start button opened the menu, with Shield standing in it")
 if d:
     for i, word in enumerate(("Welcome", "Feather", "Files", "Editor",
                               "Paint", "Calculator", "Verse", "Help",
                               "Settings", "Terminal", "Bible", "Shield",
-                              "Rest")):
-        said = decode(d, 33 + i, 1, word, WHITE)
+                              "Picture", "Rest")):
+        said = decode(d, 32 + i, 1, word, WHITE)
         expect(said == word,
                f"the menu's choice {i + 1} reads {word!r} (read: {said!r})")
 
 # A press on the Shield choice opens the window
 # again, exactly as the typed word does. The choice's
-# row stands at (40, 712).
-click(40, 712)
+# row stands at (40, 696).
+click(40, 696)
 d = waitdump(lambda d: d is not None
              and decode(d, SY, SX + 1, "Shield", WHITE) == "Shield", 25)
 expect(d is not None, "a press on the menu's Shield choice opened the window")

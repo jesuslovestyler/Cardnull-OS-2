@@ -270,7 +270,22 @@
 //       each dragstep call, the way the region
 //       repaint's road is laid at 384, the call's
 //       three blocks filling the machine's registers
-//       already. The desk stands 476 bytes now.
+//       already. The desk stood 476 bytes then.
+//  476  the picture window's standing (Stone 48):
+//       whether it stands open (476), the kept
+//       picture block's address (480 — laid by the
+//       main body at the rising, where the picture
+//       window's painter reads the kept picture's
+//       cells through it, as the paint window's
+//       painter reads its cells through 288,
+//       because paintwindows' hands are already
+//       full), and its place (484 its left, 488
+//       its top) — a place pair of its own, like
+//       the pairs at 236 to 452, so the healed
+//       drag roads move it as they move the
+//       others. (180's forward reckoning grows
+//       again: 13 is the picture window.) The
+//       desk stands 492 bytes now.
 //  320  the letter cell's size in pixels (Stone 28):
 //       sixteen at the words' usual size — the font's
 //       eight by eight drawn at twice size — and

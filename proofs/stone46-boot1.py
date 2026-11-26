@@ -4,14 +4,16 @@
 #
 # The shipped disc is booted at the BIOS door, no
 # disk fitted. A press on the start button opens the
-# bar's menu, and all THIRTEEN of its choices are
+# bar's menu, and all FOURTEEN of its choices are
 # decoded at their reckoned rows — Welcome, Feather,
 # Files, Editor, Paint, Calculator, Verse, Help,
-# Settings, Terminal, Bible, Shield, Rest — the
-# desktop icons' own order since this stone, the two
+# Settings, Terminal, Bible, Shield, Picture, Rest
+# — the desktop icons' own order since this stone, the two
 # newcomers standing where they stand among their
 # neighbors: Paint fifth, after Editor; Terminal
-# tenth, after Settings. Then choices are pressed,
+# tenth, after Settings. (Stone 48: the menu rose
+# one row higher and gained the Picture choice,
+# thirteenth, after Shield.) Then choices are pressed,
 # and each opens its window exactly as its typed
 # word does:
 #
@@ -84,10 +86,10 @@ def decode(d, prow, pcol, text, ink):
     return "".join(out)
 
 
-ML, MT = 0, 33
+ML, MT = 0, 32
 CHOICES = ("Welcome", "Feather", "Files", "Editor", "Paint",
            "Calculator", "Verse", "Help", "Settings", "Terminal",
-           "Bible", "Shield", "Rest")
+           "Bible", "Shield", "Picture", "Rest")
 
 # The pointer's standing place, kept as the proofs
 # keep it: it starts at (506, 378), and every move
@@ -175,12 +177,12 @@ def choose(rowword, row, outcome, secs=12):
 # lowest row is pressed while the reckoning is
 # freshest, before the other choices are taken.
 RL, RT = 24, 22
-press_at(40, (MT + 12) * 16 + 8)
+press_at(40, (MT + 13) * 16 + 8)
 d = waitdump(lambda d: d is not None
              and decode(d, RT + 1, RL + 1, "Shut down", WHITE) == "Shut down",
              12)
 if d is None:
-    d = choose("Rest", 12,
+    d = choose("Rest", 13,
                lambda d: d is not None
                and decode(d, RT + 1, RL + 1, "Shut down", WHITE)
                == "Shut down")

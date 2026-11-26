@@ -920,6 +920,38 @@
 //          do — Paint with its feather's opening visit
 //          asked for, Terminal with its kept answers
 //          standing in it.
+// Stone 48: the picture window — a thirteenth window
+//          on the face of light, where the kept picture
+//          (the one Paint keeps to the disk, listed in
+//          the files window) stands open big, so a
+//          keeper can actually look at it: every cell
+//          of the canvas stands sixteen pixels wide
+//          and thirty-two tall here, twice the paint
+//          window's height for each cell, the whole
+//          canvas 768 by 224 pixels. It opens from
+//          the files window — "Look at it" stands at
+//          the foot while the picture stands picked,
+//          beside "Rename" — from the bar's menu (a
+//          fourteenth choice, Picture, standing after
+//          Shield with Rest still last), and by the
+//          word 'picture'. With no picture kept, the
+//          window opens all the same and says so
+//          plainly in its body. It is a true window of
+//          the desktop: its standing and place live in
+//          the desk at 476 to 488 (pixface.nifla's
+//          ledger; the desk stands 492 bytes now), the
+//          forward reckoning at 180 names it 13, its
+//          title bar drags on Stone 47's healed roads,
+//          and its rendering reads the kept picture's
+//          own block through the address at 480 — the
+//          real kept cells, never a placeholder. It
+//          carries no desktop icon: the icons' column
+//          is full — ten icons stand in it, and on the
+//          short grid of large print the tenth already
+//          reaches the bar's top row, so an eleventh
+//          would stand on the bar itself. Its bar chip
+//          stands eleventh when the bar has room, as
+//          every chip does.
 //
 // The arrangement of the screen (the text face's rows;
 // on the face of light the same words stand on its grid,
@@ -2024,6 +2056,12 @@ make onefiles(desk, notes) {
                     filenotetext(desk, notes, sel * 65536 + (gy + 12) * 256 + (gx + 2), 15)
                 } else {
                     pixline(desk, (gy + 11) * 256 + (gx + 2), "The picture you picked:", 7)
+                    // Looking at the kept picture (Stone
+                    // 48): "Look at it" stands at the foot,
+                    // in white, left of "Rename"; a press
+                    // on it opens the picture window,
+                    // where the picture stands big.
+                    pixline(desk, (gy + 11) * 256 + (gx + 26), "Look at it", 15)
                     // Naming the kept picture (Stone 40):
                     // "Rename" stands at the foot, in
                     // white, where the note's letting-go
@@ -2033,7 +2071,7 @@ make onefiles(desk, notes) {
                     // keeps one picture, and a copy would
                     // need a second picture's place.
                     pixline(desk, (gy + 11) * 256 + (gx + 36), "Rename", 15)
-                    pixline(desk, (gy + 12) * 256 + (gx + 2), "Press Enter or click it to open it in Paint.", 15)
+                    pixline(desk, (gy + 12) * 256 + (gx + 2), "Enter opens it in Paint. Look at it sees it big.", 15)
                 }
                 if haspic == 1 {
                     let prow = gy + 13
@@ -3361,6 +3399,129 @@ make oneshield(desk) {
     }
 }
 
+// ---- the picture window (Stone 48) ----
+//
+// A thirteenth window: the kept picture stands open
+// big in it, so a keeper can actually look at it.
+// The window's place and size are reckoned here,
+// like every window's, so the painter and the
+// pointer's pressing can never disagree. Its
+// standing lives in the desk at 476 to 488
+// (pixface.nifla's ledger): open, the kept picture
+// block's address, and its place. The window is
+// fifty cells wide on the wide grid — the canvas
+// stands one cell in from its left edge, below —
+// and sixteen rows high: its title row, the
+// picture's fourteen rows of pixels, and one row
+// below. On the narrow grid it stands as wide as
+// the grid honestly holds, like the files window's
+// measure, and the picture stands the same size in
+// it: the drawing is counted in pixels from the
+// window's corner, not in letter cells, so it
+// stands whole at either word size.
+
+make puwide(desk) {
+    if pget(desk, 28) >= 56 {
+        give 50
+    }
+    give pget(desk, 28) - 2
+}
+
+make puleft(desk) {
+    give pget(desk, 484)
+}
+
+make putop(desk) {
+    give pget(desk, 488)
+}
+
+make puhigh(desk) {
+    give 16
+}
+
+// Reads one byte of the kept picture's block, whose
+// address the main body laid in the desk at 480 at
+// the rising — the same road pcellbyte walks for
+// the paint window's cells at 288, walked for the
+// same reason: paintwindows' hands are already
+// full, and the picture's painter needs the block
+// without another word in the call.
+make piccellbyte(desk: bytes, off: number) -> number {
+    give floor(desk, off) {
+        mov rax, [r10]
+        mov ecx, dword ptr [rbx + 480]
+        movzx eax, byte ptr [rcx + rax]
+    }
+}
+
+// Paints the picture window from the desk's
+// standing: closed, the plain desktop; open, its
+// frame and title bar and the kept picture itself,
+// cell by cell from its own keeping — the canvas
+// the paint feather keeps (its cells at rows 14 to
+// 20 and columns 16 to 63 of the feather's region,
+// kept in the picture block at rows 4 to 10 and
+// columns 2 to 49, a letter byte and a color byte
+// to a cell, as diskkeep.nifla's telling and the
+// main body's copies reckon). Every cell stands
+// sixteen pixels wide and thirty-two tall here —
+// twice the paint window's height for each cell —
+// so the whole canvas stands 768 by 224 pixels,
+// big enough to look at, one cell in from the
+// window's left edge and directly under its title
+// bar. A cell's letter stands in its cell at the
+// paint window's own scale, centered in the
+// cell's taller measure. With no picture kept,
+// the window says so plainly in its body, and how
+// one comes to stand here.
+make onepicture(desk) {
+    let cs = pget(desk, 320)
+    let gx = puleft(desk)
+    let gy = putop(desk)
+    let gw = puwide(desk)
+    let gh = puhigh(desk)
+    if pget(desk, 476) == 0 {
+        pixwashwin(desk, gx, gy, gw, gh)
+    } else {
+        let front = 0
+        if pget(desk, 180) == 13 {
+            front = 1
+        }
+        winframe(desk, gy * 256 + gx, gh * 256 + gw, front)
+        pixspan(desk, 0, 7, 15)
+        pixtext(desk, gy, gx + 1, "Picture")
+        pixink(desk, 7)
+        pixfill(desk, gx * cs + 2, gy * cs + cs + 2, gw * cs - 4, gh * cs - cs - 4)
+        if pget(desk, 296) == 0 {
+            pixline(desk, (gy + 2) * 256 + (gx + 2), "No picture stands kept yet.", 112)
+            pixline(desk, (gy + 4) * 256 + (gx + 2), "Paint one in the paint window and keep it,", 112)
+            pixline(desk, (gy + 5) * 256 + (gx + 2), "and it will stand here, big, to look at.", 112)
+        } else {
+            let rr = 0
+            while rr < 7 {
+                let cc = 0
+                while cc < 48 {
+                    let off = ((rr + 4) * 52 + (cc + 2)) * 2
+                    let ch = piccellbyte(desk, off)
+                    let at = piccellbyte(desk, off + 1)
+                    let fg = at - (at / 16) * 16
+                    let bgv = (at / 16) - (at / 128) * 8
+                    let lx = gx * cs + cs + cc * 16
+                    let ly = gy * cs + cs + rr * 32
+                    pset(desk, 56, pget(desk, 64 + bgv * 4))
+                    pixfill(desk, lx, ly, 16, 32)
+                    if ch != 32 {
+                        pset(desk, 56, pget(desk, 64 + fg * 4))
+                        pixglyph(desk, lx, ly + 8, ch, 2)
+                    }
+                    cc = cc + 1
+                }
+                rr = rr + 1
+            }
+        }
+    }
+}
+
 // One icon's painting: its picture, then its name in
 // white beside it. The pictures are drawn plainly, in
 // the palette's own colors — a folder, a page, a
@@ -3568,7 +3729,8 @@ make chipwin(slot) {
     if slot == 6 { give 4 }
     if slot == 7 { give 10 }
     if slot == 8 { give 11 }
-    give 12
+    if slot == 9 { give 12 }
+    give 13
 }
 
 // The name the chip at 'slot' carries: the window's
@@ -3584,7 +3746,8 @@ make chipname(slot) {
     if slot == 6 { give "Settings" }
     if slot == 7 { give "Terminal" }
     if slot == 8 { give "Bible" }
-    give "Shield"
+    if slot == 9 { give "Shield" }
+    give "Picture"
 }
 
 // The last column a chip on 'row' may reach (the
@@ -3655,7 +3818,7 @@ make chipplace(desk, slot) {
 make paintchips(desk) {
     pixchipground(desk)
     let s = 0
-    while s < 10 {
+    while s < 11 {
         let place = chipplace(desk, s)
         if place >= 0 {
             let row = place / 256
@@ -3708,15 +3871,17 @@ make paintchips(desk) {
 // the start button), it is twelve
 // cells wide — room for the longest name, Settings,
 // with the frame's breathing room the windows keep —
-// and thirteen cells high, one row to a choice (twelve
-// window choices, and Rest under them since Stone 25,
-// standing last since Stone 29, one row lower again
-// since Stone 30's Calculator choice took the seventh
-// row, and one row lower again since Stone 31's Help
-// choice took the eighth row, since Stone 41's Bible
-// choice took the ninth, and since Stone 42's Shield
-// choice took the tenth). Since Stone 46 the choices
-// stand in the desktop icons' own order — Welcome and
+// and fourteen cells high, one row to a choice
+// (thirteen window choices, and Rest under them
+// since Stone 25, standing last since Stone 29, one
+// row lower again since Stone 30's Calculator choice
+// took the seventh row, and one row lower again
+// since Stone 31's Help choice took the eighth row,
+// since Stone 41's Bible choice took the ninth,
+// since Stone 42's Shield choice took the tenth,
+// and since Stone 48's Picture choice took the
+// eleventh). Since Stone 46 the choices stand in
+// the desktop icons' own order — Welcome and
 // Feather first, as they have always stood, then
 // Files, Editor, Paint, Calculator, Verse, Help,
 // Settings, Terminal, Bible, Shield, and Rest last —
@@ -3729,7 +3894,12 @@ make paintchips(desk) {
 // Settings and the choices under it moved down to
 // make their room — the menu's choices and the
 // desktop's icons now name the same programs in the
-// same order.
+// same order. The Picture choice (Stone 48) stands
+// after Shield, where the newest window's choice
+// has always stood — the append-before-Rest place
+// Bible and Shield took before it — for the picture
+// window carries no desktop icon whose order it
+// could follow: the icons' column is full.
 
 make menuleft(desk) {
     give 0
@@ -3739,12 +3909,13 @@ make menutop(desk) {
     // Stone 33: the menu rises from the start button at
     // the screen's foot — its foot stands on the bar's
     // top edge, so its top is the bar's two rows and its
-    // own thirteen rows up from the grid's foot
-    // (thirteen since Stone 46's Paint and Terminal
-    // choices took their rows; eleven since Stone 42's
-    // Shield choice took the tenth row; ten since
+    // own fourteen rows up from the grid's foot
+    // (fourteen since Stone 48's Picture choice took
+    // its row; thirteen since Stone 46's Paint and
+    // Terminal choices took theirs; eleven since Stone
+    // 42's Shield choice took the tenth row; ten since
     // Stone 41's Bible choice took the ninth).
-    give pget(desk, 32) - 15
+    give pget(desk, 32) - 16
 }
 
 make menuwide(desk) {
@@ -3752,7 +3923,7 @@ make menuwide(desk) {
 }
 
 make menuhigh(desk) {
-    give 13
+    give 14
 }
 
 // Wipes the menu's place back to the plain desktop:
@@ -3766,7 +3937,7 @@ make menuwash(desk) {
 }
 
 // Paints the bar's menu from the desk's standing: open,
-// its gray edge and black body and the thirteen choices
+// its gray edge and black body and the fourteen choices
 // in white, one to a row — the desktop icons' own order
 // since Stone 46, Welcome and Feather first and Rest
 // last; closed, nothing — putting the menu away is
@@ -3794,7 +3965,8 @@ make onemenu(desk) {
         pixline(desk, (mt + 9) * 256 + (ml + 1), "Terminal", 15)
         pixline(desk, (mt + 10) * 256 + (ml + 1), "Bible", 15)
         pixline(desk, (mt + 11) * 256 + (ml + 1), "Shield", 15)
-        pixline(desk, (mt + 12) * 256 + (ml + 1), "Rest", 15)
+        pixline(desk, (mt + 12) * 256 + (ml + 1), "Picture", 15)
+        pixline(desk, (mt + 13) * 256 + (ml + 1), "Rest", 15)
     }
 }
 
@@ -3920,6 +4092,9 @@ make paintwindows(desk, block, notes) {
     if pget(desk, 444) == 0 {
         oneshield(desk)
     }
+    if pget(desk, 476) == 0 {
+        onepicture(desk)
+    }
     // The desktop's invitation (Stone 47): the
     // ground's own lines are laid again here, after
     // the closed windows' washes — a closed window
@@ -3998,6 +4173,11 @@ make paintwindows(desk, block, notes) {
             oneshield(desk)
         }
     }
+    if f != 13 {
+        if pget(desk, 476) == 1 {
+            onepicture(desk)
+        }
+    }
     if f == 1 {
         if pget(desk, 172) == 1 {
             onewelcome(desk)
@@ -4056,6 +4236,11 @@ make paintwindows(desk, block, notes) {
     if f == 12 {
         if pget(desk, 444) == 1 {
             oneshield(desk)
+        }
+    }
+    if f == 13 {
+        if pget(desk, 476) == 1 {
+            onepicture(desk)
         }
     }
     // The bar's menu stands over everything (Stone 23):
@@ -4159,6 +4344,9 @@ make callpainter(desk, block, notes) {
     }
     if win == 12 {
         oneshield(desk)
+    }
+    if win == 13 {
+        onepicture(desk)
     }
 }
 
@@ -4300,7 +4488,7 @@ make paintregion(desk, block, notes) {
     } else {
         let set = 0
         let win = 1
-        while win <= 12 {
+        while win <= 13 {
             let wl = winleft(desk, win)
             let wt = wintop(desk, win)
             let ww = winwide(desk, win)
@@ -4318,7 +4506,7 @@ make paintregion(desk, block, notes) {
         // fellow's wash will fall joins the set, or the
         // wash would rub a hole in it.
         win = 1
-        while win <= 12 {
+        while win <= 13 {
             if inset(set, win) == 1 {
                 if winopen(desk, win) == 0 {
                     let cl = winleft(desk, win)
@@ -4326,7 +4514,7 @@ make paintregion(desk, block, notes) {
                     let cw = winwide(desk, win)
                     let ch = winhigh(desk, win)
                     let other = 1
-                    while other <= 12 {
+                    while other <= 13 {
                         if winopen(desk, other) == 1 {
                             if inset(set, other) == 0 {
                                 let ql = winleft(desk, other)
@@ -4407,7 +4595,7 @@ make paintregion(desk, block, notes) {
                 if rectstouchx(1, 13, rx, rw) == 1 {
                     if rectstouchy(ctop, 3, ry, rh) == 1 {
                         win = 1
-                        while win <= 12 {
+                        while win <= 13 {
                             if inset(set, win) == 0 {
                                 if rectstouchx(winleft(desk, win), winwide(desk, win), 1, 13) == 1 {
                                     if rectstouchy(wintop(desk, win), winhigh(desk, win), ctop, 3) == 1 {
@@ -4436,7 +4624,7 @@ make paintregion(desk, block, notes) {
                 }
                 if gtouch == 1 {
                     win = 1
-                    while win <= 12 {
+                    while win <= 13 {
                         if inset(set, win) == 0 {
                             if rectstouchx(winleft(desk, win), winwide(desk, win), 2, groundwide(desk, gline)) == 1 {
                                 if rectstouchy(wintop(desk, win), winhigh(desk, win), groundrow(desk, gline), 1) == 1 {
@@ -4451,14 +4639,14 @@ make paintregion(desk, block, notes) {
                 gline = gline + 1
             }
             let member = 1
-            while member <= 12 {
+            while member <= 13 {
                 if inset(set, member) == 1 {
                     let el = winleft(desk, member)
                     let et = wintop(desk, member)
                     let ew = winwide(desk, member)
                     let eh = winhigh(desk, member)
                     win = 1
-                    while win <= 12 {
+                    while win <= 13 {
                         if win != member {
                             if inset(set, win) == 0 {
                                 if rectstouchx(winleft(desk, win), winwide(desk, win), el, ew + 1) == 1 {
@@ -4504,7 +4692,7 @@ make paintregion(desk, block, notes) {
             ii = ii + 1
         }
         win = 1
-        while win <= 12 {
+        while win <= 13 {
             if inset(set, win) == 1 {
                 if winopen(desk, win) == 0 {
                     pset(desk, 400, win)
@@ -4514,7 +4702,7 @@ make paintregion(desk, block, notes) {
             win = win + 1
         }
         win = 1
-        while win <= 12 {
+        while win <= 13 {
             if inset(set, win) == 1 {
                 if winopen(desk, win) == 1 {
                     if win != pget(desk, 180) {
@@ -4527,7 +4715,7 @@ make paintregion(desk, block, notes) {
         }
         let fwd = pget(desk, 180)
         if fwd >= 1 {
-            if fwd <= 12 {
+            if fwd <= 13 {
                 if inset(set, fwd) == 1 {
                     if winopen(desk, fwd) == 1 {
                         pset(desk, 400, fwd)
@@ -4639,6 +4827,7 @@ make winopen(desk, win) {
     if win == 10 { give pget(desk, 404) }
     if win == 11 { give pget(desk, 424) }
     if win == 12 { give pget(desk, 444) }
+    if win == 13 { give pget(desk, 476) }
     give 0
 }
 
@@ -4658,6 +4847,7 @@ make winleft(desk, win) {
     if win == 10 { give teleft(desk) }
     if win == 11 { give bleft(desk) }
     if win == 12 { give shleft(desk) }
+    if win == 13 { give puleft(desk) }
     give 0
 }
 
@@ -4674,6 +4864,7 @@ make wintop(desk, win) {
     if win == 10 { give tetop(desk) }
     if win == 11 { give btop(desk) }
     if win == 12 { give shtop(desk) }
+    if win == 13 { give putop(desk) }
     give 0
 }
 
@@ -4690,6 +4881,7 @@ make winwide(desk, win) {
     if win == 10 { give tewide(desk) }
     if win == 11 { give bwide(desk) }
     if win == 12 { give shwide(desk) }
+    if win == 13 { give puwide(desk) }
     give 0
 }
 
@@ -4706,6 +4898,7 @@ make winhigh(desk, win) {
     if win == 10 { give tehigh(desk) }
     if win == 11 { give bhigh(desk) }
     if win == 12 { give shhigh(desk) }
+    if win == 13 { give puhigh(desk) }
     give 0
 }
 
@@ -4783,6 +4976,10 @@ make winmove(desk, win, newleft, newtop) {
     if win == 12 {
         pset(desk, 448, newleft)
         pset(desk, 452, newtop)
+    }
+    if win == 13 {
+        pset(desk, 484, newleft)
+        pset(desk, 488, newtop)
     }
 }
 
@@ -4896,6 +5093,18 @@ make layplaces(desk) {
         zt = 0
     }
     pset(desk, 452, zt)
+    // The picture window's place (Stone 48), laid like
+    // the Shield window's — centered, at the layout's
+    // row 17, clamped whole onto the grid.
+    pset(desk, 484, (pget(desk, 28) - puwide(desk)) / 2)
+    let ut2 = layrow(desk, 17)
+    if ut2 + puhigh(desk) > pget(desk, 32) - 2 {
+        ut2 = pget(desk, 32) - 2 - puhigh(desk)
+    }
+    if ut2 < 0 {
+        ut2 = 0
+    }
+    pset(desk, 488, ut2)
     // The terminal window's place (Stone 38), and the
     // console's rows laid inside it: the answers' first
     // row (128) just under its title, their last row
@@ -5360,16 +5569,18 @@ if fbflags - (fbflags / 8192) * 8192 >= 4096 {
     }
 }
 if pix == 1 {
-    // The desk stands 476 bytes since Stone 45 (the
+    // The desk stands 492 bytes since Stone 48 (the
     // region repaint's road and window at 384 to 403,
     // the terminal window's standing, place, and
     // answers-keeping address at 404 to 423, the
     // Bible window's standing, page, place, and
     // chapter pick at 424 to 443, the Shield
     // window's standing, place, and the door's
-    // reckoning at 444 to 463, and the drag step's
-    // errand at 464 to 475).
-    pixdesk = makebytes(476)
+    // reckoning at 444 to 463, the drag step's
+    // errand at 464 to 475, and the picture window's
+    // standing, the kept picture block's address,
+    // and its place at 476 to 491).
+    pixdesk = makebytes(492)
     fontblock = makebytes(1024)
     fontload(fontblock)
     // The pointer's shapes and its save block (Stone 13):
@@ -5565,6 +5776,17 @@ if pix == 1 {
     pset(pixdesk, 444, 0)
     pset(pixdesk, 456, shieldin)
     pset(pixdesk, 460, shieldout)
+    // The picture window's standing (Stone 48), at
+    // 476 to 488: it starts closed — the word
+    // 'picture', the files window's "Look at it",
+    // and the menu's Picture choice open it — and
+    // the kept picture block's address stands at
+    // 480, where the picture window's painter reads
+    // the kept picture's cells through it
+    // (piccellbyte above). Its place is laid with
+    // the other windows' places by layplaces above.
+    pset(pixdesk, 476, 0)
+    pset(pixdesk, 480, blockaddr(picblock))
     // The terminal window's standing (Stone 38), at 404
     // to 416: it stands OPEN as the face rises — the
     // desktop arrives with its terminal on it, the
@@ -7075,6 +7297,22 @@ while true {
                         ansrow = printline(ansrow, "This face has no windows to open.", pix, pixdesk)
                     }
                 }
+                if kind == 25 {
+                    // 'picture': the picture window is
+                    // opened and brought forward (Stone
+                    // 48) — the kept picture standing big
+                    // in it, or, with no picture kept, its
+                    // plain words saying so. The text face
+                    // has no windows, and says so in plain
+                    // words, as for 'help'.
+                    if pix == 1 {
+                        pset(pixdesk, 476, 1)
+                        pset(pixdesk, 180, 13)
+                        paintwindows(pixdesk, cellblock, notesblock)
+                    } else {
+                        ansrow = printline(ansrow, "This face has no windows to open.", pix, pixdesk)
+                    }
+                }
                 if kind == 22 {
                     // 'terminal': the terminal window is
                     // opened and brought forward (Stone
@@ -7113,11 +7351,13 @@ while true {
                     // Stone 24 to six, and at Stone 29 to
                     // seven, and at Stone 30 to eight, and
                     // at Stone 31 to nine, and at Stone 38
-                    // to ten, at Stone 41 to eleven, and at
-                    // Stone 42 to twelve:
+                    // to ten, at Stone 41 to eleven, at
+                    // Stone 42 to twelve, and at Stone 48
+                    // to thirteen:
                     // welcome, feather, files, settings,
                     // editor, paint, verse, calculator,
-                    // help, terminal, bible, shield, and
+                    // help, terminal, bible, shield,
+                    // picture, and
                     // round again). The key types nothing,
                     // as it never has; on the text face,
                     // which has no windows, it simply passes.
@@ -7126,9 +7366,9 @@ while true {
                         let nxt = 0
                         let cand = cur
                         let tries = 0
-                        while tries < 12 {
+                        while tries < 13 {
                             cand = cand + 1
-                            if cand > 12 {
+                            if cand > 13 {
                                 cand = 1
                             }
                             let open = 0
@@ -7168,9 +7408,12 @@ while true {
                             if cand == 12 {
                                 open = pget(pixdesk, 444)
                             }
+                            if cand == 13 {
+                                open = pget(pixdesk, 476)
+                            }
                             if open == 1 {
                                 nxt = cand
-                                tries = 11
+                                tries = 12
                             } else {
                                 tries = tries + 1
                             }
@@ -7424,6 +7667,18 @@ while true {
                                     if pget(pixdesk, 180) == 0 {
                                         if pget(pixdesk, 444) == 1 {
                                             pset(pixdesk, 180, 12)
+                                            paintwindows(pixdesk, cellblock, notesblock)
+                                        }
+                                    }
+                                    // The picture window joins
+                                    // the same reckoning
+                                    // (Stone 48): when it alone
+                                    // stands open, it comes
+                                    // forward in the closed
+                                    // window's place.
+                                    if pget(pixdesk, 180) == 0 {
+                                        if pget(pixdesk, 476) == 1 {
+                                            pset(pixdesk, 180, 13)
                                             paintwindows(pixdesk, cellblock, notesblock)
                                         }
                                     }
@@ -7762,6 +8017,69 @@ while true {
                                     }
                                 }
                                 if pget(pixdesk, 180) == 0 {
+                                    if pget(pixdesk, 424) == 1 {
+                                        pset(pixdesk, 180, 11)
+                                    }
+                                    if pget(pixdesk, 404) == 1 {
+                                        pset(pixdesk, 180, 10)
+                                    }
+                                    if pget(pixdesk, 360) == 1 {
+                                        pset(pixdesk, 180, 9)
+                                    }
+                                    if pget(pixdesk, 340) == 1 {
+                                        pset(pixdesk, 180, 8)
+                                    }
+                                    if pget(pixdesk, 324) == 1 {
+                                        pset(pixdesk, 180, 7)
+                                    }
+                                    if pget(pixdesk, 272) == 1 {
+                                        pset(pixdesk, 180, 6)
+                                    }
+                                    if pget(pixdesk, 220) == 1 {
+                                        pset(pixdesk, 180, 5)
+                                    }
+                                }
+                                paintwindows(pixdesk, cellblock, notesblock)
+                            }
+                            if fr == 13 {
+                                // The picture window closes
+                                // (Stone 48): another window,
+                                // if one stands open, comes
+                                // forward in its place — the
+                                // welcome first, then the
+                                // feather, the files, and the
+                                // settings, as the first
+                                // windows' closings reckon;
+                                // when none of those stands
+                                // open the reckoning below
+                                // finds the Shield, the
+                                // Bible, the terminal, the
+                                // help window, the
+                                // calculator, the verse
+                                // window, the paint window,
+                                // or the editor in its turn.
+                                pset(pixdesk, 476, 0)
+                                if pget(pixdesk, 172) == 1 {
+                                    pset(pixdesk, 180, 1)
+                                } else {
+                                    if pget(pixdesk, 176) == 1 {
+                                        pset(pixdesk, 180, 2)
+                                    } else {
+                                        if pget(pixdesk, 188) == 1 {
+                                            pset(pixdesk, 180, 3)
+                                        } else {
+                                            if pget(pixdesk, 208) == 1 {
+                                                pset(pixdesk, 180, 4)
+                                            } else {
+                                                pset(pixdesk, 180, 0)
+                                            }
+                                        }
+                                    }
+                                }
+                                if pget(pixdesk, 180) == 0 {
+                                    if pget(pixdesk, 444) == 1 {
+                                        pset(pixdesk, 180, 12)
+                                    }
                                     if pget(pixdesk, 424) == 1 {
                                         pset(pixdesk, 180, 11)
                                     }
@@ -8293,6 +8611,10 @@ while true {
                                 let zy = shtop(pixdesk)
                                 let zw = shwide(pixdesk)
                                 let zh = shhigh(pixdesk)
+                                let ux = puleft(pixdesk)
+                                let uy = putop(pixdesk)
+                                let uw = puwide(pixdesk)
+                                let uh = puhigh(pixdesk)
                                 let acted = 0
                                 if acted == 0 {
                                     // The rest panel (Stone
@@ -8518,6 +8840,25 @@ while true {
                                                 pset(pixdesk, 180, 12)
                                             }
                                             if pick == 12 {
+                                                // The menu's Picture
+                                                // choice (Stone
+                                                // 48): the picture
+                                                // window opens,
+                                                // exactly as the
+                                                // word 'picture'
+                                                // opens it — with
+                                                // a picture kept it
+                                                // stands big in the
+                                                // window; with none
+                                                // kept the window
+                                                // opens all the
+                                                // same and says so
+                                                // plainly in its
+                                                // body.
+                                                pset(pixdesk, 476, 1)
+                                                pset(pixdesk, 180, 13)
+                                            }
+                                            if pick == 13 {
                                                 // The menu's Rest
                                                 // choice (Stone
                                                 // 25): the menu is
@@ -8609,7 +8950,7 @@ while true {
                                     let chipc = cxp / cellpx
                                     let chipr = cyp / cellpx
                                     let chips = 0
-                                    while chips < 10 {
+                                    while chips < 11 {
                                         let chplace = chipplace(pixdesk, chips)
                                         if chplace >= 0 {
                                             let chrow = chplace / 256
@@ -9008,6 +9349,48 @@ while true {
                                     }
                                 }
                                 if acted == 0 {
+                                    // The picture window's close
+                                    // mark (Stone 48): the window
+                                    // closes like any other; the
+                                    // kept picture it shows does
+                                    // not close with it — the
+                                    // picture stands kept on the
+                                    // disk whether the window
+                                    // stands open or shut.
+                                    if pget(pixdesk, 476) == 1 {
+                                        if cxp >= (ux + uw - 2) * cellpx {
+                                            if cxp < (ux + uw - 1) * cellpx {
+                                                if cyp >= uy * cellpx {
+                                                    if cyp < (uy + 1) * cellpx {
+                                                        pset(pixdesk, 476, 0)
+                                                        if pget(pixdesk, 180) == 13 {
+                                                            if pget(pixdesk, 172) == 1 {
+                                                                pset(pixdesk, 180, 1)
+                                                            } else {
+                                                                if pget(pixdesk, 176) == 1 {
+                                                                    pset(pixdesk, 180, 2)
+                                                                } else {
+                                                                    if pget(pixdesk, 188) == 1 {
+                                                                        pset(pixdesk, 180, 3)
+                                                                    } else {
+                                                                        if pget(pixdesk, 208) == 1 {
+                                                                            pset(pixdesk, 180, 4)
+                                                                        } else {
+                                                                            pset(pixdesk, 180, 0)
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
                                     // The terminal window's close mark
                                     // (Stone 38): the window closes
                                     // like any other — its keeping
@@ -9193,6 +9576,18 @@ while true {
                                     if pget(pixdesk, 180) == 0 {
                                         if pget(pixdesk, 444) == 1 {
                                             pset(pixdesk, 180, 12)
+                                            paintwindows(pixdesk, cellblock, notesblock)
+                                        }
+                                    }
+                                    // The picture window joins
+                                    // the same reckoning
+                                    // (Stone 48): when it alone
+                                    // stands open, it comes
+                                    // forward in the closed
+                                    // window's place.
+                                    if pget(pixdesk, 180) == 0 {
+                                        if pget(pixdesk, 476) == 1 {
+                                            pset(pixdesk, 180, 13)
                                             paintwindows(pixdesk, cellblock, notesblock)
                                         }
                                     }
@@ -9664,6 +10059,48 @@ while true {
                                     }
                                 }
                                 if acted == 0 {
+                                    // A press on "Look at it"
+                                    // at the files window's
+                                    // foot while the kept
+                                    // picture stands picked
+                                    // (Stone 48): the words
+                                    // stand left of "Rename"
+                                    // while the picture
+                                    // stands picked and the
+                                    // window stands forward;
+                                    // the press opens the
+                                    // picture window and
+                                    // brings it forward, where
+                                    // the picture stands big.
+                                    // The picture's older
+                                    // doors stand as they
+                                    // were: its row's press
+                                    // and Enter still open it
+                                    // in Paint, to work on
+                                    // it; this door is for
+                                    // looking at it.
+                                    if pget(pixdesk, 188) == 1 {
+                                        if pget(pixdesk, 300) + pget(pixdesk, 376) == 0 {
+                                            if pget(pixdesk, 180) == 3 {
+                                                if pichas == 1 {
+                                                    if pget(pixdesk, 192) == notecount {
+                                                        if cyp / cellpx == fy + 11 {
+                                                            if cxp >= (fx + 26) * cellpx {
+                                                                if cxp < (fx + 36) * cellpx {
+                                                                    pset(pixdesk, 476, 1)
+                                                                    pset(pixdesk, 180, 13)
+                                                                    paintwindows(pixdesk, cellblock, notesblock)
+                                                                    acted = 1
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
                                     // A press on one of the
                                     // settings window's choice
                                     // rows sets that choice
@@ -10005,10 +10442,10 @@ while true {
                                     let fwd = pget(pixdesk, 180)
                                     let cand = fwd
                                     let tries = 0
-                                    while tries < 13 {
+                                    while tries < 14 {
                                         let took = 0
                                         if cand >= 1 {
-                                            if cand <= 12 {
+                                            if cand <= 13 {
                                                 if winopen(pixdesk, cand) == 1 {
                                                     let wl = winleft(pixdesk, cand)
                                                     let wt = wintop(pixdesk, cand)
@@ -10039,7 +10476,7 @@ while true {
                                             }
                                         }
                                         if acted == 1 {
-                                            tries = 12
+                                            tries = 13
                                         } else {
                                             if tries == 0 {
                                                 cand = 1
@@ -10250,6 +10687,21 @@ while true {
                                                 if cyp >= zy * cellpx {
                                                     if cyp < (zy + zh) * cellpx {
                                                         pset(pixdesk, 180, 12)
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    if pget(pixdesk, 476) == 1 {
+                                        if cxp >= ux * cellpx {
+                                            if cxp < (ux + uw) * cellpx {
+                                                if cyp >= uy * cellpx {
+                                                    if cyp < (uy + uh) * cellpx {
+                                                        pset(pixdesk, 180, 13)
                                                         paintwindows(pixdesk, cellblock, notesblock)
                                                         acted = 1
                                                     }

@@ -99,6 +99,10 @@
 //       forward ('shield'; the window is the face of
 //       light's, Stone 42, and the doing is the main
 //       body's)
+//  25 — the picture window is opened and brought
+//       forward ('picture'; the window is the face of
+//       light's, Stone 48, and the doing is the main
+//       body's)
 make wordkind(word) {
     if word == "" {
         give 0
@@ -174,6 +178,9 @@ make wordkind(word) {
     }
     if word == "shield" {
         give 24
+    }
+    if word == "picture" {
+        give 25
     }
     give 1
 }
