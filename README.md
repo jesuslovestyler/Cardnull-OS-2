@@ -4807,6 +4807,172 @@ nothing here is claimed as witnessed, and Tyler's
 witness on the living machine decides, as it
 decided for the stones before.
 
+### Stone 49 — The Stick and Disk Exchange
+
+What the keeping disk holds, a stick can now
+carry away, and what a stick carries can be
+brought home: the files window exchanges a picked
+kept thing with a plugged-in stick, in both
+directions, in plain words. The files window grew
+one row for it — the desk 492 to 496, the new
+cell (492) holding the exchange's word, the
+window's reckoning of its rows fifteen become
+sixteen, and its top row risen one, 31 to 30, to
+stand the taller window. While a note or the
+picture stands picked, the window's foot carries
+two new words, "To the stick" and "From the
+stick". Every road answers plainly. To the stick
+refuses, in the window, when no stick stands in
+the computer, when that name already stands on
+the stick (Stone 40's discipline — a copy never
+silently overwrites), when the stick's page
+already holds its eight, when a picture already
+stands on the stick, and when the copy itself
+fails; and it answers "Copied to the stick." when
+the thing stands copied. From the stick refuses
+when no stick stands in, when the stick holds no
+note of the picked name, when it holds no
+picture, and when the disk would not keep what
+was brought; and it answers "Brought in from the
+stick." when the thing stands home. The copies
+run through scratch blocks of the desk (the
+stick's notes at 704, its picture at 1536), so a
+source is read and never written by its own
+copying; bringing in lands through the keepings
+themselves — the picked note's own slot is
+refreshed, the picture takes the kept picture's
+place — and the roads underneath are Stone 43's
+USB roads, as they stand.
+
+One scope reading is recorded as the design
+stands, Tyler's to overturn: bringing in works on
+the picked thing's twin. A man picks a note on
+his disk and brings in the stick's note of the
+same name; the picture likewise. A note that
+stands only on the stick, under a name his disk
+does not hold, cannot be brought in as a new note
+— there is no picked thing for it to be the twin
+of. The refusal says so plainly, and the wider
+road waits for his word, as other roads have.
+
+This stone stands on the mend recorded just
+above, and the order matters: the mend was
+committed first, alone, and this stone landed on
+the mended tree. Without it, the exchange's own
+presses painted through the files window and the
+re-keeping overwrote the exchange's work, as the
+mend's section tells.
+
+The stone's proof (prove-stone49) stands in four
+boots and the shells' own byte reckonings, 53
+checks whole. Boot 1, on a prepared disk — the
+Eastern card and two notes, one of them named —
+and a blank stick: the exchange row decodes while
+a note stands picked, both notes are copied and
+answered, a picture is painted and kept the
+bench's way and copied likewise, and the refusals
+stand in their plain words, the picture copied
+again and the first note copied again; the
+stick's own bytes then prove the copies — its
+notes page holds the disk's two slots entire,
+name tail and all, and the picture's three
+sectors stand on the stick byte for byte the
+disk's — while the disk's notes page stands byte
+for byte as it was laid, the source untouched.
+Boot 2 prepares the stick with a keeping of its
+own — a note under the second note's name with
+other words, and a picture of its own — and
+brings both in: the note's words at the window's
+foot are the stick's words now, the stick's
+picture stands in the picture window in its big
+measure at its own cell, and the first note is
+refused, the stick holding no note of that name.
+The disk's bytes prove what was brought in stands
+kept there, and the stick's image stands
+byte-identical across the whole boot — bringing
+in never writes its source. Boot 3, with no stick
+on the bus, hears both presses answered "No stick
+stands in this computer." Boot 4, with no hard
+disk and a keeper stick carrying its card and two
+notes, hears both answered "The stick is this
+computer's keeping."
+
+One bench note is recorded honestly, as the
+mend's section recorded its own: on the night of
+the landing this bench's SeaBIOS wedged at
+"Booting from DVD/CD..." again and again on the
+stick-carrying boots — the guest spinning, the
+handoff never made — while other boots of the
+same disc rose in seconds. The proof's boots were
+therefore driven through a bench driver differing
+from the shipped script only in its boot's
+patience: each machine was watched lightly and
+relaunched when it wedged, a wedged attempt never
+having run the system at all, and every scenario
+and every byte reckoning that ran is the shipped
+proof's own, word for word (the shipped script
+itself, earlier the same evening, carried boot 1
+and its byte reckonings whole before a later
+boot's rise wedged). No check was weakened, and
+no count above comes from the driver — they are
+the proof's own checks, all of them landed.
+
+The companions stand whole at their counts: the
+disc (14), the EFI door (8 — a first run's one
+blank reading of the files icon's name, gone on
+the re-run, the door's known flake), Stone 26
+(27), Stone 38 (19), Stone 39 (77), Stone 40
+(64), Stone 41 (113), Stone 42 (46), Stone 43
+(36), Stone 44 (16), Stone 46 (23), the
+no-witness proof (40), the feather's start (4),
+and the feather's paint (9). Stone 48 stands at
+49 of its 50, the one failure its third boot's
+held drag — the limit its own section recorded,
+the window standing at its first place through
+every taking. The rest of the failures are the
+bench's and the past's, classified as they stand:
+Stone 34's drag census did not complete — its
+machine rose and its reckonings waited on drags
+the bench's mouse would not carry, as Stone 47's
+record shows it failing identically on
+unmodified trees; Stone 47's six failures are its
+first boot's terminal-drag census, every one
+downstream of the drag that never landed, its
+standing bench limit; Stone 22's two are readings
+downstream of its own drag; Stone 19's two are
+its Tab readings, which fail identically on a
+pristine Stone 48 tree, control-proven before
+this stone was built; and Stones 23, 25, and 33
+still carry the nine-choice menu reckoning from
+before Stone 46 grew the menu — their logs read
+the grown menu's own words in the old list's
+places — a small future mend stone's work, named
+here so it is not lost, and not this stone's to
+fix in passing.
+
+The files window's growth staled the companions'
+reckoning of its top row, and they were mended —
+proofs 19, 22, 23, 25, 26, 27, 33, 38, 39, 40,
+and 48 — the constant carried 31 to 30 and the
+comments with it, no check weakened; two of them
+(22 and 33) also widen a remnant scan by the same
+row, covering more ground, not less. The mending
+is recorded with its own fault, found in
+verification before the landing: one companion
+mend of the first building had silently dragged
+the editor's place along in Stones 27 and 40; it
+was restored to its true reckoning and both
+proofs re-run whole. Stone 48's second boot reads
+the picture chip's plate by Stone 39's reckoning
+where the taller files window now covers its old
+read point whole — a mechanism swapped, the check
+itself unchanged, disclosed in prove-stone48's
+own header. Bench proof is bench proof: nothing
+here is claimed as witnessed, and no real stick
+has yet carried the exchange — Tyler's witness,
+on a real stick in the living machine, decides,
+as it decided for the stones before.
+
 ## The EFI door verified (November 24, 2026)
 
 The disc has carried two doors since it was first

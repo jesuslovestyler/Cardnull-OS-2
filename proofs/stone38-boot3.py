@@ -301,8 +301,8 @@ expect2(d is not None
 typewrite("files")
 enter()
 d = waitdump(lambda d: d is not None
-             and safedec(d, 31, 6, "Files", WHITE) == "Files", 20)
-expect2(d is not None and safedec(d, 31, 6, "Files", WHITE) == "Files",
+             and safedec(d, 30, 6, "Files", WHITE) == "Files", 20)
+expect2(d is not None and safedec(d, 30, 6, "Files", WHITE) == "Files",
         "the word 'files', typed in the terminal, opens the files window as it always has")
 
 print("FAIL" if FAILS else "PASS", flush=True)

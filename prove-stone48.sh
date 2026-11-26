@@ -28,8 +28,11 @@
 #     one row higher for its fourteen choices, all
 #     decoded, Picture the thirteenth choice and Rest
 #     last — is read; and with the files window
-#     forward the picture window's bar stands gray
-#     until a press on its chip on the bar raises it,
+#     forward the picture window stands behind —
+#     its chip on the bar standing gray (its bar
+#     itself stands under the taller files window
+#     since Stone 49) — until a press on its chip
+#     on the bar raises it,
 #     its bar blue again (proofs/stone48-boot2.py).
 #   Boot 3 (boot 1's disk again, the picture standing
 #     kept on it): the word 'picture' opens the

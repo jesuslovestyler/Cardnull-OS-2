@@ -87,14 +87,15 @@ def find_answer(d, text):
 
 # Places on this face (1024x768, sixty-four cells
 # across, forty-eight down): the files window at left
-# cell 5, top row 31 (Stone 19; row 32 until Stone 33);
+# cell 5, top row 30 (Stone 19; row 32 until Stone 33,
+# row 31 until Stone 49 grew the window by a row);
 # the menu at left 0, top row 37 — it rose from the
 # start button at the bar's foot since Stone 33 — its
 # choices one to a row (Stone 23, grown at Stone 25,
 # again at Stone 29, and again at Stone 30); the rest
 # panel centered — sixteen wide, four high, so left
 # cell 24, top row 22, its words at its left + 1.
-FX, FY = 5, 31
+FX, FY = 5, 30
 ML, MT = 0, 37
 RL, RT = 24, 22
 NOTE = "a note before rest"

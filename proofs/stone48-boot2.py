@@ -22,6 +22,7 @@ BLUE = (0, 0, 170)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 FRAME = (85, 85, 85)
+LIGHT = (170, 170, 170)
 
 _vals = {}
 for _m in re.finditer(r"block\[(\d+)\] = (\d+)",
@@ -150,14 +151,24 @@ if d:
            f"the menu-opened window tells its plain words too (read: {said!r})")
 
 # The chip: the files window comes forward (its word
-# typed), and the picture window's title bar stands
-# in its behind gray — a pixel of the bar away from
-# its letters, at the window's twentieth column.
+# typed), and the picture window stands behind. Its
+# title bar itself cannot be read for the gray here:
+# since Stone 49 grew the files window by its
+# exchange row, the files window's first place (top
+# row 30, the picture window's own bar row) covers
+# the picture window's bar whole while it stands
+# forward. The desktop's other telling of the same
+# standing is the window's chip on the bar — white
+# on light gray while its window stands behind, as
+# the bar's chips tell for every window (Stone 39's
+# reckoning) — counted over the Picture chip's plate
+# (the bar's upper row, from column 17).
 typewrite("files")
 enter()
 d = waitdump(lambda d: d is not None
-             and pixel(d, (PX + 20) * 16, PY * 16 + 8) == FRAME, 25)
-expect(d is not None, "with the files window forward, the picture window's bar stands gray")
+             and count_in(d, LIGHT, 17 * 16, 46 * 16, 27 * 16, 47 * 16)
+             > count_in(d, BLUE, 17 * 16, 46 * 16, 27 * 16, 47 * 16), 25)
+expect(d is not None, "with the files window forward, the picture window stands behind — its chip stands gray")
 # The open windows' chips pack in the icons' order on
 # the bar's upper row: Files at column 2, Terminal at
 # column 8, Picture at column 17. A press on the

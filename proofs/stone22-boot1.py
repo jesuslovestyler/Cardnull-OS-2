@@ -92,7 +92,7 @@ def old_place_remnants(d):
     shadow's reach past its foot and right edge.)"""
     w, h, px = d
     bad = []
-    for y in range(GY * 16, (GY + 15) * 16):
+    for y in range(GY * 16, (GY + 16) * 16):
         for x in range(GX * 16, (GX + 54) * 16):
             if NX * 16 <= x < (NX + 54) * 16 + 5 and NY * 16 <= y < (NY + 15) * 16 + 5:
                 continue
@@ -112,7 +112,7 @@ def old_place_remnants(d):
 # sixty-four cells across): fifty-four wide, fifteen
 # high (fourteen until Stone 26 grew it by the kept
 # picture's row). It opens centered at the desktop's foot — left
-# cell 5, top row 31 (top row 32 until Stone 33, whose
+# cell 5, top row 30 (top row 32 until Stone 33, whose
 # bar at the screen's foot rose the taller windows'
 # first places) — and the drag carries it to left
 # cell 10 (the rightmost place it wholly fits: 10 + 54
@@ -120,7 +120,7 @@ def old_place_remnants(d):
 # its top + 3 (the first note) and + 4 (the second),
 # their words at its left + 4; the picked note's words
 # stand again at its top + 12, at its left + 2.
-GX, GY = 5, 31
+GX, GY = 5, 30
 NX, NY = 10, 21
 FIRST = "remember the garden"
 SECOND = "pray for mother"

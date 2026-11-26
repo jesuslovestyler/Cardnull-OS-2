@@ -18,7 +18,9 @@
 # choices DECODED letter by letter against the system's
 # own letter shapes, Rest last. A press on the Files
 # choice opens the files window at its new first place
-# (left cell 5, top row 31 — above the bar now). The
+# (left cell 5, top row 30 — above the bar now; row 31
+# through Stone 48, one higher since Stone 49 grew the
+# window by its exchange row). The
 # glass is checked on the windows: the welcome window's
 # rounded corner leaves the corner pixel to the desktop
 # while its frame stands a few pixels in; the welcome's
@@ -110,11 +112,11 @@ def count_in(d, rgb, x0, y0, x1, y1):
 # y 736 (row 46), its words on row 47; the start
 # button's center (16, 752); the menu at left 0, top
 # row 37, nine rows; the files window at left cell 5,
-# top row 31; the welcome window at left cell 6, top
+# top row 30; the welcome window at left cell 6, top
 # row 5, fifty-one by fourteen; the rest panel
 # centered, left cell 24, top row 22.
 MT = 37
-FX, FY = 5, 31
+FX, FY = 5, 30
 RL, RT = 24, 22
 CHOICES = ("Welcome", "Feather", "Files", "Settings", "Editor",
            "Verse", "Calculator", "Help", "Rest")
@@ -241,7 +243,7 @@ if d:
     # covers, and the old shadow's strip at its right,
     # must stand plain desktop again.
     bad = []
-    for y in range(FY * 16, (FY + 15) * 16):
+    for y in range(FY * 16, (FY + 16) * 16):
         for x in range(FX * 16, (FX + 54) * 16):
             if NX * 16 <= x < (NX + 54) * 16 and NY * 16 <= y < (NY + 15) * 16:
                 continue

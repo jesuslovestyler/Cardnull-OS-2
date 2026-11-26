@@ -101,9 +101,11 @@ def cell_pixel(d, row, col):
 
 
 # The files window's place (Stone 19): left cell 5,
-# top row 31; the kept picture's entry stands on its
-# last row, GY + 13, and its foot on GY + 11.
-GX, GY = 5, 31
+# top row 30 (row 31 through Stone 48; the window
+# grew by Stone 49's exchange row and its top stands
+# one row higher); the kept picture's entry stands
+# on GY + 13, and its foot on GY + 11.
+GX, GY = 5, 30
 NOTE = "remember the garden"
 
 # The picture window's place: fifty cells wide,

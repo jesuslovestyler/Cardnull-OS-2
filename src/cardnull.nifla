@@ -953,6 +953,51 @@
 //          stands eleventh when the bar has room, as
 //          every chip does.
 //
+// Stone 49: the stick and disk exchange — the files
+//          window gains the exchange with a plugged-in
+//          USB stick. The window grew by one row again
+//          (sixteen now, as it grew for Stone 26's
+//          picture entry), and on its new last row,
+//          while a thing stands picked, two words stand
+//          in white: "To the stick" and "From the
+//          stick". A press copies the picked thing — a
+//          note as that note, its whole slot; the kept
+//          picture as the picture, its header and its
+//          three sectors — between the keeping disk and
+//          the stick's own keeping ground (Stone 43's
+//          twin of the disk's layout, at the same
+//          sectors), through the stick library's own
+//          roads, which stand as they were built. A
+//          copy is a copy: the source stands untouched,
+//          and the destination gains the thing under
+//          the name it stands under. A note is known
+//          across the two keepings by that name — its
+//          given name, or its words — and the exchange
+//          answers plainly in the window, on the same
+//          row, whenever it cannot or should not copy:
+//          no stick stands in this computer; the stick
+//          is itself the keeping; that name already
+//          stands on the stick (Stone 40's refusal —
+//          nothing is silently overwritten); the
+//          stick's notes page is full; a picture
+//          already stands on the stick; the stick
+//          holds no note of that name; no picture
+//          stands on the stick. Bringing a note in
+//          refreshes the picked note's own keeping
+//          from its twin on the stick — the one keeping
+//          of that name, never a second beside it —
+//          and bringing the picture in takes the kept
+//          picture's place the same way, name and all;
+//          what is brought in is written through to
+//          the keeping disk behind the disk's own
+//          standing, as every keeping is. The word the
+//          exchange last spoke lives in the desk at 492
+//          (the desk stands 496 bytes now) and is
+//          forgotten whenever the pick moves. No drag
+//          arithmetic changed, none of Stone 47's six
+//          parts, not Stone 48's window, and none of
+//          the Shield's truths.
+//
 // The arrangement of the screen (the text face's rows;
 // on the face of light the same words stand on its grid,
 // and since Stone 33 its bar stands at the foot):
@@ -1678,8 +1723,15 @@ make fihigh(desk) {
     // Stone 26 — the kept picture's entry stands on the
     // window's last row (gy + 13), below the picked
     // note's words, so the window grew by that one row
-    // and nothing above it moved.
-    give 15
+    // and nothing above it moved. Sixteen since Stone
+    // 49 — the exchange with a USB stick stands on the
+    // window's new last row (gy + 14), below the
+    // picture's entry, and the window grew by that one
+    // row the same way: nothing above the new row
+    // moved, and the window's top stands one row
+    // higher for it, layplaces' clamp reckoning the
+    // window whole above the bar as it always has.
+    give 16
 }
 
 // Draws one kept note's words at a letter cell, letter
@@ -1820,6 +1872,29 @@ make draftispicname(block) -> number {
     give 1
 }
 
+// Whether the name one kept note stands under is
+// letter for letter the name another kept note
+// stands under, the two notes standing in two
+// blocks (Stone 49) — the exchange's reckoning: a
+// note is known on the other disk by the name it
+// stands under here, its given name or its words,
+// exactly as the naming way's refusal at Stone 40
+// reckons a name that already stands.
+make slotstandsmatch(ab, aslot, bb, bslot) -> number {
+    let n = effnamelen(ab, aslot)
+    if n != effnamelen(bb, bslot) {
+        give 0
+    }
+    let i = 0
+    while i < n {
+        if effnamebyte(ab, aslot, i) != effnamebyte(bb, bslot, i) {
+            give 0
+        }
+        i = i + 1
+    }
+    give 1
+}
+
 // Paints the files window from the desk's standing:
 // closed, the plain desktop; open, its frame and title
 // bar and the list of the kept notes, the picked one
@@ -1842,7 +1917,12 @@ make draftispicname(block) -> number {
 // "Rename" while the picture stands picked, and the
 // naming way those words open stands in the list's
 // place while it stands, in onefiles' own telling
-// below.
+// below. Since Stone 49 the window's last row
+// carries the exchange with a USB stick — "To the
+// stick" and "From the stick" while a thing stands
+// picked, and the exchange's own word in their
+// place after a press — in the telling at the
+// row's own drawing below.
 make onefiles(desk, notes) {
     let cs = pget(desk, 320)
     let gx = fileft(desk)
@@ -2095,6 +2175,70 @@ make onefiles(desk, notes) {
                         } else {
                             pixline(desk, prow * 256 + (gx + 4), "A picture you painted", 7)
                         }
+                    }
+                }
+                // The exchange with a USB stick (Stone
+                // 49): on the window's last row, while a
+                // thing stands picked — a note, or the
+                // picture at the pick's end — the two
+                // words "To the stick" and "From the
+                // stick" stand in white; a press on one
+                // copies the picked thing between the
+                // keeping disk and a plugged-in stick,
+                // and the exchange's own word (the
+                // desk's 492) then stands on this row in
+                // their place, in plain words, until the
+                // pick moves. The row stands in the
+                // list's view only: the naming way and
+                // the letting-go asking own the window
+                // while they stand, as they always have.
+                let xpicked = 0
+                if sel < count {
+                    xpicked = 1
+                }
+                if haspic == 1 {
+                    if sel == count {
+                        xpicked = 1
+                    }
+                }
+                if xpicked == 1 {
+                    let xword = pget(desk, 492)
+                    if xword == 0 {
+                        pixline(desk, (gy + 14) * 256 + (gx + 2), "To the stick", 15)
+                        pixline(desk, (gy + 14) * 256 + (gx + 16), "From the stick", 15)
+                    }
+                    if xword == 1 {
+                        pixline(desk, (gy + 14) * 256 + (gx + 2), "Copied to the stick.", 15)
+                    }
+                    if xword == 2 {
+                        pixline(desk, (gy + 14) * 256 + (gx + 2), "Brought in from the stick.", 15)
+                    }
+                    if xword == 3 {
+                        pixline(desk, (gy + 14) * 256 + (gx + 2), "No stick stands in this computer.", 15)
+                    }
+                    if xword == 4 {
+                        pixline(desk, (gy + 14) * 256 + (gx + 2), "That name already stands on the stick.", 15)
+                    }
+                    if xword == 5 {
+                        pixline(desk, (gy + 14) * 256 + (gx + 2), "The stick's notes page is full.", 15)
+                    }
+                    if xword == 6 {
+                        pixline(desk, (gy + 14) * 256 + (gx + 2), "A picture already stands on the stick.", 15)
+                    }
+                    if xword == 7 {
+                        pixline(desk, (gy + 14) * 256 + (gx + 2), "The stick holds no note of that name.", 15)
+                    }
+                    if xword == 8 {
+                        pixline(desk, (gy + 14) * 256 + (gx + 2), "No picture stands on the stick.", 15)
+                    }
+                    if xword == 9 {
+                        pixline(desk, (gy + 14) * 256 + (gx + 2), "The stick is this computer's keeping.", 15)
+                    }
+                    if xword == 10 {
+                        pixline(desk, (gy + 14) * 256 + (gx + 2), "The copy could not be made.", 15)
+                    }
+                    if xword == 11 {
+                        pixline(desk, (gy + 14) * 256 + (gx + 2), "Brought in, but the disk would not keep it.", 15)
                     }
                 }
             }
@@ -5505,6 +5649,17 @@ if diskset == 1 {
 // this body's keeping, as the notes page is; the
 // feather never touches the disk.
 let picblock = makebytes(1536)
+// The exchange's scratch (Stone 49): the stick's
+// notes page and kept picture are read into blocks
+// of their own while a copy is made between the
+// keeping disk and the stick, so the body's own
+// keeping above is never the copy's scratch — a
+// copy that fails midway leaves the keeping as it
+// stood, and a copy that lands is laid into the
+// keeping whole, by the exchange's own presses in
+// the main loop below.
+let sticknotes = makebytes(704)
+let stickpic = makebytes(1536)
 let pichas = 0
 let picsel = 48
 if diskset == 1 {
@@ -5569,7 +5724,7 @@ if fbflags - (fbflags / 8192) * 8192 >= 4096 {
     }
 }
 if pix == 1 {
-    // The desk stands 492 bytes since Stone 48 (the
+    // The desk stands 496 bytes since Stone 49 (the
     // region repaint's road and window at 384 to 403,
     // the terminal window's standing, place, and
     // answers-keeping address at 404 to 423, the
@@ -5577,10 +5732,11 @@ if pix == 1 {
     // chapter pick at 424 to 443, the Shield
     // window's standing, place, and the door's
     // reckoning at 444 to 463, the drag step's
-    // errand at 464 to 475, and the picture window's
+    // errand at 464 to 475, the picture window's
     // standing, the kept picture block's address,
-    // and its place at 476 to 491).
-    pixdesk = makebytes(492)
+    // and its place at 476 to 491, and the files
+    // window's exchange word at 492 to 495).
+    pixdesk = makebytes(496)
     fontblock = makebytes(1024)
     fontload(fontblock)
     // The pointer's shapes and its save block (Stone 13):
@@ -5661,6 +5817,10 @@ if pix == 1 {
     // has spoken no word.
     pset(pixdesk, 376, 0)
     pset(pixdesk, 380, 0)
+    // The exchange's word (Stone 49), at 492: the
+    // exchange with a USB stick has spoken no word in
+    // the files window yet.
+    pset(pixdesk, 492, 0)
     // The verse window's standing (Stone 29), at 324 to
     // 336: it starts closed — the word 'verse' opens it —
     // and the first verse stands in it until an opening
@@ -6153,6 +6313,7 @@ while true {
                                 let sel = pget(pixdesk, 192)
                                 if sel > 0 {
                                     pset(pixdesk, 192, sel - 1)
+                                    pset(pixdesk, 492, 0)
                                     paintwindows(pixdesk, cellblock, notesblock)
                                 }
                             }
@@ -6240,6 +6401,7 @@ while true {
                                 // the window now lists.
                                 if sel + 1 < pget(pixdesk, 196) + pichas {
                                     pset(pixdesk, 192, sel + 1)
+                                    pset(pixdesk, 492, 0)
                                     paintwindows(pixdesk, cellblock, notesblock)
                                 }
                             }
@@ -6471,6 +6633,7 @@ while true {
                                                         notecount = notecount + 1
                                                         pset(pixdesk, 196, notecount)
                                                         pset(pixdesk, 192, notecount - 1)
+                                                        pset(pixdesk, 492, 0)
                                                         let nmwrote2 = 0
                                                         if diskset == 1 {
                                                             if knotesave(xdesk, keepusb, notesblock, notecount) == 1 {
@@ -6576,6 +6739,7 @@ while true {
                                                 fsel = 0
                                             }
                                             pset(pixdesk, 192, fsel)
+                                            pset(pixdesk, 492, 0)
                                             pset(pixdesk, 300, 0)
                                             paintwindows(pixdesk, cellblock, notesblock)
                                             if diskset == 1 {
@@ -9881,6 +10045,7 @@ while true {
                                                         if row >= fy + 3 {
                                                             if row < fy + 3 + pget(pixdesk, 196) {
                                                                 pset(pixdesk, 192, row - fy - 3)
+                                                                pset(pixdesk, 492, 0)
                                                                 pset(pixdesk, 180, 3)
                                                                 paintwindows(pixdesk, cellblock, notesblock)
                                                                 acted = 1
@@ -9919,6 +10084,7 @@ while true {
                                                     if cxp < (fx + fw) * cellpx {
                                                         if cyp / cellpx == fy + 13 {
                                                             pset(pixdesk, 192, notecount)
+                                                            pset(pixdesk, 492, 0)
                                                             pset(pixdesk, 272, 1)
                                                             pset(pixdesk, 180, 6)
                                                             paintask = 1
@@ -10113,6 +10279,307 @@ while true {
                                                                     pset(pixdesk, 476, 1)
                                                                     pset(pixdesk, 180, 13)
                                                                     paintwindows(pixdesk, cellblock, notesblock)
+                                                                    acted = 1
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    // A press on "To the stick"
+                                    // at the files window's last
+                                    // row (Stone 49): the words
+                                    // stand while a thing stands
+                                    // picked and the window
+                                    // stands forward, and the
+                                    // exchange has spoken no
+                                    // word; the press copies the
+                                    // picked thing — a note as
+                                    // that note, the picture as
+                                    // the picture — from the
+                                    // keeping disk to a
+                                    // plugged-in stick, into the
+                                    // stick's own keeping ground
+                                    // (Stone 43's twin layout:
+                                    // the notes page at its
+                                    // sectors 64 and after, the
+                                    // picture at 80 and after),
+                                    // the keeper's press being
+                                    // the giving of that ground
+                                    // for the copy. A copy is a
+                                    // copy: the disk's keeping
+                                    // stands untouched, and the
+                                    // stick gains the thing
+                                    // under the name it stands
+                                    // under here. Where the
+                                    // stick already holds a
+                                    // thing of that name — or a
+                                    // picture already stands in
+                                    // its one picture place —
+                                    // the press is refused in
+                                    // plain words in the window
+                                    // and nothing is
+                                    // overwritten, Stone 40's
+                                    // discipline for a name that
+                                    // already stands; where no
+                                    // stick stands, or the stick
+                                    // is itself this computer's
+                                    // keeping, the press is
+                                    // answered plainly the same
+                                    // way. The outcome stands
+                                    // as the exchange's word
+                                    // (the desk's 492) on the
+                                    // window's last row, and the
+                                    // window alone is repainted
+                                    // by the region road, as the
+                                    // naming way repaints it.
+                                    if pget(pixdesk, 188) == 1 {
+                                        if pget(pixdesk, 300) + pget(pixdesk, 376) == 0 {
+                                            if pget(pixdesk, 180) == 3 {
+                                                if pget(pixdesk, 492) == 0 {
+                                                    if cyp / cellpx == fy + 14 {
+                                                        if cxp >= (fx + 2) * cellpx {
+                                                            if cxp < (fx + 14) * cellpx {
+                                                                let xsel = pget(pixdesk, 192)
+                                                                let xdone = 0
+                                                                if xsel < notecount {
+                                                                    if keepusb == 1 {
+                                                                        pset(pixdesk, 492, 9)
+                                                                    } else {
+                                                                        if usectors(xdesk) == 0 {
+                                                                            pset(pixdesk, 492, 3)
+                                                                        } else {
+                                                                            let xscount = unotesload(xdesk, sticknotes)
+                                                                            let xdup = 0
+                                                                            let xci = 0
+                                                                            while xci < xscount {
+                                                                                if slotstandsmatch(notesblock, xsel, sticknotes, xci) == 1 {
+                                                                                    xdup = 1
+                                                                                }
+                                                                                xci = xci + 1
+                                                                            }
+                                                                            if xdup == 1 {
+                                                                                pset(pixdesk, 492, 4)
+                                                                            } else {
+                                                                                if xscount >= 8 {
+                                                                                    pset(pixdesk, 492, 5)
+                                                                                } else {
+                                                                                    let xcj = 0
+                                                                                    while xcj < 64 {
+                                                                                        sticknotes[xscount * 64 + xcj] = notesblock[xsel * 64 + xcj]
+                                                                                        xcj = xcj + 1
+                                                                                    }
+                                                                                    if unotesave(xdesk, sticknotes, xscount + 1) == 1 {
+                                                                                        pset(pixdesk, 492, 1)
+                                                                                    } else {
+                                                                                        pset(pixdesk, 492, 10)
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    xdone = 1
+                                                                } else {
+                                                                    if xsel == notecount {
+                                                                        if pichas == 1 {
+                                                                            if keepusb == 1 {
+                                                                                pset(pixdesk, 492, 9)
+                                                                            } else {
+                                                                                if usectors(xdesk) == 0 {
+                                                                                    pset(pixdesk, 492, 3)
+                                                                                } else {
+                                                                                    if upicload(xdesk, stickpic) != 0 {
+                                                                                        pset(pixdesk, 492, 6)
+                                                                                    } else {
+                                                                                        if upichead(xdesk, 1, picsel, notesblock) == 1 {
+                                                                                            if upicbody(xdesk, picblock) == 1 {
+                                                                                                pset(pixdesk, 492, 1)
+                                                                                            } else {
+                                                                                                pset(pixdesk, 492, 10)
+                                                                                            }
+                                                                                        } else {
+                                                                                            pset(pixdesk, 492, 10)
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                            xdone = 1
+                                                                        }
+                                                                    }
+                                                                }
+                                                                if xdone == 1 {
+                                                                    pset(pixdesk, 180, 3)
+                                                                    layroadwins(pixdesk, 3, 0)
+                                                                    paintregion(pixdesk, cellblock, notesblock)
+                                                                    acted = 1
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    // A press on "From the
+                                    // stick" at the files
+                                    // window's last row (Stone
+                                    // 49): the words stand
+                                    // beside "To the stick"
+                                    // under the same standing;
+                                    // the press brings the
+                                    // stick's keeping of the
+                                    // picked thing into this
+                                    // computer's keeping. A
+                                    // note is known on the
+                                    // stick by the name it
+                                    // stands under here — its
+                                    // given name, or its words
+                                    // (slotstandsmatch, Stone
+                                    // 40's reckoning of a name
+                                    // that stands) — and the
+                                    // stick's slot entire takes
+                                    // the picked note's place:
+                                    // the one keeping of that
+                                    // name is refreshed from
+                                    // its twin, never a second
+                                    // keeping laid beside it,
+                                    // so nothing is silently
+                                    // overwritten and no name
+                                    // ever stands twice. The
+                                    // picture is known by its
+                                    // one place: the stick's
+                                    // kept picture, read whole
+                                    // into the exchange's
+                                    // scratch first, takes the
+                                    // kept picture's place,
+                                    // with its name. Where the
+                                    // stick holds no thing of
+                                    // that name, or no picture,
+                                    // the press is refused in
+                                    // plain words in the window
+                                    // and the keeping stands
+                                    // untouched; the stick
+                                    // itself is never written
+                                    // by this press. What is
+                                    // brought in is written
+                                    // through to the keeping
+                                    // disk by the same store
+                                    // paths as every keeping
+                                    // (knotesave, and picsave
+                                    // by hand — the keeping
+                                    // here is the hard disk,
+                                    // the stick-as-keeping
+                                    // standing refused above),
+                                    // and only behind the
+                                    // disk's own standing, as
+                                    // the naming way writes.
+                                    // The window is repainted
+                                    // by the region road over
+                                    // itself — and over the
+                                    // picture window with it
+                                    // when a picture was
+                                    // brought in, its cells
+                                    // being the same keeping.
+                                    if pget(pixdesk, 188) == 1 {
+                                        if pget(pixdesk, 300) + pget(pixdesk, 376) == 0 {
+                                            if pget(pixdesk, 180) == 3 {
+                                                if pget(pixdesk, 492) == 0 {
+                                                    if cyp / cellpx == fy + 14 {
+                                                        if cxp >= (fx + 16) * cellpx {
+                                                            if cxp < (fx + 30) * cellpx {
+                                                                let xsel = pget(pixdesk, 192)
+                                                                let xdone = 0
+                                                                let xpicin = 0
+                                                                if xsel < notecount {
+                                                                    if keepusb == 1 {
+                                                                        pset(pixdesk, 492, 9)
+                                                                    } else {
+                                                                        if usectors(xdesk) == 0 {
+                                                                            pset(pixdesk, 492, 3)
+                                                                        } else {
+                                                                            let xscount = unotesload(xdesk, sticknotes)
+                                                                            let xfound = 0 - 1
+                                                                            let xci = 0
+                                                                            while xci < xscount {
+                                                                                if xfound < 0 {
+                                                                                    if slotstandsmatch(notesblock, xsel, sticknotes, xci) == 1 {
+                                                                                        xfound = xci
+                                                                                    }
+                                                                                }
+                                                                                xci = xci + 1
+                                                                            }
+                                                                            if xfound < 0 {
+                                                                                pset(pixdesk, 492, 7)
+                                                                            } else {
+                                                                                let xcj = 0
+                                                                                while xcj < 64 {
+                                                                                    notesblock[xsel * 64 + xcj] = sticknotes[xfound * 64 + xcj]
+                                                                                    xcj = xcj + 1
+                                                                                }
+                                                                                if diskset == 1 {
+                                                                                    if knotesave(xdesk, keepusb, notesblock, notecount) == 1 {
+                                                                                        pset(pixdesk, 492, 2)
+                                                                                    } else {
+                                                                                        pset(pixdesk, 492, 11)
+                                                                                    }
+                                                                                } else {
+                                                                                    pset(pixdesk, 492, 2)
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    xdone = 1
+                                                                } else {
+                                                                    if xsel == notecount {
+                                                                        if pichas == 1 {
+                                                                            if keepusb == 1 {
+                                                                                pset(pixdesk, 492, 9)
+                                                                            } else {
+                                                                                if usectors(xdesk) == 0 {
+                                                                                    pset(pixdesk, 492, 3)
+                                                                                } else {
+                                                                                    let xssel = upicload(xdesk, stickpic)
+                                                                                    if xssel == 0 {
+                                                                                        pset(pixdesk, 492, 8)
+                                                                                    } else {
+                                                                                        let xcj = 0
+                                                                                        while xcj < 1144 {
+                                                                                            picblock[xcj] = stickpic[xcj]
+                                                                                            xcj = xcj + 1
+                                                                                        }
+                                                                                        picsel = xssel
+                                                                                        let xpnm = upicnameload(xdesk, notesblock, 640)
+                                                                                        xpicin = 1
+                                                                                        if diskset == 1 {
+                                                                                            if picsave(picblock, 1, picsel, notesblock) == 1 {
+                                                                                                pset(pixdesk, 492, 2)
+                                                                                            } else {
+                                                                                                pset(pixdesk, 492, 11)
+                                                                                            }
+                                                                                        } else {
+                                                                                            pset(pixdesk, 492, 2)
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                            xdone = 1
+                                                                        }
+                                                                    }
+                                                                }
+                                                                if xdone == 1 {
+                                                                    pset(pixdesk, 180, 3)
+                                                                    if xpicin == 1 {
+                                                                        layroadwins(pixdesk, 3, 13)
+                                                                    } else {
+                                                                        layroadwins(pixdesk, 3, 0)
+                                                                    }
+                                                                    paintregion(pixdesk, cellblock, notesblock)
                                                                     acted = 1
                                                                 }
                                                             }

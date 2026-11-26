@@ -72,7 +72,7 @@ def park():
     move_to(60, 60)
 
 
-GX, GY = 5, 31
+GX, GY = 5, 30
 A = "remember the garden"
 B = "call billy about the roof"
 C = "pray for quinton"
@@ -114,8 +114,10 @@ if d:
 
 # The editor's first place stands at row 32 still
 # (Stone 33 rose only the taller windows), so its rows
-# are read at EY, one more than the files window's GY.
-EY = GY + 1
+# are read at EY, two more than the files window's GY
+# since Stone 49 grew the files window by its exchange row (the editor
+# itself stands where it stood, at row 32).
+EY = GY + 2
 typewrite("editor")
 enter()
 d = waitdump(lambda d: d is not None

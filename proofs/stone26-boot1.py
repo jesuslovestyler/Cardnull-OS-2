@@ -93,7 +93,7 @@ def cell_pixel(d, row, col):
 # The files window's place (Stone 19): left cell 5, top
 # row 32; the kept picture's entry stands on its last
 # row, GY + 13, its words at column GX + 4.
-GX, GY = 5, 31
+GX, GY = 5, 30
 NOTE = "remember the garden"
 
 d = waitdump(lambda d: d is not None and d[0] == 1024

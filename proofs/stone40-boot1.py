@@ -94,7 +94,10 @@ def park():
 
 # The windows' place on this face (1024x768, sixty-four
 # cells across): fifty-four wide, centered — left cell
-# 5, top row 31. In the files window: heading at GY+2,
+# 5, top row 30 (row 31 through Stone 48; the window
+# grew by Stone 49's exchange row and its top stands
+# one row higher, nothing above the new row moved).
+# In the files window: heading at GY+2,
 # the notes at GY+3 onward (words or names at GX+4),
 # the foot's label at GY+11 with "Rename" at GX+24,
 # "Copy" at GX+31 and "Let this note go" at GX+36, the
@@ -104,7 +107,7 @@ def park():
 # GY+5 with the words at GY+6, the typing word at
 # GY+8, the name being typed at GY+9, the measure at
 # GY+11, and the naming's own word at GY+12.
-GX, GY = 5, 31
+GX, GY = 5, 30
 A = "remember the garden"
 B = "call billy about the roof"
 C = "pray for quinton"

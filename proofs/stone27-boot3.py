@@ -51,7 +51,7 @@ def decode(d, prow, pcol, text, ink):
     return "".join(out)
 
 
-GX, GY = 5, 31
+GX, GY = 5, 30
 FIRST = "first words"
 SECOND = "second words"
 ASK = "Let this note go for good?"
@@ -99,8 +99,10 @@ if d:
 
 # The editor's first place stands at row 32 still
 # (Stone 33 rose only the taller windows), so its rows
-# are read at EY, one more than the files window's GY.
-EY = GY + 1
+# are read at EY, two more than the files window's GY
+# since Stone 49 grew the files window by its exchange row (the editor
+# itself stands where it stood, at row 32).
+EY = GY + 2
 typewrite("editor")
 enter()
 d = waitdump(lambda d: d is not None

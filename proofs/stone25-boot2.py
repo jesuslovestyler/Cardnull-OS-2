@@ -68,7 +68,7 @@ def desktop_up(d):
 # Places on this face, as in boot 1: the files window
 # at left cell 5, top row 32; the rest panel centered —
 # left cell 24, top row 22, its words at its left + 1.
-FX, FY = 5, 31
+FX, FY = 5, 30
 RL, RT = 24, 22
 NOTE = "still here after rest"
 

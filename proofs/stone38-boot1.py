@@ -323,8 +323,8 @@ expect2(safedec(d, 44, TELEFT + 1, ">", LIGHT) == ">",
 # window opens, forward, exactly as its word opens it.
 click(40, 40)
 d = waitdump(lambda d: d is not None
-             and safedec(d, 31, 6, "Files", WHITE) == "Files", 20)
-expect2(d is not None and safedec(d, 31, 6, "Files", WHITE) == "Files",
+             and safedec(d, 30, 6, "Files", WHITE) == "Files", 20)
+expect2(d is not None and safedec(d, 30, 6, "Files", WHITE) == "Files",
         "a press on the Files icon opens the files window, standing forward")
 
 print("FAIL" if FAILS else "PASS", flush=True)

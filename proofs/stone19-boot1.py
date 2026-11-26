@@ -69,7 +69,7 @@ def decode(d, prow, pcol, text, ink):
 # 34 onward (entries' words at column 9), the picked
 # note's label at row 42 and its words at row 43
 # (column 7).
-GX, GY = 5, 31
+GX, GY = 5, 30
 NOTES = ["remember the garden",
          "call billy about the roof",
          "pray for quinton"]
@@ -113,9 +113,10 @@ if d:
 
 # A press of the pointer on the third entry's row picks
 # it: the arrow's point stands at (506, 378); a move of
-# (-306, +206) lays it at (200, 584), on the third
-# entry's row (cell row 36).
-mousemove(-306, 206)
+# (-306, +190) lays it at (200, 568), on the third
+# entry's row (cell row 35 — one higher since Stone
+# 49 grew the files window by its exchange row).
+mousemove(-306, 190)
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None

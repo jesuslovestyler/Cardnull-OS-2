@@ -263,8 +263,10 @@ def chip_behind(d, openwins, win):
     return gray > blue
 
 # The files window's place at the words' usual size:
-# left 5, top 31 — its title bar's blue-or-gray tells
-# at (200, 506) whether it stands forward, a point
+# left 5, top 30 (top 31 until Stone 49 grew the
+# window by its exchange row) — its title bar's
+# blue-or-gray tells at (200, 490) whether it stands
+# forward, a point
 # the verse window (top row 32) never covers.
 d = waitdump(lambda d: d is not None and d[0] == 1024
              and count_color(d, BLUE) > 5000, 40)
@@ -309,25 +311,25 @@ expect2(chip_front(d, {3, 7, 10}, 7),
         "the verse chip stands blue — its window stands forward")
 expect2(chip_behind(d, {3, 7, 10}, 3),
         "the files chip stands gray again — its window stands behind")
-expect2(pixel(d, 200, 506) == FRAME,
+expect2(pixel(d, 200, 490) == FRAME,
         "the files window's title bar stands gray while it stands behind")
 
-h_title = rect_hash(d, 80, 496, 944, 512)
+h_title = rect_hash(d, 80, 480, 944, 496)
 
 # The boot's one press: the files chip (the bar's
 # upper row, its plate at columns 2 to 6).
 click(72, 744)
 d = waitdump(lambda d: d is not None
-             and pixel(d, 200, 506) == BLUE, 20)
-expect2(d is not None and pixel(d, 200, 506) == BLUE,
+             and pixel(d, 200, 490) == BLUE, 20)
+expect2(d is not None and pixel(d, 200, 490) == BLUE,
         "a press on the files chip raises the files window — its title bar stands blue")
-expect2(rect_hash(d, 80, 496, 944, 512) != h_title,
+expect2(rect_hash(d, 80, 480, 944, 496) != h_title,
         "the files window's title row changed as it came forward")
 expect2(chip_front(d, {3, 7, 10}, 3),
         "the files chip stands blue after the press — the front chip moved")
 expect2(chip_behind(d, {3, 7, 10}, 7),
         "the verse chip stands gray after the press — its window stands behind again")
-expect2(safedec(d, 31, 6, "Files", WHITE) == "Files",
+expect2(safedec(d, 30, 6, "Files", WHITE) == "Files",
         "the raised files window stands whole, its title reading at its place")
 
 print("FAIL" if FAILS else "PASS", flush=True)

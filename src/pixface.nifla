@@ -285,7 +285,29 @@
 //       drag roads move it as they move the
 //       others. (180's forward reckoning grows
 //       again: 13 is the picture window.) The
-//       desk stands 492 bytes now.
+//       desk stood 492 bytes then.
+//  492  the files window's exchange word (Stone 49):
+//       the word the exchange with a USB stick last
+//       spoke in the files window, standing on the
+//       window's new last row in the exchange words'
+//       place while it stands (492: 0 none — the
+//       exchange words "To the stick" and "From the
+//       stick" stand there instead; 1 copied to the
+//       stick, 2 brought in from the stick, 3 no
+//       stick stands in this computer, 4 that name
+//       already stands on the stick, 5 the stick's
+//       notes page is full, 6 a picture already
+//       stands on the stick, 7 the stick holds no
+//       note of that name, 8 no picture stands on
+//       the stick, 9 the stick is this computer's
+//       keeping, 10 the copy could not be made, 11
+//       brought in, but the disk would not keep
+//       it). The picked entry the exchange is about
+//       is the files window's own pick at 192, and
+//       the word is forgotten whenever the pick
+//       moves, as the naming's word at 380 is the
+//       naming's own to keep. The desk stands 496
+//       bytes now.
 //  320  the letter cell's size in pixels (Stone 28):
 //       sixteen at the words' usual size — the font's
 //       eight by eight drawn at twice size — and
