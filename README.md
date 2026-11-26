@@ -4729,6 +4729,84 @@ drag's garbled aftermath; the invitation itself
 stands whole in both. Bench proof is bench proof:
 nothing here is claimed as witnessed.
 
+### Mend found by Stone 49 — Carried presses reach Paint only when Paint stands forward
+
+Stone 49 was built and, before it was committed,
+verified — and the verification found its picture
+exchange corrupted: by exactly one byte in the
+copying to the stick, and whole in the bringing
+in, where the brought-in picture was overwritten
+after it landed. Instrumented proof cleared the
+exchange itself — its copies are faithful to the
+picture block at their moments — and found the
+fault in a road Stone 24 built: the paint
+feather's carried presses. While the paint window
+stood open and a visit had stood in it, any press
+landing inside the window's shown region was
+carried across the desk to the feather, which
+laid its cell, and the keeping that follows a
+visit wrote the canvas back to the disk. The road
+never asked which window stood forward. Picking
+the kept picture in the files window opens it in
+the paint window behind (Stone 26's way), and the
+files window's own presses — Stone 49's exchange
+row among them — land inside the shown region's
+ground; so a press meant for the files window
+painted a cell through it, and the re-keeping
+that followed overwrote what the exchange had
+just done.
+
+The mend is one gate, and nothing more: a press
+is carried now only while the paint window stands
+forward — the desk's forward reckoning (180) is 6
+for the paint window. While another window stands
+forward, the press is that window's alone,
+exactly as if the paint window stood closed. The
+road's other standings stand as they stood — the
+drag's exemption, the rest panel's, the shown
+region's reckoning — and nothing of Stone 47's
+six parts, Stone 48's window, the Shield's
+truths, or the exchange itself was touched. The
+calculator feather's road (Stone 30) is of the
+same shape and keeps it: it carries no keeping
+that a stray press could overwrite, and no fault
+was found on it; the difference is recorded here
+so it stands as a decision, not an oversight.
+
+The mend's own proof (prove-mend49) boots the
+shipped disc twice, on two keeping disks laid
+byte for byte the same. In the first boot a
+picture is painted the bench's way — the carried
+presses painting with the paint window forward,
+as they must — the files window picks it with the
+paint window open behind, and Stone 49's exchange
+press is made at the same point of the screen;
+the files window answers it alone, in plain
+words: "No stick stands in this computer." The
+second boot is the control: every step the same,
+the press never made. The two disks' picture
+keepings — the header sector and the body's three
+— are then compared byte for byte, and they stand
+identical: the press laid no cell and re-kept
+nothing (17 checks in all; the comparison is
+guarded against emptiness — the header shows a
+picture truly kept, and the body holds the
+painting, not the untouched ground). The feather
+paint proof passes whole beside it (9 checks),
+its carried visits unhindered. One bench note is
+recorded honestly: under load, this bench's
+harness watching — a screendump and a full-frame
+count at every poll — can starve the very rise it
+waits for; this proof's first runs timed out so,
+at 150 seconds and at 300, while the same
+scenarios run alone stood drawn in seconds. The
+scenarios now let the machine rise unwatched for
+a breath before the watch begins; no check was
+weakened for it. Bench proof is bench proof:
+nothing here is claimed as witnessed, and Tyler's
+witness on the living machine decides, as it
+decided for the stones before.
+
 ## The EFI door verified (November 24, 2026)
 
 The disc has carried two doors since it was first

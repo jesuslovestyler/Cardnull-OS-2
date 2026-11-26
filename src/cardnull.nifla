@@ -8448,9 +8448,31 @@ while true {
                     // is being dragged, not painted — the
                     // drag's standing above says so, and no
                     // press is carried while a drag stands.
+                    // (Mend, found by Stone 49: the road
+                    // once carried a press whenever the
+                    // paint window stood open and visited,
+                    // though another window stood forward
+                    // — the files window's own presses,
+                    // landing inside the shown region's
+                    // ground, were carried here and laid
+                    // their cell, and the keeping that
+                    // follows a visit wrote the canvas
+                    // back over whatever the forward
+                    // window had just done; Stone 49's
+                    // picture exchange was corrupted so,
+                    // one byte in the copying and the
+                    // whole brought-in picture in the
+                    // bringing. A press is carried now
+                    // only while the paint window stands
+                    // forward (the forward reckoning,
+                    // 180, is 6): while another window
+                    // stands forward, the press is that
+                    // window's alone, exactly as if the
+                    // paint window stood closed.)
                     if dragwin == 0 {
                         if andmask(btn, 1) == 1 {
                             if pget(pixdesk, 292) == 0 {
+                            if pget(pixdesk, 180) == 6 {
                             if pget(pixdesk, 272) == 1 {
                                 if pget(pixdesk, 276) == 1 {
                                     let qx = paleft(pixdesk)
@@ -8475,6 +8497,7 @@ while true {
                                         }
                                     }
                                 }
+                            }
                             }
                             }
                         }
