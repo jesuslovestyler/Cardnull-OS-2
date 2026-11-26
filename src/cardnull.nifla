@@ -1183,6 +1183,81 @@ make paintsecond(twodesk: bytes, fontblock: bytes, utcnow: number, offset: numbe
     }
 }
 
+// ---- the desktop's invitation (Stone 47) ----
+//
+// The two lines the face paints on its ground at the
+// rising: "Type a word, then press Enter:" and the
+// words the typing answers to. Until this stone the
+// lines had no owner — drawface painted them at the
+// rising and on a word-size switch, and no repaint
+// path ever laid them again — so any wash that
+// crossed them (a drag step's leaving ground, a
+// region road's wash, a closed window's wash) rubbed
+// them out in patches for the rest of the sitting,
+// and only a restart laid them whole: half the
+// "reset it in UTM" Tyler reported (Nov 24, 2026).
+// Now the ground has an owner, as every window and
+// icon has: groundline lays one line, paintground
+// lays both, and the repaint paths call them the way
+// they call the icons — the whole repaint after its
+// closed windows' washes and before its icons (the
+// Help icon's disc overdraws the first line's first
+// letter, exactly as at the rising), the region
+// repaint for the lines its road touches. drawface
+// itself lays them through the same hands, so the
+// rising and the re-laying can never disagree about
+// a word or a place.
+
+// groundrow: invitation line 'which' (0 the asking,
+// 1 the words) stands at this row of the face's
+// grid — the layout's rows 11 and 12, laid on the
+// grid as drawface has always laid them.
+make groundrow(desk, which) {
+    give layrow(desk, 11 + which)
+}
+
+// groundwide: how many cells invitation line
+// 'which' runs to, from its first cell at column 2 —
+// the asking's thirty, and the words' sixty-one on
+// a wide grid, thirty-nine on the narrow one, the
+// same words groundline names at each size.
+make groundwide(desk, which) {
+    if which == 0 {
+        give 30
+    }
+    if pget(desk, 28) >= 56 {
+        give 61
+    }
+    give 39
+}
+
+// groundline lays invitation line 'which' again,
+// word for word as the rising lays it.
+make groundline(desk, which) {
+    if which == 0 {
+        pixline(desk, (groundrow(desk, 0)) * 256 + (2), "Type a word, then press Enter:", 7)
+    } else {
+        if pget(desk, 28) >= 56 {
+            pixline(desk, (groundrow(desk, 1)) * 256 + (2), "hello time memory eastern utc feather welcome usb setup clear", 7)
+        } else {
+            // A narrow grid (large print, Stone 28):
+            // the invitation names the words that
+            // fit, as it has always left words it has
+            // no room for unnamed (Stone 15) — every
+            // word still answers to its name all the
+            // same.
+            pixline(desk, (groundrow(desk, 1)) * 256 + (2), "hello time memory feather welcome clear", 7)
+        }
+    }
+}
+
+// paintground lays the invitation's both lines —
+// the whole repaint's ground-keeping.
+make paintground(desk) {
+    groundline(desk, 0)
+    groundline(desk, 1)
+}
+
 make drawface(offset, utcnow, pix, pixdesk) {
     if pix == 1 {
         let cs = pget(pixdesk, 320)
@@ -1196,17 +1271,12 @@ make drawface(offset, utcnow, pix, pixdesk) {
         pixbar(pixdesk)
         pixline(pixdesk, (pget(pixdesk, 32) - 1) * 256 + (2), "Cardnull", 31)
         drawclock(offset, utcnow, pix, pixdesk)
-        pixline(pixdesk, (layrow(pixdesk, 11)) * 256 + (2), "Type a word, then press Enter:", 7)
-        if pget(pixdesk, 28) >= 56 {
-            pixline(pixdesk, (layrow(pixdesk, 12)) * 256 + (2), "hello time memory eastern utc feather welcome usb setup clear", 7)
-        } else {
-            // A narrow grid (large print, Stone 28): the
-            // invitation names the words that fit, as it
-            // has always left words it has no room for
-            // unnamed (Stone 15) — every word still
-            // answers to its name all the same.
-            pixline(pixdesk, (layrow(pixdesk, 12)) * 256 + (2), "hello time memory feather welcome clear", 7)
-        }
+        // The invitation on the ground, laid by its
+        // owner (Stone 47): the same hands the
+        // repaint paths use to lay it again after
+        // any wash that crosses it.
+        groundline(pixdesk, 0)
+        groundline(pixdesk, 1)
     } else {
     clearscreen()
     paintrow(0, 31)
@@ -3392,6 +3462,19 @@ make oneicon(desk, ii) {
     if ii == 8 { name = "Bible" }
     if ii == 9 { name = "Shield" }
     pixspan(desk, 0, length(name), 15)
+    // Stone 47: the name's paper is the icon's own —
+    // the ground's black — set here, not inherited.
+    // pixtext fills each letter's cell with the paper
+    // standing in the desk, and until now oneicon
+    // never set it: the name stood on whatever the
+    // last painter before it had left standing — the
+    // front chip's blue, most often — and the labels
+    // changed color from pass to pass with no icon
+    // pressed at all. (Every other pixtext caller
+    // already sets its own: the window titles take
+    // winframe's, the verse and Bible bodies set
+    // theirs, and pixline sets its own within.)
+    pixpaper(desk, 0)
     pixtext(desk, top + 1, 4, name)
 }
 
@@ -3837,6 +3920,16 @@ make paintwindows(desk, block, notes) {
     if pget(desk, 444) == 0 {
         oneshield(desk)
     }
+    // The desktop's invitation (Stone 47): the
+    // ground's own lines are laid again here, after
+    // the closed windows' washes — a closed window
+    // standing over the lines has just washed its
+    // place, lines and all — and before the icons,
+    // so the Help icon's disc overdraws the first
+    // line's first letter as at the rising. The open
+    // windows painted below stand over the lines as
+    // they always have.
+    paintground(desk)
     // The desktop's icons (Stone 38) are laid after
     // the closed windows' washes and before the open
     // windows: a closed window has no ground presence
@@ -4184,7 +4277,12 @@ make layroadwins(desk, wina, winb) {
 // than the road, and every window its writing falls
 // on is repainted in the same pass, so no window is
 // ever left with a writing standing on it and no body
-// over it.
+// over it. Stone 47 brings the ground's own writing
+// under the same rule: the desktop's invitation lines
+// the road touches are the pass's writing too — they
+// are laid again after the wash, and a window
+// standing over a touched line joins the set, so its
+// body lands over the line in the same pass.
 make paintregion(desk, block, notes) {
     let rx = pget(desk, 384)
     let ry = pget(desk, 388)
@@ -4248,6 +4346,29 @@ make paintregion(desk, block, notes) {
             }
             win = win + 1
         }
+        // Stone 47: the ground's invitation joins the
+        // pass's reckoning, before anything is washed.
+        // A line the road touches is laid again after
+        // the wash (below): the wash rubs out the part
+        // of it the road crosses, and until now no
+        // repaint ever laid it again — the lines stood
+        // rubbed out in patches for the rest of the
+        // sitting. Which lines are touched is reckoned
+        // here, from the road and the lines' own
+        // places (groundrow and groundwide), and the
+        // closure below takes the reckoning up.
+        let g0 = 0
+        let g1 = 0
+        if rectstouchx(2, groundwide(desk, 0), rx, rw) == 1 {
+            if rectstouchy(groundrow(desk, 0), 1, ry, rh) == 1 {
+                g0 = 1
+            }
+        }
+        if rectstouchx(2, groundwide(desk, 1), rx, rw) == 1 {
+            if rectstouchy(groundrow(desk, 1), 1, ry, rh) == 1 {
+                g1 = 1
+            }
+        }
         // Stone 45: the body-always-lands closure. A
         // pass writes farther than the road it serves:
         // the road is washed bare below; every icon the
@@ -4301,6 +4422,34 @@ make paintregion(desk, block, notes) {
                 }
                 cicon = cicon + 1
             }
+            // Stone 47: a window standing over a
+            // touched invitation line joins the set,
+            // the icon pass's own shape — the line is
+            // laid whole after the wash, across the
+            // window's place too, and the window's
+            // body must land over it in the same pass.
+            let gline = 0
+            while gline < 2 {
+                let gtouch = g0
+                if gline == 1 {
+                    gtouch = g1
+                }
+                if gtouch == 1 {
+                    win = 1
+                    while win <= 12 {
+                        if inset(set, win) == 0 {
+                            if rectstouchx(winleft(desk, win), winwide(desk, win), 2, groundwide(desk, gline)) == 1 {
+                                if rectstouchy(wintop(desk, win), winhigh(desk, win), groundrow(desk, gline), 1) == 1 {
+                                    set = set + winbit(win)
+                                    changed = 1
+                                }
+                            }
+                        }
+                        win = win + 1
+                    }
+                }
+                gline = gline + 1
+            }
             let member = 1
             while member <= 12 {
                 if inset(set, member) == 1 {
@@ -4329,6 +4478,16 @@ make paintregion(desk, block, notes) {
         // The road itself washed bare, the way a closed
         // window's wash leaves its own place.
         pixwashwin(desk, rx, ry, rw, rh)
+        // The invitation's touched lines are laid
+        // again on the washed ground (Stone 47),
+        // before the road's icons — the ground's
+        // furniture in the rising's own order.
+        if g0 == 1 {
+            groundline(desk, 0)
+        }
+        if g1 == 1 {
+            groundline(desk, 1)
+        }
         // The desktop's icons standing in the road are
         // laid again on the washed ground (Stone 38),
         // before the road's windows — the icons are the
@@ -4395,10 +4554,10 @@ make paintregion(desk, block, notes) {
 // redrawn again and again as the window passed, the
 // flicker Tyler saw in UTM. Now the windows a step
 // uncovers stand washed until the button is let go,
-// when the drop's one region repaint over the whole
-// road the drag travelled makes the glass whole
-// again (the drag's following in the main body keeps
-// that road). A step's whole work is the leaving
+// when the drop's one whole repaint (Stone 47 —
+// Stones 34 and 45 paid a region repaint over the
+// drag's gathered road here) makes the glass whole
+// again. A step's whole work is the leaving
 // ground and the dragged window itself. The step's
 // errand — which window, and the place it is going
 // to — travels in the desk at 464 to 475, the way
@@ -4597,6 +4756,25 @@ make winmove(desk, win, newleft, newtop) {
     if win == 10 {
         pset(desk, 408, newleft)
         pset(desk, 412, newtop)
+        // Stone 47: the console's rows follow their
+        // window — the answers' first row (128) and
+        // last row (132) and the typing line's row
+        // (136), reckoned from the new top exactly as
+        // layplaces reckons them from the first place.
+        // Until now a move left them standing where
+        // layplaces first laid them, and the terminal's
+        // painter, which lays its kept answers at
+        // those rows at the window's live left, stamped
+        // them below the dragged window's foot forever
+        // — over ground, icons, and other windows —
+        // where no wash could ever reach them, every
+        // wash in the system being reckoned from the
+        // window's place. The terminal was the only
+        // window whose painter read a place its move
+        // did not write.
+        pset(desk, 128, newtop + 1)
+        pset(desk, 132, newtop + tehigh(desk) - 3)
+        pset(desk, 136, newtop + tehigh(desk) - 2)
     }
     if win == 11 {
         pset(desk, 432, newleft)
@@ -5460,6 +5638,16 @@ let paintask = 0
 // asking below carries in. The one receiving below
 // serves every asking, as the paint feather's does.
 let calcask = 0
+// The files window's owing (Stone 47): 1 when a paint
+// stroke's press visits have changed the kept
+// picture's standing — the files window's list's own
+// fact, at the desk's 296 — and the list has not been
+// repainted since. The owing is paid once, where the
+// pointer's button is let go: the list is repainted
+// at the stroke's end, not per packet, the way it was
+// when every press visit ran the region road over
+// the files window with the paint window's.
+let filesowed = 0
 // The drag's standing (Stone 22): which window the
 // pointer holds by its title bar (0 none, else the
 // window's own number, as winopen and its kin reckon),
@@ -5470,21 +5658,11 @@ let calcask = 0
 let dragwin = 0
 let draggox = 0
 let draggoy = 0
-// The drag's whole road (Stone 45): the stretch of
-// cells holding every place the held window has stood
-// since the hold was taken — its corner at the taking,
-// grown by each step's new place. (The shadow's reach
-// past a place is the wash's own six pixels, and the
-// region repaint's set already reckons a cell of
-// grace, so the road itself is just the places.) The
-// steps themselves paint only the leaving ground and
-// the window (dragstep); when the button is let go,
-// one region repaint over this road makes the glass
-// whole again.
-let dragax = 0
-let dragay = 0
-let dragax2 = 0
-let dragay2 = 0
+// (Stones 34 and 45 kept the drag's whole road here —
+// every place the held window had stood, gathered
+// step by step for the drop's region repaint. Stone
+// 47's drop pays one whole repaint instead, which
+// needs no road, and the gathering is gone.)
 if pix == 1 {
     mouseup = mouseinit()
     mx = pget(pixdesk, 8) / 2 - 8
@@ -7833,20 +8011,47 @@ while true {
                     // stand washed for the drag's length.
                     // Letting the button go sets the window
                     // down and makes the glass whole: one
-                    // region repaint over the drag's whole
-                    // road — every place the window stood,
-                    // gathered step by step in dragax and
-                    // its kin — repaints everything the
-                    // steps left washed, in the standing
-                    // order, once. The arrow is
+                    // whole repaint (Stone 47) repaints
+                    // everything the steps left washed, in
+                    // the standing order, once — where
+                    // Stones 34 and 45 paid a region
+                    // repaint over the drag's gathered
+                    // road, whose healing reached only as
+                    // far as the road. The arrow is
                     // off the screen for the whole of this
                     // pass (it is laid again at the pass's
                     // end, over the kept patch, as always),
                     // so a drag leaves no trail of it.
                     if dragwin != 0 {
                         if andmask(btn, 1) == 0 {
-                            layroad(pixdesk, dragax, dragay, dragax2 - dragax, dragay2 - dragay)
-                            paintregion(pixdesk, cellblock, notesblock)
+                            // Stone 47: the drop pays one
+                            // whole repaint. paintwindows
+                            // lays every window, icon,
+                            // ground line, and chip from
+                            // the standing, in the standing
+                            // order, so the glass after a
+                            // drag is whole whatever road
+                            // the steps travelled and
+                            // whatever they washed. Until
+                            // now the drop paid a region
+                            // repaint over the drag's
+                            // gathered road, whose healing
+                            // reached exactly as far as its
+                            // road and its closure's set: a
+                            // window the steps had left
+                            // washed and unpainted — the
+                            // bench's mouse can lose the
+                            // packet that would have
+                            // painted it, and on UTM the
+                            // same roads offered no
+                            // whole-glass promise either —
+                            // stood broken until some later
+                            // pass happened by. The steps
+                            // keep Stone 45's diet: nothing
+                            // here repaints during the
+                            // drag, and the drop is a single
+                            // deliberate moment.
+                            paintwindows(pixdesk, cellblock, notesblock)
                             dragwin = 0
                         } else {
                             let dw = winwide(pixdesk, dragwin)
@@ -7881,27 +8086,19 @@ while true {
                                 moved = 1
                             }
                             if moved == 1 {
-                                // Stone 45: the new place
-                                // joins the drag's whole
-                                // road, and the step itself
+                                // Stone 45: the step itself
                                 // is dragstep's — the
                                 // leaving ground washed and
                                 // its icons laid again, the
                                 // window painted at its new
                                 // place, and no other window
-                                // touched.
-                                if nl < dragax {
-                                    dragax = nl
-                                }
-                                if nt < dragay {
-                                    dragay = nt
-                                }
-                                if nl + dw > dragax2 {
-                                    dragax2 = nl + dw
-                                }
-                                if nt + dh > dragay2 {
-                                    dragay2 = nt + dh
-                                }
+                                // touched. (Stones 34 and 45
+                                // also gathered the drag's
+                                // whole road here, step by
+                                // step, for the drop's region
+                                // repaint; Stone 47's drop
+                                // pays a whole repaint and
+                                // gathers no road.)
                                 pset(pixdesk, 464, dragwin)
                                 pset(pixdesk, 468, nl)
                                 pset(pixdesk, 472, nt)
@@ -8001,6 +8198,37 @@ while true {
                         }
                     }
                     if btn != mbtn {
+                        if andmask(btn, 1) == 0 {
+                            if andmask(mbtn, 1) == 1 {
+                                // The button let go (Stone
+                                // 47): a paint stroke that
+                                // changed the kept picture's
+                                // standing owes the files
+                                // window's list one repaint,
+                                // paid here, at the stroke's
+                                // end — the region road over
+                                // the files window alone, in
+                                // the standing order. A
+                                // stroke that changed nothing
+                                // owes nothing, and a closed
+                                // files window is owed
+                                // nothing: the owing is
+                                // simply forgotten. (A drag's
+                                // letting go is reckoned
+                                // above, in the drag's
+                                // following, and no stroke
+                                // can stand owing across one:
+                                // presses are carried only
+                                // while no drag stands.)
+                                if filesowed == 1 {
+                                    filesowed = 0
+                                    if pget(pixdesk, 188) == 1 {
+                                        layroadwins(pixdesk, 3, 0)
+                                        paintregion(pixdesk, cellblock, notesblock)
+                                    }
+                                }
+                            }
+                        }
                         if andmask(btn, 1) == 1 {
                             if andmask(mbtn, 1) == 0 {
                                 // A fresh press (Stone 14):
@@ -9803,15 +10031,6 @@ while true {
                                                         dragwin = cand
                                                         draggox = cxp / cellpx - wl
                                                         draggoy = cyp / cellpx - wt
-                                                        // Stone 45: the
-                                                        // drag's whole
-                                                        // road starts as
-                                                        // the window's
-                                                        // own place.
-                                                        dragax = wl
-                                                        dragay = wt
-                                                        dragax2 = wl + ww
-                                                        dragay2 = wt + winhigh(pixdesk, cand)
                                                         pset(pixdesk, 180, cand)
                                                         paintwindows(pixdesk, cellblock, notesblock)
                                                         acted = 1
@@ -10219,7 +10438,23 @@ while true {
         }
         if how == 3 {
             if pix == 1 {
-                pixline(pixdesk, (layrow(pixdesk, 21)) * 256 + (2), "The feather visited, and has gone home again.", 7)
+                // Stone 47: on the face of light the
+                // visit's word stands in the terminal's
+                // keeping, like every other answer —
+                // printline lays it there, and the
+                // answers' repaint at the pass's end
+                // shows it in its window. Until now this
+                // face stamped the line straight onto
+                // the desktop's ground at the layout's
+                // row 21, across whatever window stood
+                // there and across the ground alike,
+                // and no repaint path owned it: never
+                // laid again, never rubbed out — the
+                // last ground text with no owner. (The
+                // text face keeps its own standing
+                // place for the word, below the panel,
+                // as it always has.)
+                ansrow = printline(ansrow, "The feather visited, and has gone home again.", pix, pixdesk)
             } else {
                 writeat(21, 2, "The feather visited, and has gone home again.", 7)
             }
@@ -10256,6 +10491,13 @@ while true {
         let pgift = paintask
         paintask = 0
         if pix == 1 {
+            // The kept picture's standing as this visit
+            // finds it (Stone 47): a press visit whose
+            // keeping changes it — the picture gained
+            // or lost — owes the files window's list a
+            // repaint at the stroke's end, reckoned
+            // below against the standing as it was.
+            let picstood = pget(pixdesk, 296)
             let phow = runfeather(paintimg, paintgot, blockaddr(paintblock), pgift)
             // The door's reckoning (Stone 42), as at
             // the welcome feather's receiving.
@@ -10379,20 +10621,64 @@ while true {
                         }
                     }
                 }
-                // Stone 35: the visit changed only the
-                // paint window's cells — and, when a disk
-                // is keeping the picture, the files
-                // window's list may have gained or lost
-                // the picture's row through the keeping
-                // above — so the region road runs over
-                // the paint window, and over the files
-                // window with it when a disk stands.
-                if diskset == 1 {
-                    layroadwins(pixdesk, 6, 3)
+                if pgift == 1 {
+                    // The opening visit (Stone 35): the
+                    // visit changed only the paint
+                    // window's cells — and, when a disk
+                    // is keeping the picture, the files
+                    // window's list may have gained or
+                    // lost the picture's row through the
+                    // host's laying the kept picture back
+                    // above — so the region road runs
+                    // over the paint window, and over the
+                    // files window with it when a disk
+                    // stands.
+                    if diskset == 1 {
+                        layroadwins(pixdesk, 6, 3)
+                    } else {
+                        layroadwins(pixdesk, 6, 0)
+                    }
+                    paintregion(pixdesk, cellblock, notesblock)
                 } else {
-                    layroadwins(pixdesk, 6, 0)
+                    // A press visit (Stone 47): the
+                    // window is painted again directly,
+                    // by its own painter, when it stands
+                    // forward — a press is received only
+                    // in its window, and the window's
+                    // painting is opaque and complete, so
+                    // no road is washed and no bystander
+                    // is repainted, packet after packet,
+                    // for one cell's change. Until now
+                    // every carried press ran the region
+                    // road over the window's whole place:
+                    // the road washed black and the
+                    // window repainted whole, its closure
+                    // bystanders with it, many times a
+                    // second — the flicker Tyler saw
+                    // while painting (Nov 24, 2026); the
+                    // flicker was the wash. A press
+                    // received while the window does not
+                    // stand forward keeps the road, whose
+                    // standing order paints what stands
+                    // over the window after it.
+                    if pget(pixdesk, 180) == 6 {
+                        pset(pixdesk, 400, 6)
+                        callpainter(pixdesk, cellblock, notesblock)
+                    } else {
+                        layroadwins(pixdesk, 6, 0)
+                        paintregion(pixdesk, cellblock, notesblock)
+                    }
+                    // The files window's list (Stone
+                    // 47): when the keeping above changed
+                    // the kept picture's standing, the
+                    // list is owed a repaint — remembered
+                    // here, and paid once where the
+                    // button is let go, at the stroke's
+                    // end, not per packet.
+                    if pget(pixdesk, 296) != picstood {
+                        filesowed = 1
+                    }
                 }
-                paintregion(pixdesk, cellblock, notesblock)
             }
             if phow == 1 {
                 refusenote()
@@ -10447,11 +10733,32 @@ while true {
             }
             if chow == 3 {
                 pset(pixdesk, 344, 1)
-                // Stone 35: the visit changed only the
-                // calculator window's cells — the region
-                // road over that window repaints it.
-                layroadwins(pixdesk, 8, 0)
-                paintregion(pixdesk, cellblock, notesblock)
+                if cgift == 1 {
+                    // The opening visit (Stone 35): the
+                    // visit changed only the calculator
+                    // window's cells — the region road
+                    // over that window repaints it.
+                    layroadwins(pixdesk, 8, 0)
+                    paintregion(pixdesk, cellblock, notesblock)
+                } else {
+                    // A press visit (Stone 47): the
+                    // window is painted again directly,
+                    // by its own painter, when it stands
+                    // forward — the same healing the
+                    // paint window's presses take, and
+                    // for the same reason: a press changes
+                    // one window's cells, and the road's
+                    // wash was the flicker. A press
+                    // received while the window does not
+                    // stand forward keeps the road.
+                    if pget(pixdesk, 180) == 8 {
+                        pset(pixdesk, 400, 8)
+                        callpainter(pixdesk, cellblock, notesblock)
+                    } else {
+                        layroadwins(pixdesk, 8, 0)
+                        paintregion(pixdesk, cellblock, notesblock)
+                    }
+                }
             }
             if chow == 1 {
                 refusenote()

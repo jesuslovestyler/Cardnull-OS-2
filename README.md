@@ -4468,6 +4468,118 @@ stone's tree (Stone 41's, one hundred twelve
 checks; Stone 42's, forty-five). The companions of
 the stone before stand as recorded there.
 
+### Stone 47 — The drag heal
+
+Tyler witnessed Stones 45 and 46 in UTM that same
+evening: the start menu had grown as Stone 46
+promised, but windows still glitched when clicked
+and moved — the whole window GUI breaking until
+the machine was reset — and Paint flickered as it
+was painted in. The second bench diagnosis (kept
+with the work, DIAGNOSIS2.md) found why Stone 45's
+healing had not held: the damage of a drag
+accumulates and never heals, because four roads
+write outside the reckoning Stone 45 closed. The
+terminal's painter keeps its answers and typing
+rows at the place the window first stood, so a
+dragged terminal spills its answers below its own
+foot forever. The desktop's ground texts — the
+invitation lines, and the feather-visit receipt
+the pixel face stamped on the ground — have no
+repaint owner at all, so a wash leaves them rubbed
+out for the rest of the sitting. An icon's label
+is painted on whatever paper the last pass left
+standing, so labels flip black to blue with the
+desktop's repaint history. And every press carried
+inside Paint or the Calculator was answered with a
+whole road wash and region repaint — the flicker
+itself, repainting bystanders to answer a stroke.
+
+This stone heals the four roads, in six parts. The
+window mover's terminal branch now lays the
+console's rows from the window's new top, reckoned
+the way the rising lays them, so the answers and
+the typing follow their window. A drag's drop pays
+one whole repaint of every window instead of the
+road-limited region pass, so whatever a drag's
+steps left standing is made whole at the drop; the
+per-step diet Stone 45 built is untouched, so no
+flicker returns during the drag itself. The ground
+gains an owner: the invitation's two lines are laid
+by one helper the rising and every repaint share,
+the whole-face repaint lays them before the icons,
+and a region pass reckons before its wash whether
+its road touches a line — a touched line joins the
+pass's closure like an icon's span, and is laid
+again on the washed ground before the windows
+whose bodies must land over it. The feather-visit
+receipt leaves the ground and is kept where every
+other answer is kept, in the terminal's own
+keeping. An icon now sets its own paper before it
+paints its label's name, so a label's ground no
+longer depends on what was painted before it. And
+a press visit inside Paint or the Calculator
+repaints that window directly — no road wash, no
+bystander repainted — while the Files list a
+stroke owes (a picture newly kept) is paid once,
+when the button is let go, instead of at every
+packet of the stroke.
+
+The stone's proof (prove-stone47) stands in five
+boots: a terminal-drag census, the labels' paper,
+the ground's invitation, the press band, and the
+Files owing. What the bench could carry, it
+carried whole. The labels keep their paper
+(six of seven checks; the seventh is the drag
+itself). The invitation stands whole at the rising
+and after a crossing region road laid the lines
+its road touched (boot 3). A held Paint stroke
+writes nothing outside its own window at any of
+five steps, its title standing throughout, and the
+band around the desktop stands unchanged after it;
+the Calculator's press likewise writes nothing
+outside its window (boot 4, eighteen of twenty —
+the two it could not show are the sum's own line
+and a title read taken while this slow bench was
+still repainting). The feather-visit receipt is
+read where it is now kept, in the terminal, by the
+mended prove-featherpaint, which passes whole, and
+prove-stone5 passes as it stood — the text face
+keeps its receipt at its own row, as it always
+did. The companions stand whole at their recorded
+counts: the disc (14), Stone 38 (19), Stone 39
+(77), Stone 40 (64), Stone 41 (112), Stone 42 (45),
+Stone 43 (36), Stone 44 (16), Stone 46 (22), the
+no-witness proof (40), and the feather's start
+(4). The EFI door's proof read one icon's name
+empty on its first run and passed whole on its
+second (8) — the first-frame timing this bench is
+known for, both runs recorded.
+
+What the bench could not carry is the drags
+themselves, and it is recorded plainly, as Stone
+45's limit was. On the day of this stone the
+bench's emulated mouse would not carry a held drag
+on any tree: the diagnosis's own drag sequence,
+run on the unmodified Stone 46 tree, ends in the
+same blackened, garbled frame it ends in here, and
+prove-stone34 — the house's own drag proof — fails
+its drags the same way on this tree (ten checks,
+every one of them drag carriage or a reading
+downstream of a drag that never landed; the
+crossed terminal still decodes whole when Tab
+brings it forward again).
+So the terminal-drag census (boot 1) and the Files
+owing's payment at the stroke's end (boot 5) stand
+unproven on this bench: their drags never landed,
+and boot 5's mid-stroke check, passing, is vacuous
+without them — no picture was ever painted for the
+list to owe. The roads themselves are as the
+diagnosis scoped them and the source shows them;
+whether the drag is healed is not the bench's to
+say. Tyler's witness in UTM decides, as it decided
+for the stone before.
+
 ## The EFI door verified (November 24, 2026)
 
 The disc has carried two doors since it was first

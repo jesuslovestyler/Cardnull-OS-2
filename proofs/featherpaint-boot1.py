@@ -15,8 +15,14 @@
 # The panel between the window's edges must also stand
 # solid: every pixel in the panel's rectangle green or
 # white, with no unpainted row anywhere (no banding).
-# And the system's own line below the window is decoded
-# the same way, in its gray on black.
+# And the system's own word for the visit is decoded
+# the same way, in its gray on black: since Stone 47
+# it stands in the terminal's keeping, as the first
+# kept line — the visit no longer stamps it straight
+# onto the desktop's ground below the window — so Tab
+# brings the terminal forward and the line is read
+# there, and the ground where the stamp stood is read
+# too, and must stand plain.
 #
 # Why this proof exists: the visit's first painting laid
 # each of the feather's cells at the place the layout
@@ -126,8 +132,33 @@ if d:
                 stray += 1
     expect(stray == 0,
            f"the panel stands solid green, no unpainted band ({stray} stray pixels)")
-    said = decode(d, 40, 2, "The feather visited, and has gone home again.", GRAY)
+    # Stone 47: the visit's word stands in the
+    # terminal's keeping, as its first kept line.
+    # Tab brings the terminal forward from under the
+    # feather window, and the line is read there.
+    said = None
+    for _ in range(6):
+        sendkey("tab")
+        time.sleep(0.6)
+        d = dump()
+        if d is not None and decode(d, 32, 6, "Terminal", WHITE) == "Terminal":
+            said = decode(d, 33, 7,
+                          "The feather visited, and has gone home again.",
+                          GRAY)
+            break
     expect(said == "The feather visited, and has gone home again.",
-           f"the system's own line below the window reads whole (read: {said!r})")
+           f"the system's own word for the visit reads whole in the "
+           f"terminal's keeping (read: {said!r})")
+    # And the ground where the stamp stood — the
+    # layout's row 21, pixel row 40, left of the
+    # terminal window — stands plain: no gray letters.
+    stray = 0
+    for y in range(40 * 16, 40 * 16 + 16):
+        for x in range(2 * 16, 5 * 16):
+            if pixel(d, x, y) == GRAY:
+                stray += 1
+    expect(stray == 0,
+           f"the ground where the visit's stamp stood is plain "
+           f"({stray} gray pixels)")
 
 done()
