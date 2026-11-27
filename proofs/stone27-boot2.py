@@ -49,7 +49,7 @@ def decode(d, prow, pcol, text, ink):
     return "".join(out)
 
 
-GX, GY = 5, 30
+GX, GY = 5, 29
 A = "remember the garden"
 B = "call billy about the roof"
 C = "pray for quinton"
@@ -76,10 +76,12 @@ if d:
 
 # The editor's first place stands at row 32 still
 # (Stone 33 rose only the taller windows), so its rows
-# are read at EY, two more than the files window's GY
-# since Stone 49 grew the files window by its exchange row (the editor
-# itself stands where it stood, at row 32).
-EY = GY + 2
+# are read at EY, three more than the files window's GY
+# since Stone 50 grew the files window by the Cardinal
+# door's row (two more through Stone 49, which grew
+# it by its exchange row; the editor itself stands
+# where it stood, at row 32).
+EY = GY + 3
 typewrite("editor")
 enter()
 d = waitdump(lambda d: d is not None

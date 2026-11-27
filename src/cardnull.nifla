@@ -998,6 +998,80 @@
 //          parts, not Stone 48's window, and none of
 //          the Shield's truths.
 //
+// Stone 50: make this computer a Cardinal — the system
+//          installs itself from a Cardnull stick onto
+//          the computer's own hard disk, so the machine
+//          afterwards boots from that disk alone, no
+//          stick in it and no disc in its drive. The
+//          files window grew by one row again (seventeen
+//          now), and on its new last row the words "Make
+//          this computer a Cardinal" stand in white —
+//          always, not only while a thing stands picked,
+//          for the making concerns the whole machine. A
+//          press opens an asking in the window, in the
+//          letting-go asking's own shape (Stone 27): the
+//          plain question, what will happen said plainly
+//          — the system copied from the stick onto the
+//          computer's disk, the keeping left as it
+//          stands — and the two choices, "Yes, make it a
+//          Cardinal" and "Not yet", with "Not yet"
+//          standing picked, so no stray Enter installs
+//          anything. Behind the yes, the making runs:
+//          the stick must carry the system (usbstick's
+//          ustickimage reads its record and its volume
+//          mark and gives the image's length); the disk
+//          must not already carry a Cardinal (diskkeep's
+//          diskcardinal — a second system is never laid
+//          over the first, Stone 40's discipline); the
+//          disk must hold a fitted hard disk of room
+//          enough; the image is then copied sector by
+//          sector to the disk's sector 2048 — a megabyte
+//          in, past the keeping's whole ground (the card
+//          at 8, the notes at 64 and after, the picture
+//          at 80 and after stand before it and are never
+//          touched) — proved at three of its places
+//          against the stick, and only then is the
+//          disk's own master boot record laid at sector
+//          0, from the stick's record with its partition
+//          table's beginning set to 2048, and read back
+//          whole. A disk that carried no card yet is
+//          carded from the sitting's own standings —
+//          the clock's choice, the chime, the words'
+//          size, the sitting's notes and picture written
+//          through by the disk's own store paths — so a
+//          later boot from the disk alone rises with the
+//          same keeping; a disk that already kept is not
+//          written in its keeping at all. The refusals
+//          stand in plain words on the window's last
+//          row, where the making's word lives (the desk
+//          at 504, with the asking's standing at 496 and
+//          its pick at 500; the desk stands 508 bytes
+//          now): no hard disk stands in this computer;
+//          this disk already carries a Cardinal; no
+//          stick stands in this computer; the stick does
+//          not carry Cardnull; the disk is too small to
+//          carry a Cardinal; the copying did not finish
+//          — this computer is not a Cardinal yet. While
+//          the copy runs the window says it is making,
+//          and the desktop stands still for it: eighteen
+//          thousand sector readings and writings are
+//          slow, and the making does not pretend
+//          otherwise. The boot doors learned the one new
+//          thing the making asks of them (their own
+//          headings tell it): the record's stub and the
+//          doorman both take where the image begins from
+//          the record's partition table — 0 on the stick
+//          and every disc, the road unchanged there —
+//          and the setup gate's clearing is guarded by
+//          the same diskcardinal, for its promised wipe
+//          of the first sixty-four sectors would unmake
+//          an installed disk's record. The stick is only
+//          read by the making, never written. No drag
+//          arithmetic changed, none of Stone 47's six
+//          parts, not the carried-press mend's gate, not
+//          Stone 48's window, not the Shield, and not
+//          the exchange.
+//
 // The arrangement of the screen (the text face's rows;
 // on the face of light the same words stand on its grid,
 // and since Stone 33 its bar stands at the foot):
@@ -1731,7 +1805,11 @@ make fihigh(desk) {
     // moved, and the window's top stands one row
     // higher for it, layplaces' clamp reckoning the
     // window whole above the bar as it always has.
-    give 16
+    // Seventeen since Stone 50 — the making of a
+    // Cardinal stands on the window's new last row
+    // (gy + 15), below the exchange's row, and the
+    // window grew by that one row the same way again.
+    give 17
 }
 
 // Draws one kept note's words at a letter cell, letter
@@ -1922,7 +2000,13 @@ make slotstandsmatch(ab, aslot, bb, bslot) -> number {
 // stick" and "From the stick" while a thing stands
 // picked, and the exchange's own word in their
 // place after a press — in the telling at the
-// row's own drawing below.
+// row's own drawing below. Since Stone 50 the
+// window's new last row carries the making of a
+// Cardinal — its words standing always, its own
+// word in their place after a press — and the
+// making's asking stands in the list's place while
+// it stands, in the telling at its own drawing
+// below.
 make onefiles(desk, notes) {
     let cs = pget(desk, 320)
     let gx = fileft(desk)
@@ -1944,6 +2028,35 @@ make onefiles(desk, notes) {
         let keeping = pget(desk, 200)
         let count = pget(desk, 196)
         let haspic = pget(desk, 296)
+        if pget(desk, 496) == 1 {
+            // The Cardinal asking (Stone 50): stands in
+            // the list's place while it stands, in the
+            // letting-go asking's own shape — the plain
+            // question, what will happen said in plain
+            // words, and the two choices, the picked one
+            // white on blue with the pick mark, as the
+            // window's picks have always stood. The
+            // asking opens with "Not yet" picked (the
+            // desk's 500 stands at 1), so Enter alone
+            // never installs anything.
+            pixline(desk, (gy + 2) * 256 + (gx + 2), "Make this computer a Cardinal?", 7)
+            pixline(desk, (gy + 3) * 256 + (gx + 2), "Cardnull will be copied from the stick", 7)
+            pixline(desk, (gy + 4) * 256 + (gx + 2), "onto this computer's own disk.", 7)
+            pixline(desk, (gy + 5) * 256 + (gx + 2), "Your notes and your picture stay as they are.", 7)
+            if pget(desk, 500) == 0 {
+                pixink(desk, 1)
+                pixfill(desk, gx * cs + 2, (gy + 7) * cs, gw * cs - 4, cs)
+                pixline(desk, (gy + 7) * 256 + (gx + 2), ">", 31)
+                pixline(desk, (gy + 7) * 256 + (gx + 4), "Yes, make it a Cardinal", 31)
+                pixline(desk, (gy + 8) * 256 + (gx + 4), "Not yet", 7)
+            } else {
+                pixline(desk, (gy + 7) * 256 + (gx + 4), "Yes, make it a Cardinal", 7)
+                pixink(desk, 1)
+                pixfill(desk, gx * cs + 2, (gy + 8) * cs, gw * cs - 4, cs)
+                pixline(desk, (gy + 8) * 256 + (gx + 2), ">", 31)
+                pixline(desk, (gy + 8) * 256 + (gx + 4), "Not yet", 31)
+            }
+        } else {
         if pget(desk, 376) > 0 {
             // The naming way (Stone 40): stands in the
             // list's place while it stands — the thing
@@ -2242,6 +2355,50 @@ make onefiles(desk, notes) {
                     }
                 }
             }
+            // The making of a Cardinal (Stone 50): on
+            // the window's new last row, below the
+            // exchange's row, the words "Make this
+            // computer a Cardinal" stand in white — or
+            // the making's own word (the desk's 504) in
+            // their place, once the making has spoken:
+            // the done word, one of the plain refusals,
+            // or the word that it is making, which
+            // stands while the copy runs. The row stands
+            // in the list's view only, like the
+            // exchange's row, and stands whether or not
+            // anything is kept or picked: the making
+            // concerns the whole machine, not a kept
+            // thing. The word is forgotten whenever the
+            // pick moves, as the exchange's word is.
+            let iword = pget(desk, 504)
+            if iword == 0 {
+                pixline(desk, (gy + 15) * 256 + (gx + 2), "Make this computer a Cardinal", 15)
+            }
+            if iword == 1 {
+                pixline(desk, (gy + 15) * 256 + (gx + 2), "This computer is a Cardinal now.", 15)
+            }
+            if iword == 2 {
+                pixline(desk, (gy + 15) * 256 + (gx + 2), "No hard disk stands in this computer.", 15)
+            }
+            if iword == 3 {
+                pixline(desk, (gy + 15) * 256 + (gx + 2), "No stick stands in this computer.", 15)
+            }
+            if iword == 4 {
+                pixline(desk, (gy + 15) * 256 + (gx + 2), "This disk already carries a Cardinal.", 15)
+            }
+            if iword == 5 {
+                pixline(desk, (gy + 15) * 256 + (gx + 2), "This disk is too small to carry a Cardinal.", 15)
+            }
+            if iword == 6 {
+                pixline(desk, (gy + 15) * 256 + (gx + 2), "The copying did not finish.", 15)
+            }
+            if iword == 7 {
+                pixline(desk, (gy + 15) * 256 + (gx + 2), "Making this computer a Cardinal...", 15)
+            }
+            if iword == 8 {
+                pixline(desk, (gy + 15) * 256 + (gx + 2), "The stick does not carry Cardnull.", 15)
+            }
+        }
         }
         }
     }
@@ -4895,13 +5052,22 @@ make paintregion(desk, block, notes) {
 // to — travels in the desk at 464 to 475, the way
 // the region repaint's road travels at 384: the
 // call's three blocks already fill the machine's
-// registers.
+// registers. The Drag Mend (November 27, 2026):
+// the ground washed is the place the window's
+// painting stands (the desk at 508 to 515), not
+// the window's standing place — during a packet
+// flood the standing place runs ahead of the
+// painting (the packets move it silently, and one
+// step is paid at the pass's end), so the wash
+// must reckon from where the painting truly is,
+// and the step lays the painted place forward to
+// the place it has just painted.
 make dragstep(desk, block, notes) {
     let win = pget(desk, 464)
     let newleft = pget(desk, 468)
     let newtop = pget(desk, 472)
-    let ol = winleft(desk, win)
-    let ot = wintop(desk, win)
+    let ol = pget(desk, 508)
+    let ot = pget(desk, 512)
     let dw = winwide(desk, win)
     let dh = winhigh(desk, win)
     pixwashwin(desk, ol, ot, dw, dh)
@@ -4918,6 +5084,8 @@ make dragstep(desk, block, notes) {
     winmove(desk, win, newleft, newtop)
     pset(desk, 400, win)
     callpainter(desk, block, notes)
+    pset(desk, 508, newleft)
+    pset(desk, 512, newtop)
 }
 
 // ---- window dragging (Stone 22) ----
@@ -5660,6 +5828,16 @@ let picblock = makebytes(1536)
 // the main loop below.
 let sticknotes = makebytes(704)
 let stickpic = makebytes(1536)
+// The making's scratch (Stone 50): a bare sector's
+// block for the installing in the main loop below —
+// the sector in flight between the stick and the
+// disk — so a copying never flies through the body's
+// own keeping blocks above, as the exchange's
+// scratch stands apart for the same reason. (The
+// proof and the record-laying carry their second
+// block inside themselves; a call can carry only so
+// many words.)
+let copyblock = makebytes(512)
 let pichas = 0
 let picsel = 48
 if diskset == 1 {
@@ -5724,7 +5902,7 @@ if fbflags - (fbflags / 8192) * 8192 >= 4096 {
     }
 }
 if pix == 1 {
-    // The desk stands 496 bytes since Stone 49 (the
+    // The desk stands 508 bytes since Stone 50 (the
     // region repaint's road and window at 384 to 403,
     // the terminal window's standing, place, and
     // answers-keeping address at 404 to 423, the
@@ -5734,9 +5912,13 @@ if pix == 1 {
     // reckoning at 444 to 463, the drag step's
     // errand at 464 to 475, the picture window's
     // standing, the kept picture block's address,
-    // and its place at 476 to 491, and the files
-    // window's exchange word at 492 to 495).
-    pixdesk = makebytes(496)
+    // and its place at 476 to 491, the files
+    // window's exchange word at 492 to 495, and the
+    // Cardinal asking's standing, its pick, and the
+    // making's word at 496 to 507, and the drag's
+    // painted place at 508 to 515, since the Drag
+    // Mend).
+    pixdesk = makebytes(516)
     fontblock = makebytes(1024)
     fontload(fontblock)
     // The pointer's shapes and its save block (Stone 13):
@@ -5821,6 +6003,14 @@ if pix == 1 {
     // exchange with a USB stick has spoken no word in
     // the files window yet.
     pset(pixdesk, 492, 0)
+    // The Cardinal asking and the making's word
+    // (Stone 50), at 496 to 504: no asking stands in
+    // the files window, its pick stands at "Not yet"
+    // for when it opens, and the making has spoken no
+    // word in the window yet.
+    pset(pixdesk, 496, 0)
+    pset(pixdesk, 500, 1)
+    pset(pixdesk, 504, 0)
     // The verse window's standing (Stone 29), at 324 to
     // 336: it starts closed — the word 'verse' opens it —
     // and the first verse stands in it until an opening
@@ -6040,6 +6230,13 @@ let filesowed = 0
 let dragwin = 0
 let draggox = 0
 let draggoy = 0
+// The Drag Mend (November 27, 2026): whether the
+// held window's standing place has run ahead of
+// its painting during this pass's packet gathering
+// — the packets move the window's place silently,
+// and the pass's end pays the one repaint (see the
+// drag's following in the pointer's asking below).
+let dragdirty = 0
 // (Stones 34 and 45 kept the drag's whole road here —
 // every place the held window had stood, gathered
 // step by step for the drop's region repaint. Stone
@@ -6293,7 +6490,7 @@ while true {
             if k == 72 {
                 if pix == 1 {
                     if pget(pixdesk, 180) == 3 {
-                        if pget(pixdesk, 300) + pget(pixdesk, 376) > 0 {
+                        if pget(pixdesk, 300) + pget(pixdesk, 376) + pget(pixdesk, 496) > 0 {
                             // The files window's asking
                             // (Stone 27): the arrows move
                             // the asking's pick — up to
@@ -6303,10 +6500,21 @@ while true {
                             // standing in the window (Stone
                             // 40) swallows the arrows the
                             // same way: the pick it names
-                            // cannot move under it.
-                            if pget(pixdesk, 304) == 1 {
-                                pset(pixdesk, 304, 0)
-                                paintwindows(pixdesk, cellblock, notesblock)
+                            // cannot move under it. The
+                            // Cardinal asking (Stone 50)
+                            // stands in the same way: the
+                            // arrows move its pick — up to
+                            // "Yes, make it a Cardinal".
+                            if pget(pixdesk, 496) == 1 {
+                                if pget(pixdesk, 500) == 1 {
+                                    pset(pixdesk, 500, 0)
+                                    paintwindows(pixdesk, cellblock, notesblock)
+                                }
+                            } else {
+                                if pget(pixdesk, 304) == 1 {
+                                    pset(pixdesk, 304, 0)
+                                    paintwindows(pixdesk, cellblock, notesblock)
+                                }
                             }
                         } else {
                             if pget(pixdesk, 196) + pichas > 0 {
@@ -6314,6 +6522,7 @@ while true {
                                 if sel > 0 {
                                     pset(pixdesk, 192, sel - 1)
                                     pset(pixdesk, 492, 0)
+                                    pset(pixdesk, 504, 0)
                                     paintwindows(pixdesk, cellblock, notesblock)
                                 }
                             }
@@ -6377,16 +6586,25 @@ while true {
             if k == 80 {
                 if pix == 1 {
                     if pget(pixdesk, 180) == 3 {
-                        if pget(pixdesk, 300) + pget(pixdesk, 376) > 0 {
+                        if pget(pixdesk, 300) + pget(pixdesk, 376) + pget(pixdesk, 496) > 0 {
                             // The files window's asking
                             // (Stone 27): down to "Keep it".
                             // A naming standing (Stone 40)
                             // swallows the arrow the same
                             // way, as the up arrow's telling
-                            // above says.
-                            if pget(pixdesk, 304) == 0 {
-                                pset(pixdesk, 304, 1)
-                                paintwindows(pixdesk, cellblock, notesblock)
+                            // above says. The Cardinal
+                            // asking (Stone 50) likewise:
+                            // down to "Not yet".
+                            if pget(pixdesk, 496) == 1 {
+                                if pget(pixdesk, 500) == 0 {
+                                    pset(pixdesk, 500, 1)
+                                    paintwindows(pixdesk, cellblock, notesblock)
+                                }
+                            } else {
+                                if pget(pixdesk, 304) == 0 {
+                                    pset(pixdesk, 304, 1)
+                                    paintwindows(pixdesk, cellblock, notesblock)
+                                }
                             }
                         } else {
                             if pget(pixdesk, 196) + pichas > 0 {
@@ -6402,6 +6620,7 @@ while true {
                                 if sel + 1 < pget(pixdesk, 196) + pichas {
                                     pset(pixdesk, 192, sel + 1)
                                     pset(pixdesk, 492, 0)
+                                    pset(pixdesk, 504, 0)
                                     paintwindows(pixdesk, cellblock, notesblock)
                                 }
                             }
@@ -6693,6 +6912,90 @@ while true {
                                             }
                                         }
                                     } else {
+                                    if pget(pixdesk, 496) == 1 {
+                                        // The Cardinal asking's
+                                        // own Enter (Stone 50):
+                                        // the picked choice is
+                                        // done — "Not yet" puts
+                                        // the asking away and
+                                        // nothing is made; "Yes,
+                                        // make it a Cardinal"
+                                        // runs the making, the
+                                        // same doing the
+                                        // pointer's yes runs, in
+                                        // the telling at that
+                                        // press. Enter alone
+                                        // never makes a Cardinal:
+                                        // the asking opens with
+                                        // "Not yet" standing
+                                        // picked, so the yes
+                                        // must be chosen — by
+                                        // the arrow keys and
+                                        // Enter, or by the
+                                        // pointer — as the
+                                        // house's askings ask.
+                                        fileused = 1
+                                        if pget(pixdesk, 500) == 0 {
+                                            let ceword = 0
+                                            if diskhere() == 0 {
+                                                ceword = 2
+                                            } else {
+                                                if diskcardinal(2048) == 1 {
+                                                    ceword = 4
+                                                } else {
+                                                    if usectors(xdesk) == 0 {
+                                                        ceword = 3
+                                                    } else {
+                                                        let ceimg = ustickimage(xdesk)
+                                                        if ceimg == 0 {
+                                                            ceword = 8
+                                                        } else {
+                                                            selectdrive()
+                                                            if disksectors() < 2048 + ceimg {
+                                                                ceword = 5
+                                                            } else {
+                                                                pset(pixdesk, 496, 0)
+                                                                pset(pixdesk, 504, 7)
+                                                                paintwindows(pixdesk, cellblock, notesblock)
+                                                                let cecopy = ucopyimage(xdesk, 2048, ceimg, copyblock)
+                                                                if cecopy < ceimg {
+                                                                    ceword = 6
+                                                                } else {
+                                                                    if ucopyproof(xdesk, 2048, ceimg, copyblock) == 0 {
+                                                                        ceword = 6
+                                                                    } else {
+                                                                        if ulayrecord(xdesk, 2048, copyblock) == 0 {
+                                                                            ceword = 6
+                                                                        } else {
+                                                                            if diskset == 0 {
+                                                                                let cechime = 2
+                                                                                if chimeon == 1 {
+                                                                                    cechime = 1
+                                                                                }
+                                                                                let cecard = rememberall(offset, cechime, wordsize + 1)
+                                                                                let cenotes = notesave(notesblock, notecount)
+                                                                                let cepic = picsave(picblock, pichas, picsel, notesblock)
+                                                                                diskset = 1
+                                                                                awaiting = 0
+                                                                                pset(pixdesk, 200, 1)
+                                                                            }
+                                                                            ceword = 1
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            pset(pixdesk, 504, ceword)
+                                            pset(pixdesk, 496, 0)
+                                            paintwindows(pixdesk, cellblock, notesblock)
+                                        } else {
+                                            pset(pixdesk, 496, 0)
+                                            paintwindows(pixdesk, cellblock, notesblock)
+                                        }
+                                    } else {
                                     if pget(pixdesk, 300) == 1 {
                                         // The asking's own Enter
                                         // (Stone 27): the picked
@@ -6776,6 +7079,7 @@ while true {
                                                 }
                                             }
                                         }
+                                    }
                                     }
                                     }
                                 }
@@ -7012,7 +7316,15 @@ while true {
                     // lets the clearing begin, and anything
                     // else leaves the disk exactly as it was.
                     // The kind is set aside so no kind's
-                    // doing fires for this line.
+                    // doing fires for this line. Since
+                    // Stone 50 the gate's yes is refused on
+                    // a disk that carries a Cardinal: the
+                    // clearing would wipe the very record
+                    // the installed disk boots by, so the
+                    // gate answers that the disk carries
+                    // the system and leaves it as it was —
+                    // an installed disk is never unmade by
+                    // the word that cards a fresh one.
                     awaiting = 0
                     kind = 0 - 1
                     if line == "yes" {
@@ -7020,6 +7332,9 @@ while true {
                         if chimeon == 1 {
                             chbyte = 1
                         }
+                        if diskcardinal(2048) == 1 {
+                            ansrow = printline(ansrow, "This disk carries your Cardnull system, so it was left as it was.", pix, pixdesk)
+                        } else {
                         if kdisksetup(xdesk, keepusb, offset, chbyte, wordsize + 1) == 1 {
                             diskset = 1
                             if pix == 1 {
@@ -7038,6 +7353,7 @@ while true {
                             ansrow = printline(ansrow, "The disk will remember your choices now.", pix, pixdesk)
                         } else {
                             ansrow = printline(ansrow, "The disk could not be written, so nothing was changed.", pix, pixdesk)
+                        }
                         }
                     } else {
                         ansrow = printline(ansrow, "The disk was left as it was.", pix, pixdesk)
@@ -7663,6 +7979,20 @@ while true {
                             if fr == 3 {
                                 if pget(pixdesk, 300) == 1 {
                                     pset(pixdesk, 300, 0)
+                                    paintwindows(pixdesk, cellblock, notesblock)
+                                    fr = 0 - 1
+                                }
+                            }
+                            // The Cardinal asking stands
+                            // in Escape's way the same way
+                            // (Stone 50): while it stands
+                            // in the files window, Escape
+                            // puts it away and closes no
+                            // window — nothing is made, as
+                            // "Not yet" makes nothing.
+                            if fr == 3 {
+                                if pget(pixdesk, 496) == 1 {
+                                    pset(pixdesk, 496, 0)
                                     paintwindows(pixdesk, cellblock, notesblock)
                                     fr = 0 - 1
                                 }
@@ -8535,6 +8865,7 @@ while true {
                             // deliberate moment.
                             paintwindows(pixdesk, cellblock, notesblock)
                             dragwin = 0
+                            dragdirty = 0
                         } else {
                             let dw = winwide(pixdesk, dragwin)
                             let dh = winhigh(pixdesk, dragwin)
@@ -8568,23 +8899,42 @@ while true {
                                 moved = 1
                             }
                             if moved == 1 {
-                                // Stone 45: the step itself
-                                // is dragstep's — the
-                                // leaving ground washed and
-                                // its icons laid again, the
-                                // window painted at its new
-                                // place, and no other window
-                                // touched. (Stones 34 and 45
-                                // also gathered the drag's
-                                // whole road here, step by
-                                // step, for the drop's region
-                                // repaint; Stone 47's drop
-                                // pays a whole repaint and
-                                // gathers no road.)
-                                pset(pixdesk, 464, dragwin)
-                                pset(pixdesk, 468, nl)
-                                pset(pixdesk, 472, nt)
-                                dragstep(pixdesk, cellblock, notesblock)
+                                // The Drag Mend (November
+                                // 27, 2026): the packet
+                                // moves the window's place
+                                // silently and owes the
+                                // pass one step, paid at
+                                // the packet gathering's
+                                // end below — never a
+                                // repaint here, inside the
+                                // gathering. Until this
+                                // mend a step was paid per
+                                // packet, whole-window
+                                // repaint and all, while
+                                // the mouse's later packets
+                                // waited at the controller:
+                                // on a faithful, fast
+                                // pointer (UTM's) the
+                                // waiting packets overflowed
+                                // the controller's keeping,
+                                // the gathering lost its
+                                // place, the buttons read
+                                // wrong, and drops and
+                                // take-holds fired again and
+                                // again — every window
+                                // flickering, the pointer
+                                // wedged — while the bench's
+                                // slow, lossy mouse never
+                                // filled the keeping and
+                                // never showed it. Now the
+                                // gathering costs arithmetic
+                                // only, however fast the
+                                // packets come, and the one
+                                // step at the pass's end
+                                // paints the window at its
+                                // final place.
+                                winmove(pixdesk, dragwin, nl, nt)
+                                dragdirty = 1
                             }
                         }
                     }
@@ -9949,6 +10299,190 @@ while true {
                                     }
                                 }
                                 if acted == 0 {
+                                    // The Cardinal asking's
+                                    // rows (Stone 50): while its
+                                    // asking stands in the files
+                                    // window and the window
+                                    // stands forward, a press on
+                                    // "Not yet"'s row puts the
+                                    // asking away and nothing is
+                                    // made, and a press on "Yes,
+                                    // make it a Cardinal"'s row
+                                    // runs the making — its doing
+                                    // stands in the press below,
+                                    // in its own telling. While
+                                    // the asking stands, the
+                                    // window's other rows do not
+                                    // act: the guards on them
+                                    // reckon this asking too.
+                                    if pget(pixdesk, 188) == 1 {
+                                        if pget(pixdesk, 496) == 1 {
+                                            if pget(pixdesk, 180) == 3 {
+                                                if cxp >= fx * cellpx {
+                                                    if cxp < (fx + fw) * cellpx {
+                                                        let arow = cyp / cellpx
+                                                        if arow == fy + 8 {
+                                                            pset(pixdesk, 496, 0)
+                                                            pset(pixdesk, 180, 3)
+                                                            paintwindows(pixdesk, cellblock, notesblock)
+                                                            acted = 1
+                                                        }
+                                                        if arow == fy + 7 {
+                                                            // The making
+                                                            // itself (Stone
+                                                            // 50): the
+                                                            // refusals are
+                                                            // reckoned first,
+                                                            // in plain words,
+                                                            // and nothing is
+                                                            // written by any
+                                                            // of them — no
+                                                            // fitted hard
+                                                            // disk; a disk
+                                                            // that already
+                                                            // carries a
+                                                            // Cardinal
+                                                            // (diskcardinal,
+                                                            // Stone 40's
+                                                            // discipline: a
+                                                            // second system
+                                                            // is never laid
+                                                            // over the
+                                                            // first); no
+                                                            // stick standing;
+                                                            // a stick that
+                                                            // does not carry
+                                                            // the system
+                                                            // (ustickimage
+                                                            // reads its
+                                                            // record and its
+                                                            // volume mark and
+                                                            // gives nothing);
+                                                            // a disk too
+                                                            // small for the
+                                                            // image and the
+                                                            // keeping before
+                                                            // it. Behind the
+                                                            // yes the window
+                                                            // first says it
+                                                            // is making (the
+                                                            // word 7) and is
+                                                            // repainted, for
+                                                            // the copy is
+                                                            // long and the
+                                                            // desktop stands
+                                                            // still for it;
+                                                            // the image is
+                                                            // copied sector
+                                                            // by sector to
+                                                            // the disk's
+                                                            // sector 2048,
+                                                            // proved at three
+                                                            // of its places
+                                                            // against the
+                                                            // stick, and only
+                                                            // then is the
+                                                            // disk's boot
+                                                            // record laid and
+                                                            // read back whole
+                                                            // — a copy that
+                                                            // stops short or
+                                                            // does not prove
+                                                            // earns the plain
+                                                            // word that it
+                                                            // did not finish,
+                                                            // and no record
+                                                            // is laid for it,
+                                                            // so the disk is
+                                                            // left exactly as
+                                                            // bootable, or as
+                                                            // unbootable, as
+                                                            // it stood. A
+                                                            // disk that
+                                                            // carried no card
+                                                            // yet is carded
+                                                            // from the
+                                                            // sitting's own
+                                                            // standings, its
+                                                            // notes and
+                                                            // picture written
+                                                            // through by the
+                                                            // disk's own
+                                                            // store paths, so
+                                                            // the disk alone
+                                                            // will rise with
+                                                            // the same
+                                                            // keeping; a disk
+                                                            // that already
+                                                            // kept is not
+                                                            // written in its
+                                                            // keeping at all.
+                                                            let cnword = 0
+                                                            if diskhere() == 0 {
+                                                                cnword = 2
+                                                            } else {
+                                                                if diskcardinal(2048) == 1 {
+                                                                    cnword = 4
+                                                                } else {
+                                                                    if usectors(xdesk) == 0 {
+                                                                        cnword = 3
+                                                                    } else {
+                                                                        let cnimg = ustickimage(xdesk)
+                                                                        if cnimg == 0 {
+                                                                            cnword = 8
+                                                                        } else {
+                                                                            selectdrive()
+                                                                            if disksectors() < 2048 + cnimg {
+                                                                                cnword = 5
+                                                                            } else {
+                                                                                pset(pixdesk, 496, 0)
+                                                                                pset(pixdesk, 504, 7)
+                                                                                pset(pixdesk, 180, 3)
+                                                                                paintwindows(pixdesk, cellblock, notesblock)
+                                                                                let cncopy = ucopyimage(xdesk, 2048, cnimg, copyblock)
+                                                                                if cncopy < cnimg {
+                                                                                    cnword = 6
+                                                                                } else {
+                                                                                    if ucopyproof(xdesk, 2048, cnimg, copyblock) == 0 {
+                                                                                        cnword = 6
+                                                                                    } else {
+                                                                                        if ulayrecord(xdesk, 2048, copyblock) == 0 {
+                                                                                            cnword = 6
+                                                                                        } else {
+                                                                                            if diskset == 0 {
+                                                                                                let cnchime = 2
+                                                                                                if chimeon == 1 {
+                                                                                                    cnchime = 1
+                                                                                                }
+                                                                                                let cncard = rememberall(offset, cnchime, wordsize + 1)
+                                                                                                let cnnotes = notesave(notesblock, notecount)
+                                                                                                let cnpic = picsave(picblock, pichas, picsel, notesblock)
+                                                                                                diskset = 1
+                                                                                                awaiting = 0
+                                                                                                pset(pixdesk, 200, 1)
+                                                                                            }
+                                                                                            cnword = 1
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                            pset(pixdesk, 504, cnword)
+                                                            pset(pixdesk, 496, 0)
+                                                            pset(pixdesk, 180, 3)
+                                                            paintwindows(pixdesk, cellblock, notesblock)
+                                                            acted = 1
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
                                     // The editor window's asking
                                     // rows (Stone 27): the same
                                     // two rows in the editor
@@ -10037,7 +10571,7 @@ while true {
                                     // foot, and the window
                                     // comes forward.
                                     if pget(pixdesk, 188) == 1 {
-                                        if pget(pixdesk, 300) + pget(pixdesk, 376) == 0 {
+                                        if pget(pixdesk, 300) + pget(pixdesk, 376) + pget(pixdesk, 496) == 0 {
                                             if pget(pixdesk, 196) > 0 {
                                                 if cxp >= fx * cellpx {
                                                     if cxp < (fx + fw) * cellpx {
@@ -10046,6 +10580,7 @@ while true {
                                                             if row < fy + 3 + pget(pixdesk, 196) {
                                                                 pset(pixdesk, 192, row - fy - 3)
                                                                 pset(pixdesk, 492, 0)
+                                                                pset(pixdesk, 504, 0)
                                                                 pset(pixdesk, 180, 3)
                                                                 paintwindows(pixdesk, cellblock, notesblock)
                                                                 acted = 1
@@ -10078,13 +10613,14 @@ while true {
                                     // 'paint' opening does.
                                     if pget(pixdesk, 188) == 1 {
                                         if pget(pixdesk, 200) == 1 {
-                                            if pget(pixdesk, 300) + pget(pixdesk, 376) == 0 {
+                                            if pget(pixdesk, 300) + pget(pixdesk, 376) + pget(pixdesk, 496) == 0 {
                                                 if pichas == 1 {
                                                 if cxp >= fx * cellpx {
                                                     if cxp < (fx + fw) * cellpx {
                                                         if cyp / cellpx == fy + 13 {
                                                             pset(pixdesk, 192, notecount)
                                                             pset(pixdesk, 492, 0)
+                                                            pset(pixdesk, 504, 0)
                                                             pset(pixdesk, 272, 1)
                                                             pset(pixdesk, 180, 6)
                                                             paintask = 1
@@ -10109,7 +10645,7 @@ while true {
                                     // the asking — nothing is
                                     // let go by this press.
                                     if pget(pixdesk, 188) == 1 {
-                                        if pget(pixdesk, 300) + pget(pixdesk, 376) == 0 {
+                                        if pget(pixdesk, 300) + pget(pixdesk, 376) + pget(pixdesk, 496) == 0 {
                                             if pget(pixdesk, 180) == 3 {
                                                 if pget(pixdesk, 192) < notecount {
                                                     if cyp / cellpx == fy + 11 {
@@ -10145,7 +10681,7 @@ while true {
                                     // window alone. Nothing is
                                     // renamed by this press.
                                     if pget(pixdesk, 188) == 1 {
-                                        if pget(pixdesk, 300) + pget(pixdesk, 376) == 0 {
+                                        if pget(pixdesk, 300) + pget(pixdesk, 376) + pget(pixdesk, 496) == 0 {
                                             if pget(pixdesk, 180) == 3 {
                                                 if pget(pixdesk, 192) < notecount {
                                                     if cyp / cellpx == fy + 11 {
@@ -10183,7 +10719,7 @@ while true {
                                     // plain words, as the
                                     // editor answers it.
                                     if pget(pixdesk, 188) == 1 {
-                                        if pget(pixdesk, 300) + pget(pixdesk, 376) == 0 {
+                                        if pget(pixdesk, 300) + pget(pixdesk, 376) + pget(pixdesk, 496) == 0 {
                                             if pget(pixdesk, 180) == 3 {
                                                 if pget(pixdesk, 192) < notecount {
                                                     if cyp / cellpx == fy + 11 {
@@ -10224,7 +10760,7 @@ while true {
                                     // the disk keeps one
                                     // picture.
                                     if pget(pixdesk, 188) == 1 {
-                                        if pget(pixdesk, 300) + pget(pixdesk, 376) == 0 {
+                                        if pget(pixdesk, 300) + pget(pixdesk, 376) + pget(pixdesk, 496) == 0 {
                                             if pget(pixdesk, 180) == 3 {
                                                 if pichas == 1 {
                                                     if pget(pixdesk, 192) == notecount {
@@ -10269,7 +10805,7 @@ while true {
                                     // it; this door is for
                                     // looking at it.
                                     if pget(pixdesk, 188) == 1 {
-                                        if pget(pixdesk, 300) + pget(pixdesk, 376) == 0 {
+                                        if pget(pixdesk, 300) + pget(pixdesk, 376) + pget(pixdesk, 496) == 0 {
                                             if pget(pixdesk, 180) == 3 {
                                                 if pichas == 1 {
                                                     if pget(pixdesk, 192) == notecount {
@@ -10338,7 +10874,7 @@ while true {
                                     // by the region road, as the
                                     // naming way repaints it.
                                     if pget(pixdesk, 188) == 1 {
-                                        if pget(pixdesk, 300) + pget(pixdesk, 376) == 0 {
+                                        if pget(pixdesk, 300) + pget(pixdesk, 376) + pget(pixdesk, 496) == 0 {
                                             if pget(pixdesk, 180) == 3 {
                                                 if pget(pixdesk, 492) == 0 {
                                                     if cyp / cellpx == fy + 14 {
@@ -10487,7 +11023,7 @@ while true {
                                     // brought in, its cells
                                     // being the same keeping.
                                     if pget(pixdesk, 188) == 1 {
-                                        if pget(pixdesk, 300) + pget(pixdesk, 376) == 0 {
+                                        if pget(pixdesk, 300) + pget(pixdesk, 376) + pget(pixdesk, 496) == 0 {
                                             if pget(pixdesk, 180) == 3 {
                                                 if pget(pixdesk, 492) == 0 {
                                                     if cyp / cellpx == fy + 14 {
@@ -10582,6 +11118,51 @@ while true {
                                                                     paintregion(pixdesk, cellblock, notesblock)
                                                                     acted = 1
                                                                 }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    // A press on the Cardinal
+                                    // door's words (Stone 50) in
+                                    // the files window's last
+                                    // row, while the window
+                                    // stands open and forward,
+                                    // no asking or naming
+                                    // stands in it, and the
+                                    // making has spoken no word:
+                                    // the making's asking opens
+                                    // in the list's place,
+                                    // opening — as the house's
+                                    // askings open — with the
+                                    // keeping choice picked
+                                    // ("Not yet"), and the
+                                    // window alone is repainted.
+                                    // While the making's word
+                                    // stands on the row the
+                                    // words themselves do not
+                                    // stand, so the press
+                                    // cannot land until the
+                                    // pick moves and the word
+                                    // is forgotten, the way the
+                                    // exchange's rows rest while
+                                    // their word stands.
+                                    if pget(pixdesk, 188) == 1 {
+                                        if pget(pixdesk, 300) + pget(pixdesk, 376) + pget(pixdesk, 496) == 0 {
+                                            if pget(pixdesk, 180) == 3 {
+                                                if pget(pixdesk, 504) == 0 {
+                                                    if cyp / cellpx == fy + 15 {
+                                                        if cxp >= (fx + 2) * cellpx {
+                                                            if cxp < (fx + 34) * cellpx {
+                                                                pset(pixdesk, 500, 1)
+                                                                pset(pixdesk, 496, 1)
+                                                                pset(pixdesk, 180, 3)
+                                                                paintwindows(pixdesk, cellblock, notesblock)
+                                                                acted = 1
                                                             }
                                                         }
                                                     }
@@ -10958,6 +11539,9 @@ while true {
                                                         dragwin = cand
                                                         draggox = cxp / cellpx - wl
                                                         draggoy = cyp / cellpx - wt
+                                                        pset(pixdesk, 508, wl)
+                                                        pset(pixdesk, 512, wt)
+                                                        dragdirty = 0
                                                         pset(pixdesk, 180, cand)
                                                         paintwindows(pixdesk, cellblock, notesblock)
                                                         acted = 1
@@ -11300,6 +11884,26 @@ while true {
                     mp = mp + 1
                 } else {
                     mp = 8
+                }
+            }
+            // The drag's one step for the whole pass
+            // (the Drag Mend, November 27, 2026): the
+            // packet gathering above moved the held
+            // window's place silently, packet by
+            // packet; here, once, the step is paid —
+            // the ground the painting stands on washed,
+            // the window painted at the place the
+            // gathering came to rest. A pass in which
+            // the button was let go owes nothing: the
+            // drop's whole repaint already made the
+            // glass whole, and dragwin stands 0.
+            if dragwin != 0 {
+                if dragdirty == 1 {
+                    dragdirty = 0
+                    pset(pixdesk, 464, dragwin)
+                    pset(pixdesk, 468, winleft(pixdesk, dragwin))
+                    pset(pixdesk, 472, wintop(pixdesk, dragwin))
+                    dragstep(pixdesk, cellblock, notesblock)
                 }
             }
         }

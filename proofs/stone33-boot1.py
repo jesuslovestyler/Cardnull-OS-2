@@ -18,9 +18,10 @@
 # choices DECODED letter by letter against the system's
 # own letter shapes, Rest last. A press on the Files
 # choice opens the files window at its new first place
-# (left cell 5, top row 30 — above the bar now; row 31
-# through Stone 48, one higher since Stone 49 grew the
-# window by its exchange row). The
+# (left cell 5, top row 29 — above the bar now; row 31
+# through Stone 48, one higher at Stone 49, which grew
+# the window by its exchange row, and one higher again
+# since Stone 50 grew it by the Cardinal door's row). The
 # glass is checked on the windows: the welcome window's
 # rounded corner leaves the corner pixel to the desktop
 # while its frame stands a few pixels in; the welcome's
@@ -112,11 +113,11 @@ def count_in(d, rgb, x0, y0, x1, y1):
 # y 736 (row 46), its words on row 47; the start
 # button's center (16, 752); the menu at left 0, top
 # row 37, nine rows; the files window at left cell 5,
-# top row 30; the welcome window at left cell 6, top
+# top row 29; the welcome window at left cell 6, top
 # row 5, fifty-one by fourteen; the rest panel
 # centered, left cell 24, top row 22.
 MT = 37
-FX, FY = 5, 30
+FX, FY = 5, 29
 RL, RT = 24, 22
 CHOICES = ("Welcome", "Feather", "Files", "Settings", "Editor",
            "Verse", "Calculator", "Help", "Rest")
@@ -219,10 +220,10 @@ if d:
 
 # Drag the files window by its title bar: the point
 # stands at (40, 632); it is laid on the title bar at
-# (400, 504), the button goes down, four small steps
+# (400, 472), the button goes down, four small steps
 # carry it by (+80, -160), and it is let go. The
-# window's new place: left cell 10, top row 21.
-NX, NY = 10, 21
+# window's new place: left cell 10, top row 20.
+NX, NY = 10, 20
 go(400, FY * 16 + 8)
 mousebutton(1)
 for _ in range(4):

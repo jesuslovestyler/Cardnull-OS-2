@@ -61,15 +61,15 @@ def decode(d, prow, pcol, text, ink):
 
 # The files window's place on this face (1024x768,
 # sixty-four cells across): fifty-four wide, centered —
-# left at cell 5, top at the layout's row for the text
-# face's row 17 — cell row 31 since Stone 33, whose
-# bar at the screen's foot took the foot's two rows and
-# the taller windows' first places rose to stand above
-# it. Title at row 31, heading at 33, the list at rows
-# 34 onward (entries' words at column 9), the picked
-# note's label at row 42 and its words at row 43
-# (column 7).
-GX, GY = 5, 30
+# left at cell 5, top at cell row 29 — one row higher
+# since Stone 50 grew the list by the Cardinal door's
+# row (row 30 through Stone 49; the taller windows'
+# first places rose at Stone 33, whose bar at the
+# screen's foot took the foot's two rows). Title at
+# row 29, heading at 31, the list at rows 32 onward
+# (entries' words at column 9), the picked note's
+# label at row 40 and its words at row 41 (column 7).
+GX, GY = 5, 29
 NOTES = ["remember the garden",
          "call billy about the roof",
          "pray for quinton"]
@@ -113,10 +113,12 @@ if d:
 
 # A press of the pointer on the third entry's row picks
 # it: the arrow's point stands at (506, 378); a move of
-# (-306, +190) lays it at (200, 568), on the third
-# entry's row (cell row 35 — one higher since Stone
-# 49 grew the files window by its exchange row).
-mousemove(-306, 190)
+# (-306, +174) lays it at (200, 552), on the third
+# entry's row (cell row 34 — one higher since Stone
+# 50 grew the files window by the Cardinal door's
+# row; cell row 35 through Stone 49, which grew it
+# by its exchange row).
+mousemove(-306, 174)
 mousebutton(1)
 mousebutton(0)
 d = waitdump(lambda d: d is not None

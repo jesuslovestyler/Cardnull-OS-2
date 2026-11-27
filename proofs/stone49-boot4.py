@@ -79,7 +79,7 @@ def park():
 
 
 # The files window's place, as in boot 1.
-GX, GY = 5, 30
+GX, GY = 5, 29
 
 
 def press_exchange(col):

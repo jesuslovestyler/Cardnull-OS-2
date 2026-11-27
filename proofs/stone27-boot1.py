@@ -86,7 +86,10 @@ def park():
 
 # The windows' place on this face (1024x768, sixty-four
 # cells across): fifty-four wide, centered — left cell
-# 5, top row 32. In the files window: heading at GY+2,
+# 5, top row 31 (the editor's top, two below the files
+# window's GY — one row higher since Stone 50 grew
+# the files list by the Cardinal door's row). In the
+# files window: heading at GY+2,
 # the notes at GY+3 onward (words at GX+4), the foot's
 # label at GY+11 with "Let this note go" at GX+36, the
 # picked note's words at GY+12. The asking (either
@@ -96,7 +99,7 @@ def park():
 # the new-note entry at GY+3, the notes at GY+4 onward,
 # the keeping word at GY+12 with "Let this note go" at
 # GX+36 on that row.
-GX, GY = 5, 30
+GX, GY = 5, 29
 A = "remember the garden"
 B = "call billy about the roof"
 C = "pray for quinton"
@@ -192,10 +195,12 @@ if d:
 # --- the editor window: the same letting go ---
 # (The editor's first place stands at row 32 still —
 # Stone 33 rose only the taller windows — so its rows
-# are read at EY, two more than the files window's GY
-# since Stone 49 grew the files window by its exchange row (the editor
-# itself stands where it stood, at row 32).)
-EY = GY + 2
+# are read at EY, three more than the files window's GY
+# since Stone 50 grew the files window by the Cardinal
+# door's row (two more through Stone 49, which grew
+# it by its exchange row; the editor itself stands
+# where it stood, at row 32).)
+EY = GY + 3
 typewrite("editor")
 enter()
 d = waitdump(lambda d: d is not None

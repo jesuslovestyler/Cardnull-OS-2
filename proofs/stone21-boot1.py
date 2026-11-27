@@ -229,12 +229,17 @@ expect(d is not None, "Enter kept the change back to the same place in the list"
 
 # The files window reckons from the same store: opened
 # now, it lists the same two notes, the changed words
-# standing in it. Its first place stands one row above
-# the editor's since Stone 33 (top row 31 to the
-# editor's 32 — the taller files window rose to stand
-# above the bar at the screen's foot), so its rows are
-# read at FY, one less than the editor's GY.
-FY = GY - 1
+# standing in it. Its first place is its own first
+# place — top row 29 to the editor's 32, three rows
+# above it: row 31 through Stone 48, when it stood
+# one row above the editor, then one row higher at
+# each growth since, Stone 49's exchange row and
+# Stone 50's Cardinal door row. (This driver's
+# reckoning stood at the old place through both
+# growths and failed alike on the Stone 49 tree,
+# control-proven before this mend.) Its rows are
+# read at FY, three less than the editor's GY.
+FY = GY - 3
 typewrite("files")
 enter()
 d = waitdump(lambda d: d is not None

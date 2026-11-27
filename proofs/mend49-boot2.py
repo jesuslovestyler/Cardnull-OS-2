@@ -94,7 +94,7 @@ def cell_pixel(d, row, col):
 
 
 # The files window's place, as in boot 1.
-GX, GY = 5, 30
+GX, GY = 5, 29
 
 
 # The machine is first let rise unwatched, as in

@@ -52,6 +52,21 @@
 # ISO filesystem is walked exactly as on the CD; only
 # the reckoning of its sectors changes.
 #
+# Stone 50 teaches it where on a hard disc the image
+# may stand. Installed onto a computer's own disk, the
+# image does not stand at the device's head — the
+# keeping lives there (the card, the notes, the
+# picture, in diskkeep.nifla's places) — but past the
+# keeping's ground, and the master boot record the
+# installer laid at the head names the image's first
+# sector in its partition table. On the hard-disc road
+# this loader reads that record once, before the walk,
+# and reckons every read from the named beginning
+# (read_dap adds it after its translation). On the CD
+# road nothing is read and nothing changes; on the
+# stick the table names 0, and the road is the road it
+# always was.
+#
 # Memory, while the doorman works (all low, all its own):
 #   0x1000  one disc sector, read and re-read
 #   0x2000  the VESA information blocks
@@ -278,6 +293,38 @@ _start:
     mov word ptr [sec_mult], 4
     mov byte ptr [sec_shift], 2
 sec_known:
+
+    # Where the image begins on this device (Stone 50).
+    # On a hard disc the system may stand installed past
+    # the keeping's ground rather than at the device's
+    # head: the master boot record that brought this
+    # loader in names the image's first sector in its
+    # partition table, and every read below is reckoned
+    # from that beginning (read_dap adds it, in device
+    # sectors, after its translation). The beginning is
+    # read here, once, from the device's first sector —
+    # read raw, before any reckoning stands — and only
+    # on the hard-disc road: a CD's road has no record
+    # to consult and its beginning is its head, as the
+    # stick's is too (its table names 0, so a stick
+    # reads exactly as it always has). A read that
+    # fails leaves the beginning at 0 — the head of the
+    # device, the road this loader has always walked.
+    cmp word ptr [sec_mult], 4
+    jne base_known
+    mov word ptr [dap_count], 1
+    mov word ptr [dap_buf_off], 0x1000
+    mov word ptr [dap_buf_seg], 0
+    mov dword ptr [dap_lba], 0
+    mov dword ptr [dap_lba + 4], 0
+    mov si, offset dap
+    mov ah, 0x42
+    mov dl, [bootdrive]
+    int 0x13
+    jc base_known
+    mov eax, dword ptr [0x1000 + 454]
+    mov [img_base], eax
+base_known:
 
     # A20: the fast gate at port 0x92.
     in al, 0x92
@@ -533,10 +580,15 @@ info_done:
 # (Stone 17: four 512-byte sectors on a hard disc or a
 # stick, one 2048-byte sector on a CD) happens here, in
 # the packet itself, and no caller reads the packet back.
+# Stone 50 adds the image's beginning to the translated
+# address: on a device whose image stands at its head —
+# every CD, and the stick — the beginning is 0 and the
+# address is the translated one, exactly as before.
 read_dap:
     mov eax, [dap_lba]
     mov cl, byte ptr [sec_shift]
     shl eax, cl
+    add eax, [img_base]
     mov [dap_lba], eax
     mov ax, [sec_mult]
     mov [dap_count], ax
@@ -981,6 +1033,12 @@ sec_mult:
 sec_shift:
     .byte 0
     .align 4
+# The image's beginning on this device, in device
+# sectors (Stone 50): 0 unless the hard-disc road read
+# a master boot record naming another beginning, at
+# the door above.
+img_base:
+    .long 0
 drvparams:
     .fill 64, 1, 0
     .align 4

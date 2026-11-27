@@ -108,12 +108,13 @@ def bar_clock_standing(d):
 # The menu's place on this face (1024x768, sixty-four
 # cells across): left cell 0, top row 37, its choices
 # at its left + 1, one to a row. The files window
-# opens at left cell 5, top row 30 (row 32 until Stone
-# 33), its title at its left + 1, its heading at its
+# opens at left cell 5, top row 29 (row 30 until Stone
+# 50 grew the list by the Cardinal door's row; row 32
+# until Stone 33), its title at its left + 1, its heading at its
 # top + 2, its left + 2. The welcome window's title
 # stands at row 5, cell 7.
 ML, MT = 0, 37
-FX, FY = 5, 30
+FX, FY = 5, 29
 CHOICES = ("Welcome", "Feather", "Files", "Settings", "Editor",
            "Verse", "Calculator", "Help", "Rest")
 

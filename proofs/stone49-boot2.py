@@ -91,7 +91,7 @@ def park():
 
 
 # The files window's place, as in boot 1.
-GX, GY = 5, 30
+GX, GY = 5, 29
 
 # The picture window's place (Stone 48): left cell
 # 7, top row 30, fifty wide, sixteen high. Canvas

@@ -89,6 +89,28 @@
 // always has. The picture store still holds ONE picture:
 // there is no second picture's place on the disk, and
 // this stone does not invent one.
+//
+// Stone 50 stands the system itself on this disk beside
+// the keeping: installed from a Cardnull stick, the
+// disc's image lies past the keeping's ground — at
+// sector 2048, a megabyte in, clear of the card, the
+// notes, and the picture — and a master boot record at
+// sector 0, laid last of all, names that beginning in
+// its partition table, so the firmware and Cardnull's
+// doorman bring the machine up from its own disk. The
+// keeping's places do not move for it: the card still
+// stands at sector 8 — free ground on an installed
+// disk, whose boot path asks only sector 0 (the
+// record) before the image's beginning — and the
+// notes and the picture stand where they always have,
+// before the image's beginning. One
+// making below belongs to that stone: diskcardinal,
+// which tells whether this disk already carries a
+// Cardinal at the given beginning — the installer's
+// refusal to lay a second system over the first, and
+// the setup gate's guard, for the clearing the gate
+// promises (sectors 0 to 63) would unmake the very
+// record the installer laid.
 
 // Selects the disk drive (the master on the first
 // channel), so the drive is awake and answering before the
@@ -470,6 +492,46 @@ make ataflush() -> number {
             }
         }
         give 1
+    }
+    give 0
+}
+
+// Whether this disk already carries a Cardinal at the
+// given beginning (Stone 50): its first sector wears
+// the boot record's signature, its partition table
+// names that beginning as the image's first sector,
+// and the image's own volume descriptor stands at the
+// beginning's sixty-fourth sector, with its mark —
+// the letters CD001 after a first byte of 1, as the
+// doorman reads it. Gives back 1 when all three stand,
+// 0 when any does not — or there is no disk to read.
+make diskcardinal(base: number) -> number {
+    selectdrive()
+    if disksectors() > 0 {
+        let block = makebytes(512)
+        let n = diskread(0, block)
+        if block[510] == 85 {
+            if block[511] == 170 {
+                let start = block[454] + block[455] * 256 + block[456] * 65536 + block[457] * 16777216
+                if start == base {
+                    let pvd = makebytes(512)
+                    let m = diskread(base + 64, pvd)
+                    if pvd[0] == 1 {
+                        if pvd[1] == 67 {
+                            if pvd[2] == 68 {
+                                if pvd[3] == 48 {
+                                    if pvd[4] == 48 {
+                                        if pvd[5] == 49 {
+                                            give 1
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     give 0
 }

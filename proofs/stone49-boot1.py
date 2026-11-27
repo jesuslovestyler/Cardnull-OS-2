@@ -115,13 +115,15 @@ def cell_pixel(d, row, col):
 
 # The files window's place (Stone 19; its top one row
 # higher since this stone grew it by the exchange
-# row): left cell 5, top row 30. Its foot stands on
+# row, and one row higher again since Stone 50 grew
+# it by the Cardinal door's row): left cell 5, top
+# row 29. Its foot stands on
 # GY + 11, the picked note's words on GY + 12, the
 # picture's entry on GY + 13, and the exchange's row
 # on GY + 14 — "To the stick" at GX + 2, "From the
 # stick" at GX + 16, and the exchange's spoken word
 # at GX + 2 on the same row.
-GX, GY = 5, 30
+GX, GY = 5, 29
 
 
 def press_exchange(col):

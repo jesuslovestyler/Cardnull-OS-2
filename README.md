@@ -4973,6 +4973,303 @@ has yet carried the exchange — Tyler's witness,
 on a real stick in the living machine, decides,
 as it decided for the stones before.
 
+### Stone 50 — Make This Computer a Cardinal
+
+Until now the computer has booted only from
+outside itself — from the stick, or from the
+disc. The files window's new last row makes the
+machine its own: "Make this computer a
+Cardinal" — the clearest plain words for what
+it does, standing always in the list. The
+window grew one row for the door — the desk
+496 to 508, the new cells holding the asking's
+standing (496), the asking's pick (500), and
+the install's word (504) — its reckoning of
+its rows sixteen become seventeen, and its top
+row risen one, 30 to 29, to stand the taller
+window above the bar.
+
+A press on the door opens an asking in Stone
+27's shape: "Make this computer a Cardinal?",
+and under it the whole of the matter in plain
+words — "Cardnull will be copied from the
+stick onto this computer's own disk. Your
+notes and your picture stay as they are." —
+with "Yes, make it a Cardinal" and "Not yet"
+to choose between, the pick opening on "Not
+yet" so that Enter alone installs nothing, and
+Escape putting the asking away. While the copy
+runs the window first repaints with its
+working word, since the desktop stands still
+for the copying.
+
+The making reads the system image from a
+plugged-in stick by Stone 43's USB roads — the
+running kernel has no driver for the disc
+drive, so the disc cannot be its own source —
+and the stick is only read, never written. The
+image is laid on the hard disk at sector 2048,
+past the keeping ground, which is never
+touched: the settings card at sector 8, the
+notes at 64 onward, the picture at 80 onward
+stand exactly as they stood. The copy is
+proved by reading back at three places — the
+image's sectors 64 and 80 and its last — and
+the disk's boot record is written LAST, so a
+copy that fails partway leaves the disk as it
+was: not a Cardinal, its keeping whole, and
+the window saying so. A disk that already
+keeps is not written in its keeping at all;
+a disk with no keeping is given one from the
+sitting's own standings once the system
+stands on it, so the desktop the disk boots
+to is the desktop that installed it. The
+answers stand plainly for every honest case:
+"No hard disk stands in this computer."; "This
+disk already carries a Cardinal." — a second
+making refused, never a silent overwriting;
+"No stick stands in this computer."; "The
+stick does not carry Cardnull."; "This disk
+is too small to carry a Cardinal."; "The
+copying did not finish."; the working word
+"Making this computer a Cardinal..."; and at
+the end "This computer is a Cardinal now."
+
+The boot road is the house's own, taught one
+new word: the MBR stub now fills its read from
+its own partition entry at the moment of
+booting, and the loader, on the sector road,
+learns the image's beginning from that entry
+before its first translated read. Stick images
+carry beginning 0, so the stick's road is
+byte for byte the road it always was — the
+stick remains fully able to boot and run the
+system exactly as before; the install is an
+addition, not a replacement. An installed
+disk boots by the BIOS door: the EFI loader
+is untouched by this stone, so a machine that
+can boot only the EFI way still needs the
+disc, and Stone 17's honest limit stands. One
+guard besides: the typed gate's 'setup' road
+now refuses a disk that carries the system,
+answering that the disk carries your Cardnull
+system and was left as it was, so one typed
+word cannot wipe an installed Cardinal's
+record and keeping in a sitting.
+
+The stone's proof (prove-stone50) stands in
+eight boots and the shells' own byte
+reckonings, 74 checks whole. Boot 1, booted
+from the disc with the shipped stick plugged
+in and a prepared disk fitted — the Eastern
+card, two notes, a kept picture — opens the
+asking, reads its words, and makes the
+Cardinal: the disk's record then stands byte
+for byte the stick's own apart from the
+beginning it names, the whole system image
+stands at sector 2048 byte for byte the
+stick's, every keeping sector stands byte for
+byte as prepared, and the stick's own file
+stands unchanged, hash for hash. Boot 2 boots
+the hard disk ALONE — no stick, no disc — to
+the same desktop, both notes and the picture
+carried over, and a new note is typed and
+kept on the disk itself; boot 3, the disk
+alone again, finds that note still standing.
+Boot 4 asks a second making and is refused in
+plain words, the whole disk byte for byte as
+before — nothing overwritten. Boots 5, 6, and
+7 hear the refusals — no hard disk fitted; a
+prepared disk and no stick; a keeping stick
+that does not carry Cardnull — each answered
+plainly, and each disk left byte for byte as
+it stood. Boot 8 boots the shipped stick
+alone, and the system rises whole from it, as
+it did before this stone.
+
+One bench note is recorded honestly, as the
+stones before recorded theirs: this bench's
+SeaBIOS wedged at "Booting from DVD/CD..."
+all evening on these boots, as on Stone 49's
+night — seven of the proof's fifteen attempts
+wedged and were relaunched, a wedged attempt
+never having run the system at all, and no
+count above comes from a wedged attempt. The
+copy itself is slow on this bench — some
+seven minutes for the whole image over the
+emulated USB road — and the desktop stands
+still while it runs; both are the bench's
+measure, recorded, not hidden.
+
+The companions stand whole at their counts:
+the disc (14), the EFI door (8), Stones 3
+(14), 4 (12), 5 (14), 6 (13), 7 (7), 8 (21),
+9 (32), 12 (16), 15 (30), 16 (29), 18 (11),
+24 (24), 26 (27), 32 (16), 38 (19), 39 (77),
+40 (64), 41 (113), 42 (46), 43 (36), 44 (16),
+46 (23), the no-witness proof (40), the
+pointer trail (14), the feather's start (4),
+and the feather's paint (9). Stone 17 stands
+whole at 20 besides — its one USB boot wedged
+three times and landed on the fourth
+relaunch, the bench's emulated USB road being
+what it is, as its own history records. Stone
+48 stands at 49 of its 50, its one failure the
+held drag of its third boot, the limit its own
+section recorded. Stone 19 stands at 17 of
+19, its two failures the Tab readings that
+fail identically on a pristine Stone 48 tree,
+as Stone 49's section recorded.
+
+The rest of the failures are the bench's and
+the past's, classified as they stand, every
+one of them control-proven on an unmodified
+Stone 49 tree before this stone was
+committed, failing there in the same words:
+Stones 1 and 2 keep readings of the shell face
+from before the desktop rose at Stone 38, and
+fail as they failed; Stone 35 asks the built
+kernel for a guard word renamed at Stone 45
+and has failed since that stone; Stone 20's
+'eastern' reading and its Tab cycle, and
+Stones 13, 14, 29, 30, and 31's presses on the
+grown menu's choices, fail alike on both trees
+— the menu reckoning that Stones 23, 25, and
+33 carry in full, their choice readings and
+the presses downstream of them standing as
+Stone 49's section left them, a small future
+mend stone's work. The drags fare as drags do
+on this bench: Stone 47's six are its
+terminal-drag census and Stone 34's eight its
+census, both standing classifications; Stone
+28's five hang from its large-size drag, and
+Stone 22's drag readings failed on the Stone
+49 tree tonight as on this one — the bench's
+mouse would not carry the held drag on either.
+Two proofs the wedge kept from landing whole:
+the carried-press mend's second, control boot
+wedged in every attempt tonight, its first
+boot whole in every landed run; and Stone
+49's own — its first boot whole three times
+and its second once under this stone's mend,
+its third and fourth boots wedged at their
+risings in every attempt that reached them.
+One more is named so it is not lost: Stone
+21's second boot reads the word 'notes' in
+the terminal, and that reading fails alike on
+the Stone 49 tree — it stood hidden behind
+its first boot's failure through two stones,
+and is the past's, not this stone's.
+
+The files window's growth staled the
+companions' reckoning of its top row, and
+they were mended — proofs 19, 21, 22, 23, 25,
+26, 27, 33, 38, 39, 40, 48, and 49, and the
+carried-press mend's pair — the constant
+carried 30 to 29 and the comments with it, no
+check weakened. Three of the mends are
+recorded with their own care. The editor's
+place rides as two-more-than-the-files in
+Stones 27 and 40, and the first mending
+dragged it along, as Stone 49's first
+building had done before: it was restored to
+its true reckoning — the editor stands where
+it stood, at row 32 — and both proofs re-run
+whole. Stone 21's files reckoning had stood
+stale since Stone 49 itself grew the window,
+its comment still telling the Stone 33 place;
+the control run on the Stone 49 tree proved
+the staleness older than this stone, and its
+FY now reads the window's own first place,
+three less than the editor's GY. And Stone
+22's dragged place was carried by the same
+row as its home place, 21 to 20, with its
+press point — a reckoning derived, not
+bench-proven, since the bench's mouse would
+not carry that drag on either tree tonight;
+it is recorded as derived, honestly.
+
+Bench proof is bench proof: nothing here is
+claimed as witnessed, and no real hard disk
+has yet carried a Cardinal — the install is
+proved on this bench's emulated disk, its
+copy slow and its desktop still while it
+runs, and an installed disk boots by the BIOS
+door alone. Tyler's witness, on a real disk
+in the living machine, decides, as it decided
+for the stones before.
+
+### The Drag Mend (November 27, 2026) — A drag gathers its packets before it paints
+
+Stone 47 healed the drag's painter roads, and
+Tyler's witness in UTM (November 25) answered:
+the drag still does not work — on any window,
+the windows flicker, the mouse is lost, and the
+arrow disappears for the drag's whole length.
+That witness is the evidence this mend is built
+on, and its shape names the mechanism. The arrow
+is taken off the glass at the start of every pass
+of the main loop and laid again only at the
+pass's end, so an arrow gone for a whole drag is
+a pass stretched past seeing. What stretched it
+stands in the drag's following: every mouse
+packet that carried the held window across a cell
+boundary paid a whole-window repaint *inside* the
+packet gathering, while the packets behind it
+waited at the controller. The bench's mouse is
+slow and lossy and never fills the keeping, so
+the bench never showed it; UTM's pointer is
+faithful and fast, the waiting packets overflow
+the controller's one-byte keeping, the gathering
+loses its place, the button readings go wrong —
+and a wrong release fires the drop's whole
+repaint, a wrong press takes hold again and pays
+another, every window flickering while the
+pointer wedges behind repaints it cannot outrun.
+
+The mend moves the painting out of the gathering.
+A packet now moves the held window's place
+silently — `winmove` writes place fields and
+nothing else — and owes the pass one step, paid
+once when the gathering ends: `dragstep` washes
+the ground the window's *painting* stands on
+(kept in the desk at 508 to 515, laid by the
+take-hold and by each step, since the standing
+place now runs ahead of the painting) and paints
+the window at the place the gathering came to
+rest. The drop still pays its one whole repaint,
+and a dropped drag owes no step. The gathering
+itself now costs arithmetic only, however fast
+the packets come, so the keeping cannot overflow
+behind a repaint, and a pass during a drag holds
+at most one window's painting. The mend was
+built and proved on the Stone 49 base and then
+carried into this tree, where Stone 50's desk
+growth set the painted place at 508; its code is
+otherwise the mend's own, word for word.
+
+Proof, recorded honestly: the three drag proofs
+were run on the mend's tree and on the unmodified
+Stone 49 tree as controls. prove-stone22 agrees
+check for check (6 ok, the same 2 failures);
+prove-stone47 agrees check for check (5 ok, the
+same 6 failures, every one the drag itself not
+being carried by the bench's mouse); and
+prove-stone34 fails on both trees in the same
+family (9 checks there, 8 on the control, whose
+run failed from the very first drag).
+prove-mend49 passes whole on the mend's tree, so
+the packet loop's carried-press road is unharmed.
+The bench's held drag is a proven limit on
+unmodified trees, and by that control comparison
+the mend changes nothing the bench can measure —
+neither healing nor harm — which is the most this
+bench can say: the mend's target is a flood the
+bench cannot make. Bench proof is bench proof:
+nothing here is claimed as witnessed. Tyler's
+witness in UTM, on the delivered disc, decides —
+as it decided against Stone 47.
+
 ## The EFI door verified (November 24, 2026)
 
 The disc has carried two doors since it was first

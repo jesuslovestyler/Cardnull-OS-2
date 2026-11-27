@@ -71,6 +71,22 @@
 // rising; a stick plugged in later is not seen until
 // the next rising, as no road in this system yet
 // watches for arrivals.
+//
+// Stone 50 gives this library a third part, after the
+// transport and the keeping: the system itself, from
+// the stick. A stick made from the system's image
+// (Stone 17: the disc's own bytes, with the master
+// boot record at its head) carries the whole system,
+// and the makings at this file's end let the running
+// system lay that system onto the computer's own hard
+// disk — the image copied sector by sector to the
+// disk's ground past the keeping (the main body names
+// the beginning), proved at three of its places, and
+// the disk's own boot record laid last of all, from
+// the stick's record with its partition table's
+// beginning set to where the image now stands. The
+// stick is only ever read by these makings: an
+// installing never writes its source.
 
 // ---- the stick's ledger ----
 //
@@ -1213,4 +1229,172 @@ make udisksetup(desk: bytes, offset: number, chime: number, size: number) -> num
         }
     }
     give 0
+}
+
+// ---- the system itself, from the stick (Stone 50) ----
+
+// Whether the stick carries the system, and how long
+// its image runs: the stick's first sector is the
+// system's own master boot record (Stone 17) — its
+// signature stands at the sector's last two bytes,
+// and its partition table's first entry spans the
+// image, its count being the image's length in
+// sectors — and the image's volume descriptor stands
+// at its sixty-fourth sector with its mark (a first
+// byte of 1, then the letters CD001, as the doorman
+// reads it). Gives back the image's length in
+// sectors when the stick carries the system whole —
+// the length sane (a thousand sectors at least, and
+// no more than the stick holds) — and 0 when it does
+// not: no stick raised, a blank stick, or a stick
+// carrying only a keeping (Stone 43's ground, whose
+// first sector stands empty and whose sixty-fourth
+// carries the notes page's header, not this mark).
+make ustickimage(desk: bytes) -> number {
+    if usectors(desk) > 0 {
+        let block = makebytes(512)
+        if uread(desk, 0, block) == 1 {
+            if block[510] == 85 {
+                if block[511] == 170 {
+                    let count = block[458] + block[459] * 256 + block[460] * 65536 + block[461] * 16777216
+                    if count >= 1000 {
+                        if count <= usectors(desk) {
+                            if uread(desk, 64, block) == 1 {
+                                if block[0] == 1 {
+                                    if block[1] == 67 {
+                                        if block[2] == 68 {
+                                            if block[3] == 48 {
+                                                if block[4] == 48 {
+                                                    if block[5] == 49 {
+                                                        give count
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    give 0
+}
+
+// Copies the stick's system image onto the hard disk,
+// sector by sector, from the stick's first sector to
+// the disk's sector at the given beginning, through
+// the given block: each sector read from the stick
+// and written to the disk before the next is read, so
+// the stick's bytes are never held in more than the
+// one sector in flight. Gives back how many sectors
+// were copied whole: the image's whole length when
+// the copy finished, or the count standing when a
+// reading of the stick failed — the copy stops there,
+// and what stands on the disk is a part of an image
+// that nothing yet points at (the disk's boot record
+// is laid only after a whole, proved copy; see
+// ulayrecord below), so a copy that did not finish
+// leaves the disk exactly as bootable, or as
+// unbootable, as it stood before. (A writing to the
+// disk that fails stops the machine, as every writing
+// through the language's disk word may — the disk
+// library's standing law, not this making's choice.)
+make ucopyimage(desk: bytes, base: number, count: number, block: bytes) -> number {
+    let i = 0
+    while i < count {
+        if uread(desk, i, block) != 1 {
+            give i
+        }
+        let w = diskwrite(base + i, block)
+        i = i + 1
+    }
+    give count
+}
+
+// Proves a copied image at three of its places: the
+// volume descriptor's sector (the image's
+// sixty-fourth), the sector after it where the disc's
+// own directory ground stands (its eightieth), and
+// the image's last sector — each read from the disk
+// and from the stick, and compared byte for byte
+// through the given block and one of the making's
+// own (a call can carry only so many words, and two
+// blocks handed in beside the desk would overflow
+// it). Gives back 1 when all three places stand
+// identical, 0 when any reading failed or any byte
+// differs: a copy that does not prove is not an
+// installed system, and the main body says so
+// plainly and lays no boot record for it.
+make ucopyproof(desk: bytes, base: number, count: number, block: bytes) -> number {
+    let other = makebytes(512)
+    let places = 0
+    while places < 3 {
+        let at = 64
+        if places == 1 {
+            at = 80
+        }
+        if places == 2 {
+            at = count - 1
+        }
+        if uread(desk, at, block) != 1 {
+            give 0
+        }
+        selectdrive()
+        let r = diskread(base + at, other)
+        let i = 0
+        let same = 1
+        while i < 512 {
+            if block[i] != other[i] {
+                same = 0
+            }
+            i = i + 1
+        }
+        if same == 0 {
+            give 0
+        }
+        places = places + 1
+    }
+    give 1
+}
+
+// Lays the hard disk's own master boot record, last
+// of all in an installing: the stick's first sector —
+// Cardnull's own record (Stone 17), whose stub now
+// reads where its image begins from the record's own
+// table — with that table's beginning set to the
+// given sector, where the copied image stands on this
+// disk; the span the table names is the stick's own,
+// the image's length, and stands as it was read. The
+// record is then read back from the disk and compared
+// byte for byte through a block of the making's own,
+// for the carrying limit the proof above tells.
+// Gives back 1 when the record stands on the disk
+// exactly as laid, 0 when the stick's record could
+// not be read or the disk's does not match — and the
+// installing is then not claimed, as every step of it
+// is proved or plainly refused.
+make ulayrecord(desk: bytes, base: number, block: bytes) -> number {
+    let other = makebytes(512)
+    if uread(desk, 0, block) != 1 {
+        give 0
+    }
+    block[454] = lobyte(base)
+    block[455] = hibyte(base)
+    block[456] = lobyte(base / 65536)
+    block[457] = hibyte(base / 65536)
+    selectdrive()
+    let w = diskwrite(0, block)
+    let r = diskread(0, other)
+    let i = 0
+    let same = 1
+    while i < 512 {
+        if block[i] != other[i] {
+            same = 0
+        }
+        i = i + 1
+    }
+    give same
 }
