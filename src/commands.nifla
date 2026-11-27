@@ -103,6 +103,10 @@
 //       forward ('picture'; the window is the face of
 //       light's, Stone 48, and the doing is the main
 //       body's)
+//  26 — the tunes window is opened and brought
+//       forward ('tunes'; the window is the face of
+//       light's, Stone 51, and the doing is the main
+//       body's)
 make wordkind(word) {
     if word == "" {
         give 0
@@ -181,6 +185,9 @@ make wordkind(word) {
     }
     if word == "picture" {
         give 25
+    }
+    if word == "tunes" {
+        give 26
     }
     give 1
 }

@@ -3823,6 +3823,205 @@ make onepicture(desk) {
     }
 }
 
+// ---- the tunes window (Stone 51) ----
+//
+// A fourteenth window: hymn tunes for the machine's
+// small voice (speaker.nifla, Stone 18). Three tunes
+// stand in it by name; a press on a tune's row picks
+// it and it sings, note by note through the PC
+// speaker, while the desktop waits — as it waits for
+// the welcome chime, whose road this is. The
+// window's place and size are reckoned here, like
+// every window's, so the painter and the pointer's
+// pressing can never disagree. Its standing lives
+// in the desk at 516 to 528 (pixface.nifla's
+// ledger): open, the picked tune, and its place.
+// The window is thirty-six cells wide on the wide
+// grid and ten rows high: its title row, a line of
+// plain words, the three tunes' rows, a breath, and
+// the word about the waiting. On the narrow grid it
+// stands as wide as the grid honestly holds, like
+// the files window's measure.
+
+make tuwide(desk) {
+    if pget(desk, 28) >= 56 {
+        give 36
+    }
+    give pget(desk, 28) - 2
+}
+
+make tuleft(desk) {
+    give pget(desk, 524)
+}
+
+make tutop(desk) {
+    give pget(desk, 528)
+}
+
+make tuhigh(desk) {
+    give 10
+}
+
+// The tunes' names, by their number.
+make tunename(tune) {
+    if tune == 0 { give "Amazing Grace" }
+    if tune == 1 { give "Jesus Loves Me" }
+    give "Joy to the World"
+}
+
+// How many notes a tune has.
+make tunelen(tune) {
+    if tune == 0 { give 14 }
+    if tune == 1 { give 25 }
+    give 31
+}
+
+// One note of a tune, packed: its pitch (a frequency
+// the speaker's divisor is reckoned from) times ten,
+// plus its length in eighth notes — a quarter note
+// is 2, a half note 4, a dotted half 6. The tunes
+// are the old hymns as they are commonly sung —
+// Amazing Grace (New Britain), Jesus Loves Me
+// (China), and Joy to the World (Antioch) — the
+// first strain of each, the part everyone carries.
+make tunenote(tune, i) {
+    if tune == 0 {
+        if i == 0 { give 3922 }
+        if i == 1 { give 5234 }
+        if i == 2 { give 6592 }
+        if i == 3 { give 5234 }
+        if i == 4 { give 6592 }
+        if i == 5 { give 5874 }
+        if i == 6 { give 5232 }
+        if i == 7 { give 2204 }
+        if i == 8 { give 3922 }
+        if i == 9 { give 3302 }
+        if i == 10 { give 3922 }
+        if i == 11 { give 3302 }
+        if i == 12 { give 2944 }
+        if i == 13 { give 2626 }
+    }
+    if tune == 1 {
+        if i == 0 { give 3302 }
+        if i == 1 { give 3922 }
+        if i == 2 { give 3922 }
+        if i == 3 { give 4402 }
+        if i == 4 { give 3924 }
+        if i == 5 { give 3304 }
+        if i == 6 { give 2942 }
+        if i == 7 { give 3302 }
+        if i == 8 { give 3492 }
+        if i == 9 { give 3302 }
+        if i == 10 { give 2944 }
+        if i == 11 { give 2624 }
+        if i == 12 { give 3302 }
+        if i == 13 { give 3922 }
+        if i == 14 { give 3922 }
+        if i == 15 { give 4402 }
+        if i == 16 { give 3924 }
+        if i == 17 { give 3304 }
+        if i == 18 { give 2942 }
+        if i == 19 { give 2942 }
+        if i == 20 { give 3302 }
+        if i == 21 { give 3492 }
+        if i == 22 { give 3302 }
+        if i == 23 { give 2942 }
+        if i == 24 { give 2626 }
+    }
+    if tune == 2 {
+        if i == 0 { give 5233 }
+        if i == 1 { give 4941 }
+        if i == 2 { give 4402 }
+        if i == 3 { give 3922 }
+        if i == 4 { give 3492 }
+        if i == 5 { give 3302 }
+        if i == 6 { give 2942 }
+        if i == 7 { give 2622 }
+        if i == 8 { give 3922 }
+        if i == 9 { give 4402 }
+        if i == 10 { give 4942 }
+        if i == 11 { give 5234 }
+        if i == 12 { give 5232 }
+        if i == 13 { give 5232 }
+        if i == 14 { give 4942 }
+        if i == 15 { give 4402 }
+        if i == 16 { give 3922 }
+        if i == 17 { give 3492 }
+        if i == 18 { give 3304 }
+        if i == 19 { give 2942 }
+        if i == 20 { give 3302 }
+        if i == 21 { give 3492 }
+        if i == 22 { give 3302 }
+        if i == 23 { give 2942 }
+        if i == 24 { give 2624 }
+        if i == 25 { give 2942 }
+        if i == 26 { give 3302 }
+        if i == 27 { give 3492 }
+        if i == 28 { give 3302 }
+        if i == 29 { give 2942 }
+        if i == 30 { give 2626 }
+    }
+    give 0
+}
+
+// Sings one tune through the machine's small voice:
+// each note sounded for its length (an eighth note
+// is 175,000 of the timer's counts, about a seventh
+// of a second), a short breath between the notes.
+// The singing blocks, as the welcome chime's does:
+// the desktop waits, and the tune is short.
+make playtune(tune) {
+    let n = tunelen(tune)
+    let i = 0
+    while i < n {
+        let packed = tunenote(tune, i)
+        let freq = packed / 10
+        let dur = packed - freq * 10
+        playnote(freq, dur * 175000)
+        waitclocks(24000)
+        i = i + 1
+    }
+}
+
+// Paints the tunes window from the desk's standing:
+// closed, the plain desktop; open, its frame and
+// title bar, its line of plain words, and the three
+// tunes' names — the picked one standing white on
+// blue, the forward chip's own colors, and the
+// others in the body's own black on its gray.
+make onetunes(desk) {
+    let cs = pget(desk, 320)
+    let gx = tuleft(desk)
+    let gy = tutop(desk)
+    let gw = tuwide(desk)
+    let gh = tuhigh(desk)
+    if pget(desk, 516) == 0 {
+        pixwashwin(desk, gx, gy, gw, gh)
+    } else {
+        let front = 0
+        if pget(desk, 180) == 14 {
+            front = 1
+        }
+        winframe(desk, gy * 256 + gx, gh * 256 + gw, front)
+        pixspan(desk, 0, 7, 15)
+        pixtext(desk, gy, gx + 1, "Tunes")
+        pixink(desk, 7)
+        pixfill(desk, gx * cs + 2, gy * cs + cs + 2, gw * cs - 4, gh * cs - cs - 4)
+        pixline(desk, (gy + 2) * 256 + (gx + 2), "Press a tune, and it will sing.", 112)
+        let t = 0
+        while t < 3 {
+            let attr = 112
+            if pget(desk, 520) == t {
+                attr = 31
+            }
+            pixline(desk, (gy + 3 + t) * 256 + (gx + 2), tunename(t), attr)
+            t = t + 1
+        }
+        pixline(desk, (gy + 7) * 256 + (gx + 2), "The desktop waits while it sings,", 112)
+        pixline(desk, (gy + 8) * 256 + (gx + 2), "as it does for the welcome chime.", 112)
+    }
+}
+
 // One icon's painting: its picture, then its name in
 // white beside it. The pictures are drawn plainly, in
 // the palette's own colors — a folder, a page, a
@@ -4031,7 +4230,8 @@ make chipwin(slot) {
     if slot == 7 { give 10 }
     if slot == 8 { give 11 }
     if slot == 9 { give 12 }
-    give 13
+    if slot == 10 { give 13 }
+    give 14
 }
 
 // The name the chip at 'slot' carries: the window's
@@ -4048,7 +4248,8 @@ make chipname(slot) {
     if slot == 7 { give "Terminal" }
     if slot == 8 { give "Bible" }
     if slot == 9 { give "Shield" }
-    give "Picture"
+    if slot == 10 { give "Picture" }
+    give "Tunes"
 }
 
 // The last column a chip on 'row' may reach (the
@@ -4119,7 +4320,7 @@ make chipplace(desk, slot) {
 make paintchips(desk) {
     pixchipground(desk)
     let s = 0
-    while s < 11 {
+    while s < 12 {
         let place = chipplace(desk, s)
         if place >= 0 {
             let row = place / 256
@@ -4172,20 +4373,22 @@ make paintchips(desk) {
 // the start button), it is twelve
 // cells wide — room for the longest name, Settings,
 // with the frame's breathing room the windows keep —
-// and fourteen cells high, one row to a choice
-// (thirteen window choices, and Rest under them
+// and fifteen cells high, one row to a choice
+// (fourteen window choices, and Rest under them
 // since Stone 25, standing last since Stone 29, one
 // row lower again since Stone 30's Calculator choice
 // took the seventh row, and one row lower again
 // since Stone 31's Help choice took the eighth row,
 // since Stone 41's Bible choice took the ninth,
 // since Stone 42's Shield choice took the tenth,
-// and since Stone 48's Picture choice took the
-// eleventh). Since Stone 46 the choices stand in
+// since Stone 48's Picture choice took the
+// eleventh, and since Stone 51's Tunes choice took
+// the twelfth). Since Stone 46 the choices stand in
 // the desktop icons' own order — Welcome and
 // Feather first, as they have always stood, then
 // Files, Editor, Paint, Calculator, Verse, Help,
-// Settings, Terminal, Bible, Shield, and Rest last —
+// Settings, Terminal, Bible, Shield, Picture,
+// Tunes, and Rest last —
 // for Tyler's word at his Stone 44 witness: all the
 // programs belong in the start menu. Paint and
 // Terminal stood on the desktop from Stones 24 and 38
@@ -4200,7 +4403,10 @@ make paintchips(desk) {
 // has always stood — the append-before-Rest place
 // Bible and Shield took before it — for the picture
 // window carries no desktop icon whose order it
-// could follow: the icons' column is full.
+// could follow: the icons' column is full. The
+// Tunes choice (Stone 51) stands after Picture in
+// that same place, for the tunes window carries
+// no desktop icon either.
 
 make menuleft(desk) {
     give 0
@@ -4210,13 +4416,14 @@ make menutop(desk) {
     // Stone 33: the menu rises from the start button at
     // the screen's foot — its foot stands on the bar's
     // top edge, so its top is the bar's two rows and its
-    // own fourteen rows up from the grid's foot
-    // (fourteen since Stone 48's Picture choice took
+    // own fifteen rows up from the grid's foot
+    // (fifteen since Stone 51's Tunes choice took its
+    // row; fourteen since Stone 48's Picture choice took
     // its row; thirteen since Stone 46's Paint and
     // Terminal choices took theirs; eleven since Stone
     // 42's Shield choice took the tenth row; ten since
     // Stone 41's Bible choice took the ninth).
-    give pget(desk, 32) - 16
+    give pget(desk, 32) - 17
 }
 
 make menuwide(desk) {
@@ -4224,7 +4431,7 @@ make menuwide(desk) {
 }
 
 make menuhigh(desk) {
-    give 14
+    give 15
 }
 
 // Wipes the menu's place back to the plain desktop:
@@ -4238,7 +4445,7 @@ make menuwash(desk) {
 }
 
 // Paints the bar's menu from the desk's standing: open,
-// its gray edge and black body and the fourteen choices
+// its gray edge and black body and the fifteen choices
 // in white, one to a row — the desktop icons' own order
 // since Stone 46, Welcome and Feather first and Rest
 // last; closed, nothing — putting the menu away is
@@ -4267,7 +4474,8 @@ make onemenu(desk) {
         pixline(desk, (mt + 10) * 256 + (ml + 1), "Bible", 15)
         pixline(desk, (mt + 11) * 256 + (ml + 1), "Shield", 15)
         pixline(desk, (mt + 12) * 256 + (ml + 1), "Picture", 15)
-        pixline(desk, (mt + 13) * 256 + (ml + 1), "Rest", 15)
+        pixline(desk, (mt + 13) * 256 + (ml + 1), "Tunes", 15)
+        pixline(desk, (mt + 14) * 256 + (ml + 1), "Rest", 15)
     }
 }
 
@@ -4396,6 +4604,9 @@ make paintwindows(desk, block, notes) {
     if pget(desk, 476) == 0 {
         onepicture(desk)
     }
+    if pget(desk, 516) == 0 {
+        onetunes(desk)
+    }
     // The desktop's invitation (Stone 47): the
     // ground's own lines are laid again here, after
     // the closed windows' washes — a closed window
@@ -4479,6 +4690,11 @@ make paintwindows(desk, block, notes) {
             onepicture(desk)
         }
     }
+    if f != 14 {
+        if pget(desk, 516) == 1 {
+            onetunes(desk)
+        }
+    }
     if f == 1 {
         if pget(desk, 172) == 1 {
             onewelcome(desk)
@@ -4542,6 +4758,11 @@ make paintwindows(desk, block, notes) {
     if f == 13 {
         if pget(desk, 476) == 1 {
             onepicture(desk)
+        }
+    }
+    if f == 14 {
+        if pget(desk, 516) == 1 {
+            onetunes(desk)
         }
     }
     // The bar's menu stands over everything (Stone 23):
@@ -4648,6 +4869,9 @@ make callpainter(desk, block, notes) {
     }
     if win == 13 {
         onepicture(desk)
+    }
+    if win == 14 {
+        onetunes(desk)
     }
 }
 
@@ -4789,7 +5013,7 @@ make paintregion(desk, block, notes) {
     } else {
         let set = 0
         let win = 1
-        while win <= 13 {
+        while win <= 14 {
             let wl = winleft(desk, win)
             let wt = wintop(desk, win)
             let ww = winwide(desk, win)
@@ -4807,7 +5031,7 @@ make paintregion(desk, block, notes) {
         // fellow's wash will fall joins the set, or the
         // wash would rub a hole in it.
         win = 1
-        while win <= 13 {
+        while win <= 14 {
             if inset(set, win) == 1 {
                 if winopen(desk, win) == 0 {
                     let cl = winleft(desk, win)
@@ -4815,7 +5039,7 @@ make paintregion(desk, block, notes) {
                     let cw = winwide(desk, win)
                     let ch = winhigh(desk, win)
                     let other = 1
-                    while other <= 13 {
+                    while other <= 14 {
                         if winopen(desk, other) == 1 {
                             if inset(set, other) == 0 {
                                 let ql = winleft(desk, other)
@@ -4896,7 +5120,7 @@ make paintregion(desk, block, notes) {
                 if rectstouchx(1, 13, rx, rw) == 1 {
                     if rectstouchy(ctop, 3, ry, rh) == 1 {
                         win = 1
-                        while win <= 13 {
+                        while win <= 14 {
                             if inset(set, win) == 0 {
                                 if rectstouchx(winleft(desk, win), winwide(desk, win), 1, 13) == 1 {
                                     if rectstouchy(wintop(desk, win), winhigh(desk, win), ctop, 3) == 1 {
@@ -4925,7 +5149,7 @@ make paintregion(desk, block, notes) {
                 }
                 if gtouch == 1 {
                     win = 1
-                    while win <= 13 {
+                    while win <= 14 {
                         if inset(set, win) == 0 {
                             if rectstouchx(winleft(desk, win), winwide(desk, win), 2, groundwide(desk, gline)) == 1 {
                                 if rectstouchy(wintop(desk, win), winhigh(desk, win), groundrow(desk, gline), 1) == 1 {
@@ -4940,14 +5164,14 @@ make paintregion(desk, block, notes) {
                 gline = gline + 1
             }
             let member = 1
-            while member <= 13 {
+            while member <= 14 {
                 if inset(set, member) == 1 {
                     let el = winleft(desk, member)
                     let et = wintop(desk, member)
                     let ew = winwide(desk, member)
                     let eh = winhigh(desk, member)
                     win = 1
-                    while win <= 13 {
+                    while win <= 14 {
                         if win != member {
                             if inset(set, win) == 0 {
                                 if rectstouchx(winleft(desk, win), winwide(desk, win), el, ew + 1) == 1 {
@@ -4993,7 +5217,7 @@ make paintregion(desk, block, notes) {
             ii = ii + 1
         }
         win = 1
-        while win <= 13 {
+        while win <= 14 {
             if inset(set, win) == 1 {
                 if winopen(desk, win) == 0 {
                     pset(desk, 400, win)
@@ -5003,7 +5227,7 @@ make paintregion(desk, block, notes) {
             win = win + 1
         }
         win = 1
-        while win <= 13 {
+        while win <= 14 {
             if inset(set, win) == 1 {
                 if winopen(desk, win) == 1 {
                     if win != pget(desk, 180) {
@@ -5016,7 +5240,7 @@ make paintregion(desk, block, notes) {
         }
         let fwd = pget(desk, 180)
         if fwd >= 1 {
-            if fwd <= 13 {
+            if fwd <= 14 {
                 if inset(set, fwd) == 1 {
                     if winopen(desk, fwd) == 1 {
                         pset(desk, 400, fwd)
@@ -5140,6 +5364,7 @@ make winopen(desk, win) {
     if win == 11 { give pget(desk, 424) }
     if win == 12 { give pget(desk, 444) }
     if win == 13 { give pget(desk, 476) }
+    if win == 14 { give pget(desk, 516) }
     give 0
 }
 
@@ -5160,6 +5385,7 @@ make winleft(desk, win) {
     if win == 11 { give bleft(desk) }
     if win == 12 { give shleft(desk) }
     if win == 13 { give puleft(desk) }
+    if win == 14 { give tuleft(desk) }
     give 0
 }
 
@@ -5177,6 +5403,7 @@ make wintop(desk, win) {
     if win == 11 { give btop(desk) }
     if win == 12 { give shtop(desk) }
     if win == 13 { give putop(desk) }
+    if win == 14 { give tutop(desk) }
     give 0
 }
 
@@ -5194,6 +5421,7 @@ make winwide(desk, win) {
     if win == 11 { give bwide(desk) }
     if win == 12 { give shwide(desk) }
     if win == 13 { give puwide(desk) }
+    if win == 14 { give tuwide(desk) }
     give 0
 }
 
@@ -5211,6 +5439,7 @@ make winhigh(desk, win) {
     if win == 11 { give bhigh(desk) }
     if win == 12 { give shhigh(desk) }
     if win == 13 { give puhigh(desk) }
+    if win == 14 { give tuhigh(desk) }
     give 0
 }
 
@@ -5292,6 +5521,10 @@ make winmove(desk, win, newleft, newtop) {
     if win == 13 {
         pset(desk, 484, newleft)
         pset(desk, 488, newtop)
+    }
+    if win == 14 {
+        pset(desk, 524, newleft)
+        pset(desk, 528, newtop)
     }
 }
 
@@ -5417,6 +5650,18 @@ make layplaces(desk) {
         ut2 = 0
     }
     pset(desk, 488, ut2)
+    // The tunes window's place (Stone 51), laid like
+    // the picture window's — centered, at the layout's
+    // row 17, clamped whole onto the grid.
+    pset(desk, 524, (pget(desk, 28) - tuwide(desk)) / 2)
+    let nt2 = layrow(desk, 17)
+    if nt2 + tuhigh(desk) > pget(desk, 32) - 2 {
+        nt2 = pget(desk, 32) - 2 - tuhigh(desk)
+    }
+    if nt2 < 0 {
+        nt2 = 0
+    }
+    pset(desk, 528, nt2)
     // The terminal window's place (Stone 38), and the
     // console's rows laid inside it: the answers' first
     // row (128) just under its title, their last row
@@ -5902,7 +6147,7 @@ if fbflags - (fbflags / 8192) * 8192 >= 4096 {
     }
 }
 if pix == 1 {
-    // The desk stands 508 bytes since Stone 50 (the
+    // The desk stands 532 bytes since Stone 51 (the
     // region repaint's road and window at 384 to 403,
     // the terminal window's standing, place, and
     // answers-keeping address at 404 to 423, the
@@ -5917,8 +6162,10 @@ if pix == 1 {
     // Cardinal asking's standing, its pick, and the
     // making's word at 496 to 507, and the drag's
     // painted place at 508 to 515, since the Drag
-    // Mend).
-    pixdesk = makebytes(516)
+    // Mend, and the tunes window's standing, its
+    // pick, and its place at 516 to 531, since
+    // Stone 51).
+    pixdesk = makebytes(532)
     fontblock = makebytes(1024)
     fontload(fontblock)
     // The pointer's shapes and its save block (Stone 13):
@@ -6137,6 +6384,14 @@ if pix == 1 {
     // the other windows' places by layplaces above.
     pset(pixdesk, 476, 0)
     pset(pixdesk, 480, blockaddr(picblock))
+    // The tunes window's standing (Stone 51), at 516
+    // to 528: it starts closed — the word 'tunes' and
+    // the menu's Tunes choice open it — with the
+    // first tune standing picked at 520. Its place
+    // is laid with the other windows' places by
+    // layplaces above.
+    pset(pixdesk, 516, 0)
+    pset(pixdesk, 520, 0)
     // The terminal window's standing (Stone 38), at 404
     // to 416: it stands OPEN as the face rises — the
     // desktop arrives with its terminal on it, the
@@ -7793,6 +8048,22 @@ while true {
                         ansrow = printline(ansrow, "This face has no windows to open.", pix, pixdesk)
                     }
                 }
+                if kind == 26 {
+                    // 'tunes': the tunes window is
+                    // opened and brought forward (Stone
+                    // 51) — the hymn tunes standing in
+                    // it by name, the picked one marked,
+                    // waiting for a press to sing. The
+                    // text face has no windows, and says
+                    // so in plain words, as for 'help'.
+                    if pix == 1 {
+                        pset(pixdesk, 516, 1)
+                        pset(pixdesk, 180, 14)
+                        paintwindows(pixdesk, cellblock, notesblock)
+                    } else {
+                        ansrow = printline(ansrow, "This face has no windows to open.", pix, pixdesk)
+                    }
+                }
                 if kind == 22 {
                     // 'terminal': the terminal window is
                     // opened and brought forward (Stone
@@ -8173,6 +8444,18 @@ while true {
                                     if pget(pixdesk, 180) == 0 {
                                         if pget(pixdesk, 476) == 1 {
                                             pset(pixdesk, 180, 13)
+                                            paintwindows(pixdesk, cellblock, notesblock)
+                                        }
+                                    }
+                                    // The tunes window joins
+                                    // the same reckoning
+                                    // (Stone 51): when it alone
+                                    // stands open, it comes
+                                    // forward in the closed
+                                    // window's place.
+                                    if pget(pixdesk, 180) == 0 {
+                                        if pget(pixdesk, 516) == 1 {
+                                            pset(pixdesk, 180, 14)
                                             paintwindows(pixdesk, cellblock, notesblock)
                                         }
                                     }
@@ -9152,6 +9435,10 @@ while true {
                                 let uy = putop(pixdesk)
                                 let uw = puwide(pixdesk)
                                 let uh = puhigh(pixdesk)
+                                let wnx = tuleft(pixdesk)
+                                let wny = tutop(pixdesk)
+                                let wnw = tuwide(pixdesk)
+                                let wnh = tuhigh(pixdesk)
                                 let acted = 0
                                 if acted == 0 {
                                     // The rest panel (Stone
@@ -9396,6 +9683,17 @@ while true {
                                                 pset(pixdesk, 180, 13)
                                             }
                                             if pick == 13 {
+                                                // The menu's Tunes
+                                                // choice (Stone
+                                                // 51): the tunes
+                                                // window opens,
+                                                // exactly as the
+                                                // word 'tunes'
+                                                // opens it.
+                                                pset(pixdesk, 516, 1)
+                                                pset(pixdesk, 180, 14)
+                                            }
+                                            if pick == 14 {
                                                 // The menu's Rest
                                                 // choice (Stone
                                                 // 25): the menu is
@@ -9487,7 +9785,7 @@ while true {
                                     let chipc = cxp / cellpx
                                     let chipr = cyp / cellpx
                                     let chips = 0
-                                    while chips < 11 {
+                                    while chips < 12 {
                                         let chplace = chipplace(pixdesk, chips)
                                         if chplace >= 0 {
                                             let chrow = chplace / 256
@@ -9928,6 +10226,48 @@ while true {
                                     }
                                 }
                                 if acted == 0 {
+                                    // The tunes window's close
+                                    // mark (Stone 51): the window
+                                    // closes like any other; the
+                                    // tunes it names do not close
+                                    // with it — the machine's
+                                    // small voice keeps them
+                                    // whether the window stands
+                                    // open or shut.
+                                    if pget(pixdesk, 516) == 1 {
+                                        if cxp >= (wnx + wnw - 2) * cellpx {
+                                            if cxp < (wnx + wnw - 1) * cellpx {
+                                                if cyp >= wny * cellpx {
+                                                    if cyp < (wny + 1) * cellpx {
+                                                        pset(pixdesk, 516, 0)
+                                                        if pget(pixdesk, 180) == 14 {
+                                                            if pget(pixdesk, 172) == 1 {
+                                                                pset(pixdesk, 180, 1)
+                                                            } else {
+                                                                if pget(pixdesk, 176) == 1 {
+                                                                    pset(pixdesk, 180, 2)
+                                                                } else {
+                                                                    if pget(pixdesk, 188) == 1 {
+                                                                        pset(pixdesk, 180, 3)
+                                                                    } else {
+                                                                        if pget(pixdesk, 208) == 1 {
+                                                                            pset(pixdesk, 180, 4)
+                                                                        } else {
+                                                                            pset(pixdesk, 180, 0)
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
                                     // The terminal window's close mark
                                     // (Stone 38): the window closes
                                     // like any other — its keeping
@@ -10126,6 +10466,48 @@ while true {
                                         if pget(pixdesk, 476) == 1 {
                                             pset(pixdesk, 180, 13)
                                             paintwindows(pixdesk, cellblock, notesblock)
+                                        }
+                                    }
+                                    // The tunes window joins
+                                    // the same reckoning
+                                    // (Stone 51): when it alone
+                                    // stands open, it comes
+                                    // forward in the closed
+                                    // window's place.
+                                    if pget(pixdesk, 180) == 0 {
+                                        if pget(pixdesk, 516) == 1 {
+                                            pset(pixdesk, 180, 14)
+                                            paintwindows(pixdesk, cellblock, notesblock)
+                                        }
+                                    }
+                                }
+                                if acted == 0 {
+                                    // A press in the tunes
+                                    // window (Stone 51): a press
+                                    // on a tune's row picks that
+                                    // tune — the window comes
+                                    // forward and shows the pick
+                                    // standing white on blue —
+                                    // and the tune sings through
+                                    // the machine's small voice.
+                                    // The desktop waits while it
+                                    // sings, as it does for the
+                                    // welcome chime.
+                                    if pget(pixdesk, 516) == 1 {
+                                        if cxp >= wnx * cellpx {
+                                            if cxp < (wnx + wnw) * cellpx {
+                                                let trow = cyp / cellpx
+                                                if trow >= wny + 3 {
+                                                    if trow <= wny + 5 {
+                                                        let tpick = trow - (wny + 3)
+                                                        pset(pixdesk, 520, tpick)
+                                                        pset(pixdesk, 180, 14)
+                                                        paintwindows(pixdesk, cellblock, notesblock)
+                                                        playtune(tpick)
+                                                        acted = 1
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -11513,10 +11895,10 @@ while true {
                                     let fwd = pget(pixdesk, 180)
                                     let cand = fwd
                                     let tries = 0
-                                    while tries < 14 {
+                                    while tries < 15 {
                                         let took = 0
                                         if cand >= 1 {
-                                            if cand <= 13 {
+                                            if cand <= 14 {
                                                 if winopen(pixdesk, cand) == 1 {
                                                     let wl = winleft(pixdesk, cand)
                                                     let wt = wintop(pixdesk, cand)
@@ -11550,7 +11932,7 @@ while true {
                                             }
                                         }
                                         if acted == 1 {
-                                            tries = 13
+                                            tries = 14
                                         } else {
                                             if tries == 0 {
                                                 cand = 1

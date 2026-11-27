@@ -5270,6 +5270,62 @@ nothing here is claimed as witnessed. Tyler's
 witness in UTM, on the delivered disc, decides —
 as it decided against Stone 47.
 
+### Stone 51 — The Tunes Window
+
+A fourteenth window, and the desktop learns to
+sing. The tunes window stands in the window
+reckoning like the picture window before it — no
+desktop icon (the icons' column is full), a chip
+on the bar, a choice in the start menu standing
+after Picture with Rest moved one row lower, and
+a word of its own: type **tunes** and it comes
+forward. In it stand three hymn tunes by name —
+*Amazing Grace*, *Jesus Loves Me*, and *Joy to
+the World* — under the plain words "Press a tune,
+and it will sing." A press on a tune's row marks
+it picked, white on blue as picks are marked
+everywhere on this desktop, and the tune sings
+through the machine's speaker, note by note, on
+the same road the welcome chime takes: the
+desktop waits while it sings, as it does for the
+chime, and the window says so in plain words.
+The tunes are kept as a table of tones and
+lengths — quarter, half, and dotted half notes in
+eighths — and each note is played by the
+speaker's own `playnote` with a short breath of
+silence after it. The desk grew sixteen bytes for
+the window's standing, its pick, and its place:
+516 to 532.
+
+Proof, recorded honestly: the window's opening
+by its word, its title, its plain words, the
+three tunes' names with *Amazing Grace* standing
+picked, the pick moving to *Jesus Loves Me* at a
+press and the desktop standing whole again after
+the tune's whole reckoned singing length, its
+chip on the bar, and its opening from the start
+menu's Tunes choice all pass on the bench. The
+bench cannot hear the speaker: the singing
+itself is proved only by the pick, the wait, and
+the desktop's wholeness after it — Tyler's ears
+in UTM are the singing's true witness. One check
+fails, and it is not this stone's: the drag of
+the tunes window by its title bar, and the close
+that hangs on the drag's landing place. The
+afternoon's debugging walked the failure down —
+the same press-and-drag on the *unmodified
+Stone 50 tree* leaves the dragged window and the
+terminal under it unpainted in the same way, and
+a forced whole repaint from a chip press does
+not bring the window back at either its old
+place or its new one, so the fault stands in the
+press road the bench exercises, older than this
+stone, and is recorded here for the mend stone
+that takes it up. What the bench proves of this
+stone, it proves; the drag on real hardware
+stands where Tyler's witness left it — with the
+Drag Mend, awaiting the delivered disc.
+
 ## The EFI door verified (November 24, 2026)
 
 The disc has carried two doors since it was first

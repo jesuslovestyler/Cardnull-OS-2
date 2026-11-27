@@ -321,8 +321,13 @@
 //       step washes the ground the painting truly
 //       stands on while the window's own place
 //       (its pair among 236 to 488) runs ahead of
-//       the painting during a packet flood. The
-//       desk stands 516 bytes now.
+//       the painting during a packet flood.
+//  516  the tunes window's standing (Stone 51):
+//       whether it stands open, which tune stands
+//       picked at 520, and its place at 524 and
+//       528 (its left column and its top row, in
+//       letter cells), reckoned like every
+//       window's. The desk stands 532 bytes now.
 //  320  the letter cell's size in pixels (Stone 28):
 //       sixteen at the words' usual size — the font's
 //       eight by eight drawn at twice size — and
